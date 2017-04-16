@@ -3,8 +3,15 @@ import typing
 from typing import *
 import re
 
-def is_trailer(char: str) -> bool:
-    return char[0].islower() or char[0] == u'_'
+def is_nop_or_comment(token: str) -> bool:
+    # (Only the special starting lexer would parse #!whatever as a single
+    # token and not two separate ones)
+    return (token.isspace() or
+            token.startswith('::') or
+            token.startswith('#!'))
+def is_trailer(char_or_token: str) -> bool:
+    char = char_or_token[0]
+    return char.islower() or char == '_'
 
 # Blocks are not bunched at the lexing stage.
 # So they're not really string literals.
@@ -24,6 +31,13 @@ pd_token_pattern = re.compile(r"""
     """, re.VERBOSE)
 
 trailer_token_pattern = re.compile('[a-z]|_[a-z]*')
+trailer_token_or_starting_comment_pattern = re.compile(r"""
+    [a-z]|_[a-z]*
+    |
+    ::[^\n\r]* # comment
+    |
+    \#![^\n\r]* # shebang
+    """, re.VERBOSE)
 
 def lex(code: str,
         patterns: Iterable[typing.Pattern[str]],
@@ -43,7 +57,7 @@ def lex_trailer(trailer: str) -> Generator[str, None, None]:
     return lex(trailer, [trailer_token_pattern])
 
 def lex_code(code: str) -> Generator[str, None, None]:
-    return lex(code, [trailer_token_pattern, pd_token_pattern])
+    return lex(code, [trailer_token_or_starting_comment_pattern, pd_token_pattern])
 
 def break_trailer(s: str) -> Tuple[str, str]:
     if s[0] == "'":

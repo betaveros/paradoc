@@ -12,7 +12,7 @@
 # literate manner as well as a golfed format.
 from typing import *
 import itertools
-from paradoc.lex import is_trailer, lex_trailer, lex_code, break_trailer, name_trailer_dissections
+from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_code, break_trailer, name_trailer_dissections
 from paradoc.num import Char, PdNum
 from paradoc.objects import Block, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException
 import paradoc.objects as objects
@@ -219,9 +219,14 @@ class CodeBlock(Block):
             nonlocal block_level, executor
             block_level = 1
             executor = executor0
-        while (body_start < len(self.tokens) and
-                is_trailer(self.tokens[body_start])):
+        while body_start < len(self.tokens) and (
+                is_trailer(self.tokens[body_start])
+                or
+                is_nop_or_comment(self.tokens[body_start])
+                ):
             trailer_token = self.tokens[body_start]
+            body_start += 1
+            if is_nop_or_comment(trailer_token): continue
             if trailer_token == 'i' or trailer_token == '_input':
                 env.stack_trigger = input_triggers.all
             if trailer_token == 'l' or trailer_token == '_lines':
@@ -256,8 +261,6 @@ class CodeBlock(Block):
                 env.put('Ñ', '\n')
             else:
                 raise NotImplementedError('unknown global trailer token ' + trailer_token)
-
-            body_start += 1
 
         assign_active = False
         block_acc = [] # type: List[str]
