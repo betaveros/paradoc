@@ -1,0 +1,93 @@
+from typing import *
+import operator
+
+# A custom Char type, and lifted arithmetic functions that preserve
+# Char-ness.
+
+class Char:
+    def __init__(self, ord: int) -> None:
+        assert isinstance(ord, int)
+        self.ord = ord
+    def __nonzero__(self) -> bool:
+        return bool(self.ord)
+    def __lt__(self, other: Any) -> bool:
+        if isinstance(other, Char):
+            return self.ord < other.ord
+        elif isinstance(other, int):
+            # when equal let's say Char < int
+            return self.ord <= other
+        else:
+            raise NotImplementedError
+    def __gt__(self, other: Any) -> bool:
+        if isinstance(other, Char):
+            return self.ord > other.ord
+        elif isinstance(other, int):
+            # when equal let's say Char < int
+            return self.ord > other
+        else:
+            raise NotImplementedError
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Char) and self.ord == other.ord
+    def __ne__(self, other: Any) -> bool:
+        return not (self == other)
+    def __str__(self) -> str:
+        return "'" + chr(self.ord)
+
+Num = Union[int, float]
+PdNum = Union[Char, int, float]
+
+def numerify(x: PdNum) -> Union[int, float]:
+    if isinstance(x, Char):
+        return x.ord
+    else:
+        return x
+
+def intify(x: PdNum) -> int:
+    if isinstance(x, Char):
+        return x.ord
+    else:
+        return int(x)
+
+def lift_numerify(f: Callable[[Num, Num], Num]) -> Callable[[PdNum, PdNum], PdNum]:
+    def inner(a: PdNum, b: PdNum) -> PdNum:
+        if isinstance(a, Char) and isinstance(b, Char):
+            res = f(a.ord, b.ord)
+            assert isinstance(res, int)
+            return Char(res)
+        else:
+            return f(numerify(a), numerify(b))
+    return inner
+
+def old_div(a: Num, b: Num) -> Num:
+    if isinstance(a, int) and isinstance(b, int):
+        return a // b
+    else:
+        return float(a) / float(b)
+
+pd_add = lift_numerify(operator.add)
+pd_sub = lift_numerify(operator.sub)
+pd_mul = lift_numerify(operator.mul)
+pd_div = lift_numerify(old_div)
+pd_mod = lift_numerify(operator.mod)
+
+def pd_add_const(a: PdNum, const: int) -> PdNum:
+    if isinstance(a, Char):
+        return Char(a.ord + const)
+    else:
+        return a + const
+
+def pd_mul_div_const(a: PdNum, mul: int, div: int) -> PdNum:
+    if isinstance(a, Char):
+        return Char(a.ord * mul // div)
+    elif isinstance(a, float):
+        return a * mul / div
+    elif isinstance(a, int):
+        return a * mul // div
+    else:
+        raise NotImplementedError
+
+def pd_power_const(a: PdNum, const: int) -> PdNum:
+    if isinstance(a, Char):
+        return Char(a.ord ** const) # really?
+    else:
+        return a ** const
