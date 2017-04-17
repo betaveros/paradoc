@@ -13,15 +13,15 @@ Hello, world! (unterminated strings are on the TODO list)
 
 Print squares from 0 to 100, separated by spaces
 
-    sE²m                 :: 4 bytes (if encoded as CP1252)
-    sESqm                :: 5 ASCII characters
-    _space 11 Square_map :: Expanded version
+    sE²m                 .. 4 bytes (if encoded as CP1252)
+    sESqm                .. 5 ASCII characters
+    _space 11 Square_map .. Expanded version
 
 Print Fibonacci numbers from 0 to 89, separated by spaces (there will definitely be a 2-byte way to push the initial 0 and 1, but I haven't locked it down yet):
 
-    s0 1T+kx :: 8 bytes / ASCII characters
+    s0 1T+kx .. 8 bytes / ASCII characters
 
-    _space 0 1 10 +_keep_xloop :: Expanded version
+    _space 0 1 10 +_keep_xloop .. Expanded version
 
 Usage
 =====

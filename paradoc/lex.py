@@ -7,7 +7,7 @@ def is_nop_or_comment(token: str) -> bool:
     # (Only the special starting lexer would parse #!whatever as a single
     # token and not two separate ones)
     return (token.isspace() or
-            token.startswith('::') or
+            token.startswith('..') or
             token.startswith('#!'))
 def is_trailer(char_or_token: str) -> bool:
     char = char_or_token[0]
@@ -16,7 +16,7 @@ def is_trailer(char_or_token: str) -> bool:
 # Blocks are not bunched at the lexing stage.
 # So they're not really string literals.
 pd_token_pattern = re.compile(r"""
-    ::[^\n\r]* # comment
+    \.\.[^\n\r]* # comment
     |
     ( # main token
       "(?:\\\"|\\\\|[^"])*" # string
@@ -24,6 +24,8 @@ pd_token_pattern = re.compile(r"""
       '. # char
       |
       [0-9]+(?:\.[0-9]+)?(?:e[0-9]+)? # number. No negatives... for now
+      |
+      \.[0-9]+(?:e[0-9]+)? # number starting with a decimal point
       |
       [^"'0-9a-z_]  # operator or uppercase letter
     )
@@ -34,7 +36,7 @@ trailer_token_pattern = re.compile('[a-z]|_[a-z]*')
 trailer_token_or_starting_comment_pattern = re.compile(r"""
     [a-z]|_[a-z]*
     |
-    ::[^\n\r]* # comment
+    \.\.[^\n\r]* # comment
     |
     \#![^\n\r]* # shebang
     """, re.VERBOSE)

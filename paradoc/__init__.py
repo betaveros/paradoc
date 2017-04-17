@@ -278,9 +278,9 @@ class CodeBlock(Block):
                         raise Exception("closing curly brace out of nowhere")
                     elif token.startswith('{'):
                         block_level += 1
-                    elif token.startswith('::'):
+                    elif token.startswith('..'):
                         pass # comment
-                    elif token.startswith(':'):
+                    elif token.startswith('.'):
                         assign_active = True
                     elif token.startswith('"'):
                         parse_string_onto(env, token, trailer)

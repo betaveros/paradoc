@@ -26,7 +26,7 @@ def initialize_builtins(env: Environment) -> None:
 
     @put('Nop', ' ', '\t', '\n', '\r')
     def nop(env: Environment) -> None: pass
-    @put('Dup', '.')
+    @put('Dup', ':')
     def dup(env: Environment) -> None:
         a = env.pop()
         env.push(a, a)
