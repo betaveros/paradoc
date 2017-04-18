@@ -316,36 +316,21 @@ def initialize_builtins(env: Environment) -> None:
             raise NotImplementedError(repr(a))
 
     # Constant fractions {{{
-
-    def pd_constant_fraction(env: Environment, p: int, q: int) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int, float)):
-            env.push(num.pd_mul_div_const(a, p, q))
-        elif isinstance(a, (str, list, range)):
-            if p <= q:
-                env.push(a[:len(a)*p//q])
-            else:
-                assert q == 1
-                env.push(pd_mul_seq(a, p))
-        elif isinstance(a, Block):
-            assert q == 1
-            pd_foreach_x_only(env, a, range(p))
-        else:
-            raise NotImplementedError(repr(a))
-
-    @put('Halve', '½')
-    def pd_halve(env: Environment) -> None:
-        pd_constant_fraction(env, 1, 2)
-    @put('Quarter', '¼')
-    def pd_quarter(env: Environment) -> None:
-        pd_constant_fraction(env, 1, 4)
-    @put('Three_quarters', '¾')
-    def pd_three_quarter(env: Environment) -> None:
-        pd_constant_fraction(env, 3, 4)
-    @put('Double', '•', '∙')
-    def pd_bullet_double(env: Environment) -> None:
-        pd_constant_fraction(env, 2, 1)
-
+    def pd_constant_fraction_cases(p: int, q: int) -> List[Case]:
+        # Cannot sensibly handle improper fractions p/q > 1 if q > 1.
+        return [
+            Case.number(lambda env, a: [num.pd_mul_div_const(a, p, q)]),
+            Case.seq(lambda env, a: [a[:len(a)*p//q] if p <= q else pd_mul_seq(a, p)]),
+            Case.block(lambda env, b:
+                pd_run_with_probability_then_empty_list(env, b, p/q)
+                if p <= q else
+                pd_foreach_x_only_then_empty_list(env, b, range(p))
+            ),
+        ]
+    cput('Halve', ['½'], pd_constant_fraction_cases(1, 2))
+    cput('Quarter', ['¼'], pd_constant_fraction_cases(1, 4))
+    cput('Three_quarters', ['¾'], pd_constant_fraction_cases(3, 4))
+    cput('Double', ['×'], pd_constant_fraction_cases(2, 1))
     # }}}
 
     @put('L')

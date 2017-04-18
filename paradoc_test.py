@@ -28,6 +28,16 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('3[1 2]*'), [[1,2,1,2,1,2]])
         self.assertEqual(pd_simple_eval('0{10*)}4*'), [1111])
 
+    def test_constant_fractions(self):
+        self.assertEqual(pd_simple_eval('3½'), [1.5])
+        self.assertEqual(pd_simple_eval('7¾'), [5.25])
+        self.assertEqual(pd_simple_eval('9¼'), [2.25])
+        self.assertEqual(pd_simple_eval('11×'), [22])
+        self.assertEqual(pd_simple_eval('""½'), [""])
+        self.assertEqual(pd_simple_eval('"foobar"½'), ["foo"])
+        self.assertEqual(pd_simple_eval('"zfoobar"½'), ["zfo"])
+        self.assertEqual(pd_simple_eval('"foobar"×'), ["foobarfoobar"])
+
     def test_bits(self):
         self.assertEqual(pd_simple_eval('2 4&'), [0])
         self.assertEqual(pd_simple_eval('3 5&'), [1])
@@ -40,7 +50,7 @@ class TestParadoc(unittest.TestCase):
     def test_unary_operators(self):
         self.assertEqual(pd_simple_eval('7('), [6])
         self.assertEqual(pd_simple_eval('7)'), [8])
-        self.assertEqual(pd_simple_eval('7½'), [3])
+        self.assertEqual(pd_simple_eval('7½'), [3.5])
         self.assertEqual(pd_simple_eval('7Sq'), [49])
         self.assertEqual(pd_simple_eval('7Cb'), [343])
 

@@ -101,12 +101,8 @@ def pd_add_const(a: PdNum, const: int) -> PdNum:
 def pd_mul_div_const(a: PdNum, mul: int, div: int) -> PdNum:
     if isinstance(a, Char):
         return Char(a.ord * mul // div)
-    elif isinstance(a, float):
-        return a * mul / div
-    elif isinstance(a, int):
-        return a * mul // div
     else:
-        raise NotImplementedError
+        return a * mul / div
 
 def pd_power_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):

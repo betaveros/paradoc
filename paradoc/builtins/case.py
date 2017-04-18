@@ -129,6 +129,9 @@ class Case:
     def number(func: Callable[[Environment, Union[int, float]], List[PdObject]]) -> 'Case':
         return Case(1, [just_number], func)
     @staticmethod
+    def block(func: Callable[[Environment, Block], List[PdObject]]) -> 'Case':
+        return Case(1, [just_block], func)
+    @staticmethod
     def list_int_range(func: Callable[[Environment, Union[list, range]], List[PdObject]]) -> 'Case':
         return Case(1, [list_int_range], func)
 

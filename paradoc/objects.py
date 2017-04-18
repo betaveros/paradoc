@@ -6,6 +6,7 @@ import sys
 from paradoc.num import Char, Num, PdNum
 import paradoc.num as num
 import collections
+import random
 
 # Objects in the Paradoc runtime (type PdObject).
 
@@ -416,6 +417,10 @@ def pd_foreach_x_only(env: Environment, func: Block, seq: PdSeq) -> None:
 
 def pd_foreach_x_only_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
     pd_foreach_x_only(env, func, seq)
+    return []
+
+def pd_run_with_probability_then_empty_list(env: Environment, func: Block, prob: float) -> List[PdObject]:
+    if random.random() < prob: func(env)
     return []
 
 def pd_filter(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> PdSeq:
