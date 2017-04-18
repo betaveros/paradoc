@@ -1,3 +1,4 @@
+# coding: utf-8
 from paradoc import lex_code, pd_simple_eval
 import unittest
 
@@ -15,9 +16,17 @@ class TestParadoc(unittest.TestCase):
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*'), [35])
         self.assertEqual(pd_simple_eval('2017 95))%(('), [75])
-        self.assertEqual(pd_simple_eval('7 3/'), [2])
+        self.assertEqual(pd_simple_eval('7 3/'), [7/3])
+        self.assertEqual(pd_simple_eval('7 3÷'), [7//3])
         self.assertEqual(pd_simple_eval('7.0 2.0/'), [3.5])
         self.assertEqual(pd_simple_eval('0.25 0.25+'), [0.5])
+
+    def test_multiplication(self):
+        self.assertEqual(pd_simple_eval('"foo"3*'), ["foofoofoo"])
+        self.assertEqual(pd_simple_eval('3"foo"*'), ["foofoofoo"])
+        self.assertEqual(pd_simple_eval('[1 2]3*'), [[1,2,1,2,1,2]])
+        self.assertEqual(pd_simple_eval('3[1 2]*'), [[1,2,1,2,1,2]])
+        self.assertEqual(pd_simple_eval('0{10*)}4*'), [1111])
 
     def test_bits(self):
         self.assertEqual(pd_simple_eval('2 4&'), [0])
@@ -51,6 +60,9 @@ class TestParadoc(unittest.TestCase):
     def test_slices(self):
         self.assertEqual(pd_simple_eval('[3 7 2 5]1<'), [[3]])
         self.assertEqual(pd_simple_eval('[3 7 2 5]1>'), [[7,2,5]])
+
+    def test_each(self):
+        self.assertEqual(pd_simple_eval('[2 3 5]{7+}/'), [9,10,12])
 
     def test_map(self):
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}%'), [[9,10,12]])

@@ -58,17 +58,14 @@ def lift_numerify(f: Callable[[Num, Num], Num]) -> Callable[[PdNum, PdNum], PdNu
             return f(numerify(a), numerify(b))
     return inner
 
-def old_div(a: Num, b: Num) -> Num:
-    if isinstance(a, int) and isinstance(b, int):
-        return a // b
-    else:
-        return float(a) / float(b)
-
 pd_add = lift_numerify(operator.add)
 pd_sub = lift_numerify(operator.sub)
 pd_mul = lift_numerify(operator.mul)
-pd_div = lift_numerify(old_div)
+pd_div = lift_numerify(operator.truediv) # float division!
 pd_mod = lift_numerify(operator.mod)
+pd_pow = lift_numerify(operator.pow)
+
+pd_intdiv = lift_numerify(operator.floordiv)
 
 def pd_add_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):

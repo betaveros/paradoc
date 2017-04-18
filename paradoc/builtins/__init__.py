@@ -6,6 +6,12 @@ import paradoc.num as num
 import sys, math, collections
 from paradoc.builtins.case import Case, CasedBuiltIn
 
+def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdObject:
+    t, t2 = x
+    if t2 is None:
+        raise AssertionError(error_msg)
+    return t2
+
 def initialize_builtins(env: Environment) -> None:
 
     def put(*ss: str) -> Callable[[Callable[[Environment], None]], None]:
@@ -14,7 +20,7 @@ def initialize_builtins(env: Environment) -> None:
                 env.put(s, BuiltIn(s, f))
         return inner_put
 
-    def cput(name: str, extra_names: List[str], cases: List[Case]):
+    def cput(name: str, extra_names: List[str], cases: List[Case]) -> None:
         builtin = CasedBuiltIn(name, cases)
         env.put(name, builtin)
         for xname in extra_names: env.put(xname, builtin)
@@ -37,26 +43,11 @@ def initialize_builtins(env: Environment) -> None:
     # def dup(env: Environment) -> None:
     #     a = env.pop()
     #     env.push(a, a)
-
-    cput('Dup', [':'], [
-        Case.any(lambda x: [x, x])
-    ])
-
-    @put('Swap', '\\')
-    def swap(env: Environment) -> None:
-        b, a = env.pop2()
-        env.push(b, a)
-    @put('Rotate', 'Rot', '@')
-    def rotate(env: Environment) -> None:
-        c, b, a = env.pop3()
-        env.push(b, c, a)
-    @put('Pop', ';')
-    def pop(env: Environment) -> None:
-        env.pop()
-    @put('Repr', '`')
-    def repr_builtin(env: Environment) -> None:
-        a = env.pop()
-        env.push(pd_repr(a))
+    cput('Dup', [':'], [Case.any(lambda env, x: [x, x])])
+    cput('Swap', ['\\'], [Case.any2(lambda env, a, b: [b, a])])
+    cput('Rotate', ['Rot', '@'], [Case.any3(lambda env, a, b, c: [b, a])])
+    cput('Pop', [';'], [Case.any(lambda env, x: [])])
+    cput('Repr', ['`'], [Case.any(lambda env, x: [pd_repr(x)])])
     @put('[', 'Mark')
     def mark(env: Environment) -> None:
         env.mark_stack()
@@ -65,98 +56,48 @@ def initialize_builtins(env: Environment) -> None:
         env.push(env.pop_until_stack_marker())
     # }}}
     # Not {{{
-    @put('!', 'Not')
-    def pd_not(env: Environment) -> None:
-        a = env.pop()
-        env.push(int(not a))
+    cput('Not', ['!'], [Case.any(lambda env, x: [int(not x)])])
     # }}}
     # "Arithmetic" inc Octothorpe {{{
 
-    @put('Plus', '+')
-    def plus(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
-            env.push(num.pd_add(a, b))
-        elif isinstance(a, (list, range)) and isinstance(b, (list, range)):
-            env.push(list(a) + list(b))
-        elif isinstance(a, (str, list)) and isinstance(b, (str, list)):
-            env.push(env.pd_str(a) + env.pd_str(b))
-        elif isinstance(a, Block) and isinstance(b, (str, list, range)):
-            env.push(pd_filter(env, a, b))
-        elif isinstance(b, Block) and isinstance(a, (str, list, range)):
-            env.push(pd_filter(env, b, a))
-        else:
-            raise NotImplementedError(repr(('Plus', a, b)))
-
-    @put('-', 'Minus')
-    def minus(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
-            env.push(num.pd_sub(a, b))
-        elif isinstance(a, Block) and isinstance(b, (str, list, range)):
-            env.push(pd_filter_not(env, a, b))
-        elif isinstance(b, Block) and isinstance(a, (str, list, range)):
-            env.push(pd_filter_not(env, b, a))
-        else:
-            raise NotImplementedError
-
-    @put('*', 'Mul')
-    def mul(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
-            env.push(num.pd_mul(a, b))
-        elif isinstance(a, (Char, int, float)) and isinstance(b, (str, list, range)):
-            env.push(pd_mul_seq(b, a))
-        elif isinstance(b, (Char, int, float)) and isinstance(a, (str, list, range)):
-            env.push(pd_mul_seq(a, b))
-        elif isinstance(b, Block):
-            lst = pd_to_list_range(a)
-            pd_foreach_x_only(env, b, lst)
-        elif isinstance(a, Block):
-            lst = pd_to_list_range(b)
-            pd_foreach_x_only(env, a, lst)
-        else:
-            raise NotImplementedError(repr(('*', a, b)))
-
-    @put('/', 'Slash')
-    def slash(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(num.pd_div(a, b))
-        elif isinstance(a, Block) and isinstance(b, (list, str, range)):
-            pd_foreach(env, a, b)
-        elif isinstance(b, Block) and isinstance(a, (list, str, range)):
-            pd_foreach(env, b, a)
-        else:
-            raise NotImplementedError(repr(a) + repr(b))
-
-    @put('%')
-    def percent(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(a % b)
-        elif isinstance(a, Block):
-            env.push(pd_map(env, a, pd_to_list_range(b)))
-        elif isinstance(b, Block):
-            env.push(pd_map(env, b, pd_to_list_range(a)))
-        else:
-            raise NotImplementedError(repr(a) + repr(b))
-
-    @put('#')
-    def octothorpe(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (float, int)) and isinstance(b, (float, int)):
-            env.push(a ** b)
-        elif isinstance(a, Block) and isinstance(b, (list, str, range)):
-            i, e = pd_find_entry(env, a, b)
-            assert e is not None
-            env.push(e)
-        elif isinstance(b, Block) and isinstance(a, (list, str, range)):
-            i, e = pd_find_entry(env, b, a)
-            assert e is not None
-            env.push(e)
-        else:
-            raise NotImplementedError
+    cput('Plus', ['+'], [
+        Case.number2(lambda env, a, b: [num.pd_add(a, b)]),
+        Case.list2_singleton(lambda env, a, b: [list(a) + list(b)]),
+        Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq)]),
+    ])
+    cput('Minus', ['-'], [
+        Case.number2(lambda env, a, b: [num.pd_sub(a, b)]),
+        # TODO: filter not in
+        Case.block_seq_range(lambda env, block, seq: [pd_filter_not(env, block, seq)]),
+    ])
+    cput('Mul', ['*'], [
+        Case.number2(lambda env, a, b: [num.pd_mul(a, b)]),
+        Case.number_seq(lambda env, n, seq: [pd_mul_seq(seq, n)]),
+        Case.block_seq_range(lambda env, block, seq:
+            pd_foreach_x_only_then_empty_list(env, block, seq)),
+    ])
+    cput('Slash', ['/'], [
+        Case.number2(lambda env, a, b: [num.pd_div(a, b)]),
+        # TODO: split, chunks
+        Case.block_seq_range(lambda env, block, seq:
+            pd_foreach_then_empty_list(env, block, seq)),
+    ])
+    cput('Intdiv', ['÷'], [
+        Case.number2(lambda env, a, b: [num.pd_intdiv(a, b)]),
+        # TODO: split discarding remainder? something else?
+    ])
+    cput('Percent', ['%'], [
+        Case.number2(lambda env, a, b: [num.pd_mod(a, b)]),
+        # TODO: split by, mod index
+        Case.block_seq_range(lambda env, block, seq: [pd_map(env, block, seq)]),
+    ])
+    cput('Octothorpe', ['#'], [
+        Case.number2(lambda env, a, b: [num.pd_pow(a, b)]),
+        Case.block_seq_range(lambda env, block, seq:
+            [second_or_error(pd_find_entry(env, block, seq),
+                "Entry not found in Percent")]),
+    ])
     # }}}
 
     # Sort, $ {{{

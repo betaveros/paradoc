@@ -397,12 +397,20 @@ def pd_foreach(env: Environment, func: Block, seq: PdSeq) -> None:
         func(env)
     env.pop_yx()
 
+def pd_foreach_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
+    pd_foreach(env, func, seq)
+    return []
+
 def pd_foreach_x_only(env: Environment, func: Block, seq: PdSeq) -> None:
     env.push_yx()
     for i, element in py_enumerate(seq):
         env.set_yx(i, element)
         func(env)
     env.pop_yx()
+
+def pd_foreach_x_only_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
+    pd_foreach_x_only(env, func, seq)
+    return []
 
 def pd_filter(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     env.push_yx()
