@@ -114,7 +114,7 @@ def initialize_builtins(env: Environment) -> None:
     # Range/enumerate; Comma, J {{{
     range_case = Case.number(lambda env, n: [range(num.intify(n))])
     cput('Range', [], [range_case])
-    range_one_case = Case.number(lambda env, n: [range(1, num.intify(n) + 1)]),
+    range_one_case = Case.number(lambda env, n: [range(1, num.intify(n) + 1)])
     cput('Range_one', [], [range_one_case])
 
     enumerate_case = Case.seq(lambda env, seq: [pd_enumerate(seq)])
@@ -178,13 +178,13 @@ def initialize_builtins(env: Environment) -> None:
         Case.number2(lambda env, a, b: [int(a < b)]), # TODO: Char?
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
-        Case.number_seq(lambda env, n, seq: [seq[:n]]),
+        Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
     ])
     cput('Gt', ['>'], [
         Case.number2(lambda env, a, b: [int(a > b)]), # TODO: Char?
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
-        Case.number_seq(lambda env, n, seq: [seq[n:]]),
+        Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
     ])
     cput('Min', ['<m', 'Õ'], [
         Case.any2(lambda env, a, b: [min(a, b)]), # TODO
@@ -200,82 +200,43 @@ def initialize_builtins(env: Environment) -> None:
     ])
     # }}}
     # «»‹› {{{
-    @put('«')
-    def pd_double_left(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int, float)):
-            env.push(num.pd_add_const(a, -2))
-        elif isinstance(a, (str, list, range)):
-            env.push(a[:-1])
-        else:
-            raise NotImplementedError(repr(('«', a)))
-    @put('»')
-    def pd_double_right(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int, float)):
-            env.push(num.pd_add_const(a, 2))
-        elif isinstance(a, (str, list, range)):
-            env.push(a[1:])
-        else:
-            raise NotImplementedError(repr(('»', a)))
-    @put('‹')
-    def pd_single_left(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int)):
-            env.push(a)
-        elif isinstance(a, float):
-            env.push(int(math.floor(a)))
-        elif isinstance(a, (str, list, range)):
-            env.push(a[0])
-        else:
-            raise NotImplementedError(repr(('‹', a)))
-    @put('›')
-    def pd_single_right(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int)):
-            env.push(a)
-        elif isinstance(a, float):
-            env.push(int(math.ceil(a)))
-        elif isinstance(a, (str, list, range)):
-            env.push(a[-1])
-        else:
-            raise NotImplementedError(repr(('›', a)))
+    cput('Double_left', ['«'], [
+        Case.number(lambda env, a: [num.pd_add_const(a, -2)]),
+        Case.seq(lambda env, a: [a[:-1]]),
+    ])
+    cput('Double_right', ['»'], [
+        Case.number(lambda env, a: [num.pd_add_const(a, 2)]),
+        Case.seq(lambda env, a: [a[1:]]),
+    ])
+    cput('Single_left', ['‹'], [
+        Case.number(lambda env, a: [num.pd_floor(a)]),
+        Case.seq(lambda env, a: [pd_index(a, 0)]),
+    ])
+    cput('Single_right', ['›'], [
+        Case.number(lambda env, a: [num.pd_ceil(a)]),
+        Case.seq(lambda env, a: [pd_index(a, -1)]),
+    ])
     # }}}
-    # Uncons, Unsnoc {{{
-    @put('Uncons')
-    def uncons(env: Environment) -> None:
-        a = env.pop()
-        assert isinstance(a, (str, list, range))
-        env.push(a[1:], a[0])
-    @put('Unsnoc')
-    def unsnoc(env: Environment) -> None:
-        a = env.pop()
-        assert isinstance(a, (str, list, range))
-        env.push(a[:-1], a[-1])
+    # Uncons, Unsnoc, Parens() {{{
+    uncons_case = Case.seq(lambda env, a: [a[1:], pd_index(a, 0)])
+    cput('Uncons', [], [uncons_case])
+    unsnoc_case = Case.seq(lambda env, a: [a[:-1], pd_index(a, -1)])
+    cput('Unsnoc', [], [unsnoc_case])
+    cput('(', [], [
+        Case.number(lambda env, a: [num.pd_add_const(a, -1)]),
+        unsnoc_case,
+    ])
+    cput(')', [], [
+        Case.number(lambda env, a: [num.pd_add_const(a, 1)]),
+        uncons_case,
+    ])
     # }}}
-
-    # Parens () {{{
-
-    @put('(')
-    def left_paren(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int, float)):
-            env.push(num.pd_add_const(a, -1))
-        elif isinstance(a, (str, list, range)):
-            env.push(a[1:], a[0])
-        else:
-            raise NotImplementedError
-
-    @put(')')
-    def right_paren(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int, float)):
-            env.push(num.pd_add_const(a, 1))
-        elif isinstance(a, (str, list, range)):
-            env.push(a[:-1], a[-1])
-        else:
-            raise NotImplementedError
-    # }}}
+    cput('Sum', ['Š'], [
+        Case.list_int_range(lambda env, x: [sum(x)]),
+    ])
+    cput('Product', ['Þ'], [
+        Case.list_int_range(lambda env, x: [functools.reduce(operator.mul, x, 1)]),
+    ])
 
     @put('~')
     def tilde(env: Environment) -> None:
@@ -342,10 +303,6 @@ def initialize_builtins(env: Environment) -> None:
         assert isinstance(a, int)
         env.push(range(a, 0, -1))
 
-    @put('Sum', 'Ç')
-    def pd_sum(env: Environment) -> None:
-        a = env.pop()
-        env.push(sum(pd_to_list_range(a)))
 
     @put('¤', 'Currency')
     def pd_currency(env: Environment) -> None:

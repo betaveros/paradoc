@@ -48,6 +48,16 @@ def intify(x: PdNum) -> int:
     else:
         return int(x)
 
+def lift_numerify1(f: Callable[[Num], Num]) -> Callable[[PdNum], PdNum]:
+    def inner(a: PdNum) -> PdNum:
+        if isinstance(a, Char):
+            res = f(a.ord)
+            assert isinstance(res, int)
+            return Char(res)
+        else:
+            return f(a)
+    return inner
+
 def lift_numerify(f: Callable[[Num, Num], Num]) -> Callable[[PdNum, PdNum], PdNum]:
     def inner(a: PdNum, b: PdNum) -> PdNum:
         if isinstance(a, Char) and isinstance(b, Char):
@@ -78,6 +88,9 @@ pd_intdiv = lift_numerify(operator.floordiv)
 pd_and = lift_intify(operator.and_)
 pd_or  = lift_intify(operator.or_)
 pd_xor = lift_intify(operator.xor)
+
+pd_ceil  = lift_numerify1(lambda x: int(math.ceil(x)))
+pd_floor = lift_numerify1(lambda x: int(math.floor(x)))
 
 def pd_add_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):

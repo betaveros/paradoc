@@ -59,6 +59,16 @@ seq_range = ArgType([
         (range, lambda x: x)
         ])
 
+# Accepts a list, coercing strings to lists of integers and Chars or numbers to ranges
+list_int_range = ArgType([
+        (Char,  lambda x: range(x.ord)),
+        (int,   lambda x: range(x)),
+        (float, lambda x: range(int(x))),
+        (str,   lambda x: [ord(c) for c in x]),
+        (list,  lambda x: x),
+        (range, lambda x: x)
+        ])
+
 # A case in a function definition, which specifies a list of types of
 # arguments the function might accept and what the function would do with
 # them.
@@ -113,8 +123,14 @@ class Case:
     def seq(func: Callable[[Environment, PdSeq], List[PdObject]]) -> 'Case':
         return Case(1, [just_seq], func)
     @staticmethod
+    def seq_range(func: Callable[[Environment, PdSeq], List[PdObject]]) -> 'Case':
+        return Case(1, [seq_range], func)
+    @staticmethod
     def number(func: Callable[[Environment, Union[int, float]], List[PdObject]]) -> 'Case':
         return Case(1, [just_number], func)
+    @staticmethod
+    def list_int_range(func: Callable[[Environment, Union[list, range]], List[PdObject]]) -> 'Case':
+        return Case(1, [list_int_range], func)
 
     @staticmethod
     def any2(func: Callable[[Environment, PdObject, PdObject], List[PdObject]]) -> 'Case':
