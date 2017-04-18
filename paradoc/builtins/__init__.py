@@ -111,15 +111,25 @@ def initialize_builtins(env: Environment) -> None:
         Case.list_(lambda env, x: [list(sorted(x))]),
     ])
     # }}}
-    # Comma, J{{{
+    # Range/enumerate; Comma, J {{{
+    range_case = Case.number(lambda env, n: [range(num.intify(n))])
+    cput('Range', [], [range_case])
+    range_one_case = Case.number(lambda env, n: [range(1, num.intify(n) + 1)]),
+    cput('Range_one', [], [range_one_case])
+
+    enumerate_case = Case.seq(lambda env, seq: [pd_enumerate(seq)])
+    cput('Enumerate', [], [enumerate_case])
+    enumerate_one_case = Case.seq(lambda env, seq: [pd_enumerate(seq, start=1)])
+    cput('Enumerate_one', [], [enumerate_one_case])
+
     cput('Comma', [','], [
-        Case.number(lambda env, n: [range(int(n))]),
-        Case.seq(lambda env, seq: [pd_enumerate(seq)]),
+        range_case,
+        enumerate_case,
         Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq)]),
     ])
     cput('J', [], [
-        Case.number(lambda env, n: [range(1, int(n) + 1)]),
-        Case.seq(lambda env, seq: [pd_enumerate(seq, start=1)]),
+        range_one_case,
+        enumerate_one_case,
         Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq, negate=True)]),
     ])
     # }}}
@@ -288,12 +298,6 @@ def initialize_builtins(env: Environment) -> None:
         else:
             raise NotImplementedError
 
-    @put('Range')
-    def pd_range(env: Environment) -> None:
-        a = env.pop()
-        assert isinstance(a, (float, int))
-        env.push(range(int(a)))
-
 
     # Output and Print {{{
     @put('Output', 'O')
@@ -307,11 +311,6 @@ def initialize_builtins(env: Environment) -> None:
         print(env.pd_str(a))
     # }}}
 
-    @put('Ro', 'Range_one')
-    def range_one(env: Environment) -> None:
-        a = env.pop()
-        assert isinstance(a, (float, int))
-        env.push(range(1, int(a) + 1))
 
 
 
