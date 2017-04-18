@@ -15,6 +15,7 @@ def is_trailer(char_or_token: str) -> bool:
 
 # Blocks are not bunched at the lexing stage.
 # So they're not really string literals.
+lowers = "a-zàáâãäåæçèéêëìíîïñòóôõöøùúûüýþÿœšžªºƒ"
 pd_token_pattern = re.compile(r"""
     \.\.[^\n\r]* # comment
     |
@@ -27,19 +28,19 @@ pd_token_pattern = re.compile(r"""
       |
       \.[0-9]+(?:e[0-9]+)? # number starting with a decimal point
       |
-      [^"'0-9a-z_]  # operator or uppercase letter
+      [^"'0-9{lowers}_]  # operator or uppercase letter
     )
-    ([a-z_]*) # trail
-    """, re.VERBOSE)
+    ([{lowers}_]*) # trail
+    """.format(**locals()), re.VERBOSE)
 
-trailer_token_pattern = re.compile('[a-z]|_[a-z]*')
+trailer_token_pattern = re.compile('[{lowers}]|_[{lowers}]*'.format(**locals()))
 trailer_token_or_starting_comment_pattern = re.compile(r"""
-    [a-z]|_[a-z]*
+    [{lowers}]|_[{lowers}]*
     |
     \.\.[^\n\r]* # comment
     |
     \#![^\n\r]* # shebang
-    """, re.VERBOSE)
+    """.format(**locals()), re.VERBOSE)
 
 def lex(code: str,
         patterns: Iterable[typing.Pattern[str]],

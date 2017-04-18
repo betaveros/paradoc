@@ -187,8 +187,11 @@ class CasedBuiltIn(Block):
         collected_args = [] # type: List[PdObject]
         for case in self.cases:
             assert len(collected_args) <= case.arity
-            for _ in range(case.arity - len(collected_args)):
-                collected_args.insert(0, env.pop())
+            try:
+                for _ in range(case.arity - len(collected_args)):
+                    collected_args.insert(0, env.pop())
+            except PdEmptyStackException as ex:
+                raise AssertionError('Not enough arguments on stack: wanted {}, got only {}: {}'.format(case.arity, len(collected_args), repr(collected_args))) from ex
             res = case.maybe_run(env, collected_args)
             if res is not None:
                 env.push(*res)

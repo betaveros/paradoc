@@ -97,6 +97,16 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                 lst_a = objects.pd_to_list_range(env.pop())
                 env.push(objects.pd_zip(env, b, lst_a, lst_b))
             return (BuiltIn(b.code_repr() + "_zip", zip_b), False)
+        elif token == "ä" or token == "_autozip":
+            def autozip_b(env: Environment) -> None:
+                lst_a = objects.pd_to_list_range(env.pop())
+                env.push(objects.pd_zip(env, b, lst_a, lst_a[1:]))
+            return (BuiltIn(b.code_repr() + "_autozip", autozip_b), False)
+        elif token == "ë" or token == "_enumap":
+            def enumap_b(env: Environment) -> None:
+                lst_a = objects.pd_to_list_range(env.pop())
+                env.push(objects.pd_zip(env, b, range(len(lst_a)), lst_a))
+            return (BuiltIn(b.code_repr() + "_enumap", enumap_b), False)
         elif token == "b" or token == "_bind":
             e = outer_env.pop()
             def bind_b(env: Environment) -> None:
