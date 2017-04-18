@@ -64,12 +64,11 @@ In decreasing order of importance:
 
   In the future, we may emulate Jelly and fill up the control codes in the Windows-1252 code page with custom characters, but we haven't expanded to that point yet.
 
-
 Differences from GolfScript/CJam
 ================================
 
 - Paradoc parses tokens differently; **identifiers** begin with either a symbol (excluding the underscore) or an uppercase letter, and are followed by zero or more lowercase letters.
-- Paradoc uses single quotes
+- Like CJam, Paradoc uses single quotes to escape and push the following character, no matter what it is.
 - Paradoc swaps `.` and `:` from GolfScript/CJam, using `.` for assignment and `:` for duplicating top of stack. Rationale: I think `:` is more mnemonic for "duplicate" since there are two dots (Befunge also uses it), and it feels more like an inverse to `;`. At the same time, this clears up some corners of the syntax more elegantly. First, it allows us to parse numbers starting with a decimal point like `.618`, and it allows us to begin end-of-line comments with `..`, which are a high priority for Paradoc, easy to type, and not visually noisy.
 - In Paradoc, `+` on a list and block filters the list by the block, instead of `,`. This is to allow symmetry with `-`, which filters *out* elements from the list that satisfy the block. `,` instead filters the lists and returns the *indexes* of elements that satisfy the block. Further, `,` on a list zips it with its indices; instead, `L` computes the length of a list.
 - In Paradoc, `R` joins sequences with other sequences and reduces/folds lists by a block, instead of `*`, which instead repeats a block without but putting it into the special variable `X`. This allows `*` to behave consistently on integers `n` and half-open ranges `[0..n)`, and for it to perform the more intuitive Cartesian products on sequences.
