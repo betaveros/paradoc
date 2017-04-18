@@ -4,6 +4,7 @@ from paradoc.objects import *
 # import paradoc.objects
 import paradoc.num as num
 import sys, math, collections
+from paradoc.builtins.case import Case, CasedBuiltIn
 
 def initialize_builtins(env: Environment) -> None:
 
@@ -12,6 +13,11 @@ def initialize_builtins(env: Environment) -> None:
             for s in ss:
                 env.put(s, BuiltIn(s, f))
         return inner_put
+
+    def cput(name: str, extra_names: List[str], cases: List[Case]):
+        builtin = CasedBuiltIn(name, cases)
+        env.put(name, builtin)
+        for xname in extra_names: env.put(xname, builtin)
 
     # Default variables {{{
     env.put('N', '\n')
@@ -26,10 +32,16 @@ def initialize_builtins(env: Environment) -> None:
 
     @put('Nop', ' ', '\t', '\n', '\r')
     def nop(env: Environment) -> None: pass
-    @put('Dup', ':')
-    def dup(env: Environment) -> None:
-        a = env.pop()
-        env.push(a, a)
+
+    # @put('Dup', ':')
+    # def dup(env: Environment) -> None:
+    #     a = env.pop()
+    #     env.push(a, a)
+
+    cput('Dup', [':'], [
+        Case.any(lambda x: [x, x])
+    ])
+
     @put('Swap', '\\')
     def swap(env: Environment) -> None:
         b, a = env.pop2()
