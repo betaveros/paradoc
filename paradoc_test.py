@@ -106,6 +106,15 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10,3%_bind_filter'), [[1,2,4,5,7,8]])
         self.assertEqual(pd_simple_eval('10,3%bf'), [[1,2,4,5,7,8]])
 
+    def test_builtin_reduce(self):
+        self.assertEqual(pd_simple_eval('[5 7 8]{+}R'), [20])
+        self.assertEqual(pd_simple_eval('10,{+}R'), [45])
+        self.assertEqual(pd_simple_eval('[5 7 8]2R'), [[5,2,7,2,8]])
+        self.assertEqual(pd_simple_eval('[5 7 8][0 0]R'), [[5,0,0,7,0,0,8]])
+        self.assertEqual(pd_simple_eval('[5 7 8]"+"R'), ["5+7+8"])
+        self.assertEqual(pd_simple_eval('[9 2 7]\'.R'), ["9.2.7"])
+        self.assertEqual(pd_simple_eval('["123" 456 "789"]"//"R'), ["123//456//789"])
+
     def test_reduce(self):
         self.assertEqual(pd_simple_eval('[5 7 8]+_reduce'), [20])
         self.assertEqual(pd_simple_eval('10,+r'), [45])

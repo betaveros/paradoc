@@ -359,6 +359,21 @@ def pd_index(seq: PdSeq, n: PdNum) -> PdObject:
         return Char(ord(seq[num.intify(n)]))
     else:
         return seq[num.intify(n)]
+def pd_join(env: Environment, seq: PdSeq, joiner: PdSeq) -> PdObject:
+    if isinstance(seq, (list, range)) and isinstance(joiner, (list, range)):
+        acc = [] # type: List[PdObject]
+        started = False
+        for e in seq:
+            if started:
+                acc.extend(joiner)
+            started = True
+            if isinstance(e, (list, range)):
+                acc.extend(e)
+            else:
+                acc.append(e)
+        return acc
+    else:
+        return env.pd_str(joiner).join(env.pd_str(s) for s in pd_iterable(seq))
 def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
     n_int = num.intify(n)
     if isinstance(seq, (str, list)):

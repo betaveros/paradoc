@@ -161,6 +161,11 @@ def initialize_builtins(env: Environment) -> None:
             env.push_or_eval(c)
     # }}}
 
+    cput('Reduce', ['R'], [
+        Case.seq2_singleton(lambda env, seq, joiner: [pd_join(env, seq, joiner)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_reduce(env, block, seq)]),
+    ])
+
     # Comparators <=> Max Min {{{
     cput('Equal', ['Eq'], [
         Case.number2(lambda env, a, b: [int(a == b)]), # TODO: Char?
