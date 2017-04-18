@@ -75,7 +75,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[3 7 2 5]0='), [3])
         self.assertEqual(pd_simple_eval('[3 7 2 5]1='), [7])
         self.assertEqual(pd_simple_eval('[3 7 2 5]3='), [5])
-        self.assertEqual(pd_simple_eval('[3 7 2 5]1n='), [5])
+        self.assertEqual(pd_simple_eval('[3 7 2 5]1m='), [5])
 
     def test_slices(self):
         self.assertEqual(pd_simple_eval('[3 7 2 5]1<'), [[3]])
@@ -142,13 +142,20 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]<l'), [2])
 
     def test_len(self):
-        self.assertEqual(pd_simple_eval('8nL'), [8])
+        self.assertEqual(pd_simple_eval('8mL'), [8])
         self.assertEqual(pd_simple_eval('8L'), [8])
         self.assertEqual(pd_simple_eval('0L'), [0])
         self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]L'), [7])
         self.assertEqual(pd_simple_eval('[7 2 5 9 3]L'), [5])
         self.assertEqual(pd_simple_eval('[]L'), [0])
 
+    def test_replicate(self):
+        self.assertEqual(pd_simple_eval('3 4 Replicate'), [[3,3,3,3]])
+        self.assertEqual(pd_simple_eval('4 3 ˆ'), [[4,4,4]])
+        self.assertEqual(pd_simple_eval('\'x 3 ˆ'), ["xxx"])
+        self.assertEqual(pd_simple_eval('[1 2] 3 ˆ'), [[[1,2],[1,2],[1,2]]])
+        self.assertEqual(pd_simple_eval('\'y \'x 3 Sr'), ["xxx"])
+        self.assertEqual(pd_simple_eval('\'y \'x 4m Sr'), ["yyyy"])
 
 if __name__ == '__main__':
     unittest.main()

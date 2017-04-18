@@ -380,6 +380,11 @@ def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
         return seq * n_int
     else:
         return list(seq) * n_int
+def pd_replicate(atom: PdObject, n: int) -> PdSeq:
+    if isinstance(atom, Char):
+        return chr(atom.ord) * n
+    else:
+        return [atom] * n
 def pd_build_like(orig: PdSeq, result: List[PdObject]) -> PdSeq:
     if isinstance(orig, str) and all(isinstance(c, (Char, int)) for c in result):
         return (

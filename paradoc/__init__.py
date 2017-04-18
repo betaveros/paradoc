@@ -135,7 +135,7 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             return (BuiltIn(objects.pd_repr(s) + "_interoutputn", interoutputn_s), False)
     elif isinstance(b0, int):
         i = b0 # type: int
-        if token == "n" or token == "_negate":
+        if token == "m" or token == "_minus":
             return (-i, False)
         elif token == "u" or token == "_under":
             def under_i(env: Environment) -> None:

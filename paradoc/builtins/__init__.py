@@ -359,17 +359,16 @@ def initialize_builtins(env: Environment) -> None:
         assert not isinstance(a, Block)
         env.push(pynumber_length(a) % 2 == 0)
 
-    @put('ˆ', 'Replicate')
-    def pd_replicate(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int, float)):
-            b = env.pop()
-            if isinstance(b, Char):
-                env.push(num.intify(a) * chr(b.ord))
-            else:
-                env.push(num.intify(a) * [b])
-        else:
-            raise NotImplementedError(repr(a))
+    cput('Replicate', ['ˆ'], [
+        Case.any_number(lambda env, x, n: [pd_replicate(x, num.intify(n))]),
+    ])
+    cput('Signed_replicate', ['Sr'], [
+        Case.any_any_number(lambda env, x, y, n: [
+            pd_replicate(y, num.intify(n))
+            if num.intify(n) >= 0 else
+            pd_replicate(x, -num.intify(n))
+        ]),
+    ])
 
     @put('Debug', 'Dump')
     def dump(env: Environment) -> None:
