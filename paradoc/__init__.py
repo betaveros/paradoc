@@ -12,7 +12,7 @@
 # literate manner as well as a golfed format.
 from typing import *
 import itertools
-from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_code, break_trailer, name_trailer_dissections
+from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_code, break_trailer, is_numeric_literal_token, name_trailer_dissections
 from paradoc.num import Char, PdNum
 from paradoc.objects import Block, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException
 import paradoc.objects as objects
@@ -273,6 +273,7 @@ class CodeBlock(Block):
                 raise NotImplementedError('unknown global trailer token ' + trailer_token)
 
         assign_active = False
+        destructive_assign = False
         block_acc = [] # type: List[str]
 
         for token0 in self.tokens[body_start:]:
@@ -280,31 +281,38 @@ class CodeBlock(Block):
             # print('in body', repr(token), repr(trailer), file=sys.stderr)
             try:
                 if assign_active:
-                    # print('assign active!!', file=sys.stderr)
-                    # TODO
+                    assert not token0[0].isdigit()
+                    x = env.pop()
+                    if not destructive_assign: env.push(x)
+                    env.put(token0, x)
                     assign_active = False
-                if block_level == 0:
+                elif block_level == 0:
                     if token.startswith('}'):
                         raise Exception("closing curly brace out of nowhere")
                     elif token.startswith('{'):
                         block_level += 1
-                    elif token.startswith('..'):
+                    elif token.startswith('..') or token.startswith('——'):
                         pass # comment
-                    elif token.startswith('.'):
-                        assign_active = True
                     elif token.startswith('"'):
                         parse_string_onto(env, token, trailer)
                     elif token.startswith("'"):
                         env.push(Char(ord(token[1])))
-                    elif token[0].isdigit():
+                    elif is_numeric_literal_token(token):
+                        r_token = token.replace('—', '-')
                         try:
-                            parsed_num = int(token) # type: PdNum
+                            parsed_num = int(r_token) # type: PdNum
                         except ValueError:
                             try:
-                                parsed_num = float(token)
+                                parsed_num = float(r_token)
                             except ValueError:
                                 raise ValueError('could not parse number ' + repr(token))
                         act_after_trailer_tokens(env, parsed_num, lex_trailer(trailer))
+                    elif token.startswith('.'):
+                        assign_active = True
+                        destructive_assign = False
+                    elif token.startswith('—'):
+                        assign_active = True
+                        destructive_assign = True
                     else:
                         val = None # type: Optional[PdObject]
                         trailer_tokens = None

@@ -8,6 +8,7 @@ def is_nop_or_comment(token: str) -> bool:
     # token and not two separate ones)
     return (token.isspace() or
             token.startswith('..') or
+            token.startswith('——') or
             token.startswith('#!'))
 def is_trailer(char_or_token: str) -> bool:
     char = char_or_token[0]
@@ -16,17 +17,24 @@ def is_trailer(char_or_token: str) -> bool:
 # Blocks are not bunched at the lexing stage.
 # So they're not really string literals.
 lowers = "a-zàáâãäåæçèéêëìíîïñòóôõöøùúûüýþÿœšžªºƒ"
+numeric_literal_token_pattern = re.compile(r"""
+    ^
+    —?[0-9]+(?:\.[0-9]+)?(?:e[0-9]+)? # number
+    |
+    —?\.[0-9]+(?:e[0-9]+)? # number starting with a decimal point
+    $
+    """, re.VERBOSE)
 pd_token_pattern = re.compile(r"""
-    \.\.[^\n\r]* # comment
+    (?:\.\.|——)[^\n\r]* # comment
     |
     ( # main token
       "(?:\\\"|\\\\|[^"])*" # string
       |
       '. # char
       |
-      [0-9]+(?:\.[0-9]+)?(?:e[0-9]+)? # number. No negatives... for now
+      —?[0-9]+(?:\.[0-9]+)?(?:e[0-9]+)? # number
       |
-      \.[0-9]+(?:e[0-9]+)? # number starting with a decimal point
+      —?\.[0-9]+(?:e[0-9]+)? # number starting with a decimal point
       |
       [^"'0-9{lowers}_]  # operator or uppercase letter
     )
@@ -69,6 +77,9 @@ def break_trailer(s: str) -> Tuple[str, str]:
         if not is_trailer(s[i]):
             return (s[:i+1], s[i+1:])
     raise Exception(s + " Token is all trailer!?")
+
+def is_numeric_literal_token(token: str) -> bool:
+    return bool(numeric_literal_token_pattern.match(token))
 
 # Given an uppercase or symbol token and its trailer,
 # generate dissections into token and trailer to look up.

@@ -13,6 +13,38 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(list(lex_code('[2 3 5]{7+}_map(m)m+f')),
                 ['[','2',' ','3',' ','5',']','{','7','+','}_map','(m',')m','+f'])
 
+    def test_lex_numbers(self):
+        self.assertEqual(list(lex_code('3')), ['3'])
+        self.assertEqual(list(lex_code('33X')), ['33', 'X'])
+        self.assertEqual(list(lex_code('.3X')), ['.3', 'X'])
+        self.assertEqual(list(lex_code('—.3X')), ['—.3', 'X'])
+        self.assertEqual(list(lex_code('——3X')), ['——3X']) # comment
+        self.assertEqual(list(lex_code('..3X')), ['..3X']) # comment
+        self.assertEqual(list(lex_code('3.')), ['3', '.'])
+        self.assertEqual(list(lex_code('3.0')), ['3.0'])
+        self.assertEqual(list(lex_code('3.4.')), ['3.4', '.'])
+        self.assertEqual(list(lex_code('—3')), ['—3'])
+        self.assertEqual(list(lex_code('—3e')), ['—3e'])
+        self.assertEqual(list(lex_code('—3x')), ['—3x'])
+        self.assertEqual(list(lex_code('—3e3')), ['—3e3'])
+        self.assertEqual(list(lex_code('—3x3')), ['—3x', '3'])
+        self.assertEqual(list(lex_code('—3—4—5')), ['—3', '—4', '—5'])
+
+    def test_numeric_literals(self):
+        self.assertEqual(pd_simple_eval('555'), [555])
+        self.assertEqual(pd_simple_eval('.5'), [0.5])
+        self.assertEqual(pd_simple_eval('0.5'), [0.5])
+        self.assertEqual(pd_simple_eval('.3125'), [0.3125])
+        self.assertEqual(pd_simple_eval('—5'), [-5])
+        self.assertEqual(pd_simple_eval('—.5'), [-0.5])
+        self.assertEqual(pd_simple_eval('—0.5'), [-0.5])
+
+    def test_assignment(self):
+        self.assertEqual(pd_simple_eval('123.Test;Test Test+'), [246])
+        self.assertEqual(pd_simple_eval('123—Test Test Test+'), [246])
+        self.assertEqual(pd_simple_eval('129.**+'), [258])
+        self.assertEqual(pd_simple_eval('129—***+'), [258])
+
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*'), [35])
         self.assertEqual(pd_simple_eval('2017 95))%(('), [75])
