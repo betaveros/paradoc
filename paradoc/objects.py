@@ -5,6 +5,7 @@ from typing import *
 import sys
 from paradoc.num import Char, Num, PdNum
 import paradoc.num as num
+import collections
 
 # Objects in the Paradoc runtime (type PdObject).
 
@@ -351,7 +352,12 @@ def py_reversed_enumerate(seq: PdSeq, start: int = 0) -> Iterable[Tuple[int, PdO
 def pd_enumerate(seq: PdSeq, start: int = 0) -> List[list]:
     return [list(t) for t in py_enumerate(seq, start=start)]
 # }}}
-# list operations ("arithmetic", build_like) {{{
+# list operations (index, "arithmetic", build_like) {{{
+def pd_index(seq: PdSeq, n: PdNum) -> PdObject:
+    if isinstance(seq, str):
+        return Char(ord(seq[num.intify(n)]))
+    else:
+        return seq[num.intify(n)]
 def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
     n_int = num.intify(n)
     if isinstance(seq, (str, list)):
@@ -412,32 +418,22 @@ def pd_foreach_x_only_then_empty_list(env: Environment, func: Block, seq: PdSeq)
     pd_foreach_x_only(env, func, seq)
     return []
 
-def pd_filter(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
+def pd_filter(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> PdSeq:
     env.push_yx()
     acc = [] # type: List[PdObject]
     for i, element in enumerate(pd_iterable(seq)):
         env.set_yx(i, element)
-        if pd_truthy(env, func, [element]):
+        if pd_truthy(env, func, [element]) ^ negate:
             acc.append(element)
     env.pop_yx()
     return pd_build_like(seq, acc)
 
-def pd_filter_not(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
-    env.push_yx()
-    acc = [] # type: List[PdObject]
-    for i, element in enumerate(pd_iterable(seq)):
-        env.set_yx(i, element)
-        if not pd_truthy(env, func, [element]):
-            acc.append(element)
-    env.pop_yx()
-    return pd_build_like(seq, acc)
-
-def pd_filter_indexes(env: Environment, func: Block, seq: PdSeq) -> List[int]:
+def pd_filter_indexes(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> List[int]:
     env.push_yx()
     acc = [] # type: List[int]
     for i, element in py_enumerate(seq):
         env.set_yx(i, element)
-        if pd_truthy(env, func, [element]):
+        if pd_truthy(env, func, [element]) ^ negate:
             acc.append(i)
     env.pop_yx()
     return acc
@@ -449,10 +445,10 @@ def pd_get(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     else:
         return e
 
-def pd_index(env: Environment, func: Block, seq: PdSeq) -> int:
+def pd_get_index(env: Environment, func: Block, seq: PdSeq) -> int:
     i, e = pd_find_entry(env, func, seq)
     if i is None:
-        raise AssertionError('pd_index: no element satisfying predicate found')
+        raise AssertionError('pd_get_index: no element satisfying predicate found')
     else:
         return i
 
@@ -463,10 +459,10 @@ def pd_get_last(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     else:
         return e
 
-def pd_index_last(env: Environment, func: Block, seq: PdSeq) -> int:
+def pd_get_index_last(env: Environment, func: Block, seq: PdSeq) -> int:
     i, e = pd_find_last_entry(env, func, seq)
     if i is None:
-        raise AssertionError('pd_index_last: no element satisfying predicate found')
+        raise AssertionError('pd_get_index_last: no element satisfying predicate found')
     else:
         return i
 # }}}
@@ -508,4 +504,38 @@ def pd_repr(obj: PdObject) -> str:
         return obj.code_repr()
     else:
         return repr(obj)
+# }}}
+# collection & | ^ {{{
+def pd_seq_intersection(a: PdSeq, b: PdSeq) -> PdSeq:
+    counter = collections.Counter(pd_iterable(b))
+    acc = [] # type: List[PdObject]
+    for element in pd_iterable(a):
+        if counter[element] > 0:
+            acc.append(element)
+            counter[element] -= 1
+    return pd_build_like(a, acc)
+def pd_seq_union(a: PdSeq, b: PdSeq) -> PdSeq:
+    acc = list(pd_iterable(a)) # type: List[PdObject]
+    counter = collections.Counter(pd_iterable(a))
+    for element in pd_iterable(b):
+        if counter[element] > 0:
+            counter[element] -= 1
+        else:
+            acc.append(element)
+    return pd_build_like(a, acc)
+def pd_seq_symmetric_difference(a: PdSeq, b: PdSeq) -> PdSeq:
+    set_a = collections.Counter(pd_iterable(a))
+    set_b = collections.Counter(pd_iterable(b))
+    acc = [] # type: List[PdObject]
+    for element in pd_iterable(a):
+        if element not in set_b:
+            acc.append(element)
+    for element in pd_iterable(b):
+        if element not in set_a:
+            acc.append(element)
+    return pd_build_like(a, acc)
+
+def pd_if_then_empty_list(env: Environment, condition: PdObject, body: Block, negate: bool = False) -> List[PdObject]:
+    if pytruth_eval(env, condition) ^ negate: body(env)
+    return []
 # }}}

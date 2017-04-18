@@ -58,6 +58,14 @@ def lift_numerify(f: Callable[[Num, Num], Num]) -> Callable[[PdNum, PdNum], PdNu
             return f(numerify(a), numerify(b))
     return inner
 
+def lift_intify(f: Callable[[int, int], int]) -> Callable[[PdNum, PdNum], PdNum]:
+    def inner(a: PdNum, b: PdNum) -> PdNum:
+        if isinstance(a, Char) and isinstance(b, Char):
+            return Char(f(a.ord, b.ord))
+        else:
+            return f(intify(a), intify(b))
+    return inner
+
 pd_add = lift_numerify(operator.add)
 pd_sub = lift_numerify(operator.sub)
 pd_mul = lift_numerify(operator.mul)
@@ -66,6 +74,10 @@ pd_mod = lift_numerify(operator.mod)
 pd_pow = lift_numerify(operator.pow)
 
 pd_intdiv = lift_numerify(operator.floordiv)
+
+pd_and = lift_intify(operator.and_)
+pd_or  = lift_intify(operator.or_)
+pd_xor = lift_intify(operator.xor)
 
 def pd_add_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):

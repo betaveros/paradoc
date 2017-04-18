@@ -51,6 +51,16 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('100 0{2*}{5+}?'), [105])
         self.assertEqual(pd_simple_eval('100 1{2*}{5+}?'), [200])
 
+    def test_single_branch_if(self):
+        self.assertEqual(pd_simple_eval('0{8}&'), [])
+        self.assertEqual(pd_simple_eval('1{8}&'), [8])
+        self.assertEqual(pd_simple_eval('0{8}|'), [8])
+        self.assertEqual(pd_simple_eval('1{8}|'), [])
+        self.assertEqual(pd_simple_eval('1 2[]{+}&'), [1,2])
+        self.assertEqual(pd_simple_eval('1 2[3 4]{+}&'), [3])
+        self.assertEqual(pd_simple_eval('1 2[]{-}|'), [-1])
+        self.assertEqual(pd_simple_eval('1 2[3 4]{-}|'), [1,2])
+
     def test_indexing(self):
         self.assertEqual(pd_simple_eval('[3 7 2 5]0='), [3])
         self.assertEqual(pd_simple_eval('[3 7 2 5]1='), [7])

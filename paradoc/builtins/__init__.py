@@ -69,7 +69,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Minus', ['-'], [
         Case.number2(lambda env, a, b: [num.pd_sub(a, b)]),
         # TODO: filter not in
-        Case.block_seq_range(lambda env, block, seq: [pd_filter_not(env, block, seq)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
     ])
     cput('Mul', ['*'], [
         Case.number2(lambda env, a, b: [num.pd_mul(a, b)]),
@@ -101,121 +101,45 @@ def initialize_builtins(env: Environment) -> None:
     # }}}
 
     # Sort, $ {{{
-    @put('Sort')
-    def pd_sort(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, str):
-            env.push(''.join(sorted(a)))
-        elif isinstance(a, (list, range)):
-            env.push(list(sorted(a)))
-        else:
-            raise NotImplementedError
-
-    @put('$')
-    def dollar(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, int):
-            env.push(env.index_stack(a))
-        elif isinstance(a, str):
-            env.push(''.join(sorted(a)))
-        elif isinstance(a, (list, range)):
-            env.push(list(sorted(a)))
-        else:
-            raise NotImplementedError
+    cput('Sort', [], [
+        Case.str_(lambda env, s: [''.join(sorted(s))]),
+        Case.list_(lambda env, x: [list(sorted(x))]),
+    ])
+    cput('Dollar', ['$'], [
+        Case.number(lambda env, n: [env.index_stack(int(n))]),
+        Case.str_(lambda env, s: [''.join(sorted(s))]),
+        Case.list_(lambda env, x: [list(sorted(x))]),
+    ])
     # }}}
     # Comma, J{{{
-    @put(',')
-    def comma(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, int):
-            env.push(range(a))
-        elif isinstance(a, (str, list, range)):
-            env.push(pd_enumerate(a))
-        elif isinstance(a, Block):
-            b = env.pop()
-            if isinstance(b, (list, str, range)):
-                env.push(pd_filter_indexes(env, a, b))
-            else:
-                raise NotImplementedError
-        else:
-            raise NotImplementedError
-    @put('J')
-    def pd_j(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (float, int)):
-            env.push(range(1, int(a) + 1))
-        elif isinstance(a, (str, list, range)):
-            env.push(pd_enumerate(a, start=1))
-        elif isinstance(a, Block):
-            b = env.pop()
-            if isinstance(b, (list, str, range)):
-                env.push(pd_filter_not(env, a, b))
-            else:
-                raise NotImplementedError
-        else:
-            raise NotImplementedError
+    cput('Comma', [','], [
+        Case.number(lambda env, n: [range(int(n))]),
+        Case.seq(lambda env, seq: [pd_enumerate(seq)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq)]),
+    ])
+    cput('J', [], [
+        Case.number(lambda env, n: [range(1, int(n) + 1)]),
+        Case.seq(lambda env, seq: [pd_enumerate(seq, start=1)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq, negate=True)]),
+    ])
     # }}}
     # Binary operators &|^ {{{
-    @put('|')
-    def vertical_bar(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(int(a) | int(b))
-        elif isinstance(a, (str, range, list)) and isinstance(b, (str, range, list)):
-            counter = collections.Counter(pd_iterable(a))
-            acc = list(pd_iterable(a)) # type: List[PdObject]
-            for element in pd_iterable(b):
-                if counter[element] > 0:
-                    counter[element] -= 1
-                else:
-                    acc.append(element)
-            env.push(pd_build_like(a, acc))
-        elif isinstance(a, Block):
-            if not b: a(env)
-        elif isinstance(b, Block):
-            if not a: b(env)
-        else:
-            raise NotImplementedError(repr(a) + repr(b))
-
-    @put('&')
-    def ampersand(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(int(a) & int(b))
-        elif isinstance(a, (str, range, list)) and isinstance(b, (str, range, list)):
-            counter = collections.Counter(pd_iterable(b))
-            acc = [] # type: List[PdObject]
-            for element in pd_iterable(a):
-                if counter[element] > 0:
-                    acc.append(element)
-                    counter[element] -= 1
-            env.push(pd_build_like(a, acc))
-        elif isinstance(b, Block):
-            if pytruth_eval(env, a): b(env)
-        elif isinstance(a, Block):
-            if pytruth_eval(env, b): a(env)
-        else:
-            raise NotImplementedError(repr(a) + repr(b))
-
-    @put('^')
-    def caret(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(int(a) ^ int(b))
-        elif isinstance(a, (str, range, list)) and isinstance(b, (str, range, list)):
-            set_a = collections.Counter(pd_iterable(a))
-            set_b = collections.Counter(pd_iterable(b))
-            acc = [] # type: List[PdObject]
-            for element in pd_iterable(a):
-                if element not in set_b:
-                    acc.append(element)
-            for element in pd_iterable(b):
-                if element not in set_a:
-                    acc.append(element)
-            env.push(pd_build_like(a, acc))
-        else:
-            raise NotImplementedError(repr(a) + repr(b))
-
+    cput('Vertical_bar', ['|'], [
+        Case.number2(lambda env, a, b: [num.pd_or(a, b)]),
+        Case.seq2_range(lambda env, a, b: [pd_seq_union(a, b)]),
+        Case.condition_block(lambda env, cond, block:
+            pd_if_then_empty_list(env, cond, block, negate=True)),
+    ])
+    cput('Ampersand', ['&'], [
+        Case.number2(lambda env, a, b: [num.pd_and(a, b)]),
+        Case.seq2_range(lambda env, a, b: [pd_seq_intersection(a, b)]),
+        Case.condition_block(lambda env, cond, block:
+            pd_if_then_empty_list(env, cond, block)),
+    ])
+    cput('Exclusive_or', ['^'], [
+        Case.number2(lambda env, a, b: [num.pd_xor(a, b)]),
+        Case.seq2_range(lambda env, a, b: [pd_seq_symmetric_difference(a, b)]),
+    ])
     @put('?', 'If')
     def pd_if(env: Environment) -> None:
         c, b, a = env.pop3()
@@ -228,102 +152,43 @@ def initialize_builtins(env: Environment) -> None:
     # }}}
 
     # Comparators <=> Max Min {{{
-
-    @put('Eq', 'Equal')
-    def equal_builtin(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(int(a == b))
-        elif isinstance(a, str) and isinstance(b, str):
-            env.push(int(a == b))
-        elif isinstance(a, list) and isinstance(b, list):
-            env.push(int(a == b))
-        else:
-            raise NotImplementedError(repr(a) + repr(b))
-
-    @put('=')
-    def equal_sign_builtin(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(int(a == b))
-        elif isinstance(a, str) and isinstance(b, str):
-            env.push(int(a == b))
-        elif isinstance(a, list) and isinstance(b, list):
-            env.push(int(a == b))
-        elif isinstance(a, (list, range)) and isinstance(b, int):
-            env.push(a[b])
-        elif isinstance(b, (list, range)) and isinstance(a, int):
-            env.push(b[a])
-        elif isinstance(a, str) and isinstance(b, int):
-            env.push(Char(ord(a[b])))
-        elif isinstance(b, str) and isinstance(a, int):
-            env.push(Char(ord(b[a])))
-        elif isinstance(a, Block) and isinstance(b, list):
-            i, e = pd_find_entry(env, a, b)
-            assert i is not None
-            env.push(i)
-        elif isinstance(b, Block) and isinstance(a, list):
-            i, e = pd_find_entry(env, b, a)
-            assert i is not None
-            env.push(i)
-        else:
-            raise NotImplementedError(repr(a) + repr(b))
-
-    @put('<')
-    def less_than(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(int(a < b))
-        elif isinstance(a, str) and isinstance(b, str):
-            env.push(int(a < b))
-        elif isinstance(a, list) and isinstance(b, list):
-            env.push(int(a < b))
-        elif isinstance(a, (int, float)) and isinstance(b, (str, list, range)):
-            env.push(b[:int(a)])
-        elif isinstance(b, (int, float)) and isinstance(a, (str, list, range)):
-            env.push(a[:int(b)])
-        else:
-            raise NotImplementedError(repr(('<', a, b)))
-
-    @put('>')
-    def greater_than(env: Environment) -> None:
-        b, a = env.pop2()
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            env.push(int(a > b))
-        elif isinstance(a, str) and isinstance(b, str):
-            env.push(int(a > b))
-        elif isinstance(a, list) and isinstance(b, list):
-            env.push(int(a > b))
-        elif isinstance(a, (int, float)) and isinstance(b, (str, list, range)):
-            env.push(b[int(a):])
-        elif isinstance(b, (int, float)) and isinstance(a, (str, list, range)):
-            env.push(a[int(b):])
-        else:
-            raise NotImplementedError(repr(a) + repr(b))
-
-    @put('Min', '<m', 'Õ')
-    def pd_min(env: Environment) -> None:
-        b, a = env.pop2()
-        env.push(min(a, b))
-
-    @put('Max', '>m', 'Ã')
-    def pd_max(env: Environment) -> None:
-        b, a = env.pop2()
-        env.push(max(a, b))
-
-    @put('List_min', '<l', 'Œ')
-    def pd_list_min(env: Environment) -> None:
-        a = env.pop()
-        env.push(min(pd_to_list_range(a)))
-
-    @put('List_max', '>l', 'Æ')
-    def pd_list_max(env: Environment) -> None:
-        a = env.pop()
-        env.push(max(pd_to_list_range(a)))
-
-
+    cput('Equal', ['Eq'], [
+        Case.number2(lambda env, a, b: [int(a == b)]), # TODO: Char?
+        Case.str2(lambda env, a, b: [int(a == b)]),
+        Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
+    ])
+    cput('Equal_sign', ['='], [
+        Case.number2(lambda env, a, b: [int(a == b)]), # TODO: Char?
+        Case.str2(lambda env, a, b: [int(a == b)]),
+        Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
+        Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n))]),
+        Case.block_seq_range(lambda env, block, seq: [pd_get_index(env, block, seq)]),
+    ])
+    cput('Lt', ['<'], [
+        Case.number2(lambda env, a, b: [int(a < b)]), # TODO: Char?
+        Case.str2(lambda env, a, b: [int(a < b)]),
+        Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
+        Case.number_seq(lambda env, n, seq: [seq[:n]]),
+    ])
+    cput('Gt', ['>'], [
+        Case.number2(lambda env, a, b: [int(a > b)]), # TODO: Char?
+        Case.str2(lambda env, a, b: [int(a > b)]),
+        Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
+        Case.number_seq(lambda env, n, seq: [seq[n:]]),
+    ])
+    cput('Min', ['<m', 'Õ'], [
+        Case.any2(lambda env, a, b: [min(a, b)]), # TODO
+    ])
+    cput('Max', ['>m', 'Ã'], [
+        Case.any2(lambda env, a, b: [max(a, b)]), # TODO
+    ])
+    cput('List_min', ['<l', 'Œ'], [
+        Case.seq(lambda env, e: [min(pd_iterable(e))]),
+    ])
+    cput('List_max', ['>l', 'Æ'], [
+        Case.seq(lambda env, e: [max(pd_iterable(e))]),
+    ])
     # }}}
-
     # «»‹› {{{
     @put('«')
     def pd_double_left(env: Environment) -> None:

@@ -104,6 +104,15 @@ class Case:
     def int_(func: Callable[[Environment, int], List[PdObject]]) -> 'Case':
         return Case(1, [just_int], func)
     @staticmethod
+    def str_(func: Callable[[Environment, str], List[PdObject]]) -> 'Case':
+        return Case(1, [just_str], func)
+    @staticmethod
+    def list_(func: Callable[[Environment, list], List[PdObject]]) -> 'Case':
+        return Case(1, [just_list], func)
+    @staticmethod
+    def seq(func: Callable[[Environment, PdSeq], List[PdObject]]) -> 'Case':
+        return Case(1, [just_seq], func)
+    @staticmethod
     def number(func: Callable[[Environment, Union[int, float]], List[PdObject]]) -> 'Case':
         return Case(1, [just_number], func)
 
@@ -113,6 +122,9 @@ class Case:
     @staticmethod
     def number2(func: Callable[[Environment, PdNum, PdNum], List[PdObject]]) -> 'Case':
         return Case(2, [just_number, just_number], func)
+    @staticmethod
+    def str2(func: Callable[[Environment, str, str], List[PdObject]]) -> 'Case':
+        return Case(2, [just_str, just_str], func)
     @staticmethod
     def list2(func: Callable[[Environment, Union[list, range], Union[list, range]], List[PdObject]]) -> 'Case':
         return Case(2, [just_list, just_list], func)
@@ -126,11 +138,17 @@ class Case:
     def seq2_singleton(func: Callable[[Environment, PdSeq, PdSeq], List[PdObject]]) -> 'Case':
         return Case(2, [seq_singleton, seq_singleton], func)
     @staticmethod
+    def seq2_range(func: Callable[[Environment, PdSeq, PdSeq], List[PdObject]]) -> 'Case':
+        return Case(2, [seq_range, seq_range], func)
+    @staticmethod
     def number_seq(func: Callable[[Environment, PdNum, PdSeq], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_number, just_seq], func, commutative=commutative)
     @staticmethod
     def block_seq_range(func: Callable[[Environment, Block, PdSeq], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_block, seq_range], func, commutative=commutative)
+    @staticmethod
+    def condition_block(func: Callable[[Environment, PdObject, Block], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(2, [just_any, just_block], func, commutative=commutative)
 
     @staticmethod
     def any3(func: Callable[[Environment, PdObject, PdObject, PdObject], List[PdObject]]) -> 'Case':

@@ -82,10 +82,10 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                     lambda env: apply_pd_list_op(env, b, objects.pd_get_last)), False)
         elif token == "i" or token == "_index":
             return (BuiltIn(b.code_repr() + "_index",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_index)), False)
+                    lambda env: apply_pd_list_op(env, b, objects.pd_get_index)), False)
         elif token == "h" or token == "_high":
             return (BuiltIn(b.code_repr() + "_high",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_index_last)), False)
+                    lambda env: apply_pd_list_op(env, b, objects.pd_get_index_last)), False)
 
 
         elif token == "r" or token == "_reduce" or token == "_fold":
