@@ -150,6 +150,10 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
         i = b0 # type: int
         if token == "m" or token == "_minus":
             return (-i, False)
+        elif token == "h" or token == "_hundred":
+            return (i * 100, False)
+        elif token == "k" or token == "_thousand":
+            return (i * 1000, False)
         elif token == "u" or token == "_under":
             def under_i(env: Environment) -> None:
                 t = env.pop()
