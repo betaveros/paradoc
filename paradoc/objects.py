@@ -39,6 +39,9 @@ PdObject = Union[PdValue, Block]
 # exceptions {{{
 class PdEmptyStackException(Exception): pass
 class PdEndOfFileException(Exception): pass
+class PdAbortException(Exception): pass
+class PdBreakException(Exception): pass
+class PdContinueException(Exception): pass
 # }}}
 # x_index {{{
 def x_index(token: str) -> Optional[int]:
@@ -410,18 +413,26 @@ def pd_find_last_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optio
 def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     env.push_yx()
     acc = [] # type: List[PdObject]
-    for i, element in py_enumerate(seq):
-        env.set_yx(i, element)
-        acc.extend(pd_sandbox(env, func, [element]))
+    try:
+        for i, element in py_enumerate(seq):
+            env.set_yx(i, element)
+            try:
+                acc.extend(pd_sandbox(env, func, [element]))
+            except PdContinueException: pass
+    except PdBreakException: pass
     env.pop_yx()
     return pd_build_like(seq, acc)
 
 def pd_foreach(env: Environment, func: Block, seq: PdSeq) -> None:
     env.push_yx()
-    for i, element in py_enumerate(seq):
-        env.set_yx(i, element)
-        env.push(element)
-        func(env)
+    try:
+        for i, element in py_enumerate(seq):
+            env.set_yx(i, element)
+            env.push(element)
+            try:
+                func(env)
+            except PdContinueException as e: pass
+    except PdBreakException as e: pass
     env.pop_yx()
 
 def pd_foreach_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
@@ -430,9 +441,13 @@ def pd_foreach_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> Lis
 
 def pd_foreach_x_only(env: Environment, func: Block, seq: PdSeq) -> None:
     env.push_yx()
-    for i, element in py_enumerate(seq):
-        env.set_yx(i, element)
-        func(env)
+    try:
+        for i, element in py_enumerate(seq):
+            env.set_yx(i, element)
+            try:
+                func(env)
+            except PdContinueException: pass
+    except PdBreakException: pass
     env.pop_yx()
 
 def pd_foreach_x_only_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:

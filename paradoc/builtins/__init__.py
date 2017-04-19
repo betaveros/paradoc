@@ -277,8 +277,17 @@ def initialize_builtins(env: Environment) -> None:
         print(env.pd_str(a))
     # }}}
 
-
-
+    # Abort, Break, Continue {{{
+    @put('Abort', 'A')
+    def abort(env: Environment) -> None:
+        raise PdAbortException('Abort')
+    @put('Break', 'Quit_loop', 'Q')
+    def break_(env: Environment) -> None:
+        raise PdBreakException('Break')
+    @put('Continue', 'Keep_going', 'K')
+    def continue_(env: Environment) -> None:
+        raise PdContinueException('Continue')
+    # }}}
 
     @put('Fc', 'Factorial')
     def factorial(env: Environment) -> None:

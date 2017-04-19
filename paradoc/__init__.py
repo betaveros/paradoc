@@ -14,7 +14,7 @@ from typing import *
 import itertools
 from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_code, break_trailer, is_numeric_literal_token, name_trailer_dissections
 from paradoc.num import Char, PdNum
-from paradoc.objects import Block, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException
+from paradoc.objects import Block, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException, PdAbortException, PdBreakException, PdContinueException
 import paradoc.objects as objects
 import paradoc.input_triggers as input_triggers
 from paradoc.builtins import initialize_builtins
@@ -341,6 +341,9 @@ class CodeBlock(Block):
                         if token.startswith('{'):
                             block_level += 1
                         block_acc.append(token0)
+            except PdAbortException: raise
+            except PdBreakException: raise
+            except PdContinueException: raise
             except Exception as ex:
                 msg = 'Error while interpreting token {} caused by exception: {}\n{}'.format(token + trailer, ex, env.debug_dump())
                 raise Exception(msg) from ex
