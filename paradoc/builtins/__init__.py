@@ -44,9 +44,11 @@ def initialize_builtins(env: Environment) -> None:
     #     a = env.pop()
     #     env.push(a, a)
     cput('Dup', [':'], [Case.any(lambda env, x: [x, x])])
+    cput('Dup_pair', ['Dp', '¦'], [Case.any2(lambda env, x, y: [x, y, x, y])])
     cput('Swap', ['\\'], [Case.any2(lambda env, a, b: [b, a])])
     cput('Rotate', ['Rot', '@'], [Case.any3(lambda env, a, b, c: [b, a])])
     cput('Pop', [';'], [Case.any(lambda env, x: [])])
+    cput('Pop_under', ['¸'], [Case.any2(lambda env, x, y: [y])])
     cput('Repr', ['`'], [Case.any(lambda env, x: [pd_repr(x)])])
     @put('[', 'Mark')
     def mark(env: Environment) -> None:
@@ -54,6 +56,8 @@ def initialize_builtins(env: Environment) -> None:
     @put(']', 'Pack')
     def pack(env: Environment) -> None:
         env.push(env.pop_until_stack_marker())
+    cput('†', [], [Case.any(lambda env, x: [[x]])])
+    cput('‡', [], [Case.any2(lambda env, x, y: [[x, y]])])
     # }}}
     # Not {{{
     cput('Not', ['!'], [Case.any(lambda env, x: [int(not x)])])
