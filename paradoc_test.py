@@ -1,5 +1,6 @@
 # coding: utf-8
 from paradoc import lex_code, pd_simple_eval
+from paradoc.num import Char
 import unittest
 
 class TestParadoc(unittest.TestCase):
@@ -210,6 +211,14 @@ class TestParadoc(unittest.TestCase):
     def test_mapsum(self):
         self.assertEqual(pd_simple_eval('[3 4 5])š'), [15])
         self.assertEqual(pd_simple_eval('[3 4 5]²š'), [50])
+
+    def test_conversions(self):
+        self.assertEqual(pd_simple_eval('253S'), ['253'])
+        self.assertEqual(pd_simple_eval('253F'), [253.0])
+        self.assertEqual(pd_simple_eval('"253"I'), [253])
+        self.assertEqual(pd_simple_eval('"253"F'), [253.0])
+        self.assertEqual(pd_simple_eval('\'xI'), [120])
+        self.assertEqual(pd_simple_eval('98C'), [Char(98)])
 
 if __name__ == '__main__':
     unittest.main()

@@ -28,6 +28,7 @@ just_str    = ArgType.just_type(str)
 just_list   = ArgType.just_type(list, range)
 just_seq    = ArgType.just_type(str, list, range)
 just_block  = ArgType.just_type(Block)
+just_value  = ArgType.just_type(Char, int, float, str, list, range)
 just_any    = ArgType.just_type(Char, int, float, str, list, range, Block)
 
 # Accepts a list, coercing Chars or numbers to single-element lists
@@ -128,6 +129,9 @@ class Case:
     @staticmethod
     def number(func: Callable[[Environment, Union[int, float]], List[PdObject]]) -> 'Case':
         return Case(1, [just_number], func)
+    @staticmethod
+    def value(func: Callable[[Environment, PdValue], List[PdObject]]) -> 'Case':
+        return Case(1, [just_value], func)
     @staticmethod
     def block(func: Callable[[Environment, Block], List[PdObject]]) -> 'Case':
         return Case(1, [just_block], func)

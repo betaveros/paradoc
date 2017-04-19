@@ -302,14 +302,6 @@ def pynumber_length(x: PdValue) -> Union[int, float]:
     else:
         return x
 
-def pd_to_int(obj: PdObject) -> int:
-    if isinstance(obj, int):
-        return obj
-    elif isinstance(obj, str):
-        return ord(obj)
-    else:
-        raise AssertionError(repr(obj) + " cannot be converted to list")
-
 def pd_to_list_range(obj: PdObject) -> Union[list, range]:
     if isinstance(obj, (list, range)):
         return obj
@@ -559,6 +551,58 @@ def pd_repr(obj: PdObject) -> str:
         return obj.code_repr()
     else:
         return repr(obj)
+# }}}
+# other conversions {{{
+def pd_to_char(val: PdValue) -> Char:
+    if isinstance(val, (list, range)):
+        if not val:
+            raise AssertionError('converting empty list/range to char')
+        else:
+            return pd_to_char(val[0])
+    elif isinstance(val, str):
+        if not val:
+            raise AssertionError('converting empty string to char')
+        else:
+            return Char(ord(val[0]))
+    elif isinstance(val, Char):
+        return val
+    else:
+        assert isinstance(val, (int, float)) # https://github.com/python/mypy/issues/3196
+        return Char(int(val))
+
+def pd_to_float(val: PdValue) -> float:
+    if isinstance(val, (list, range)):
+        if not val:
+            raise AssertionError('converting empty list/range to float')
+        else:
+            return pd_to_float(val[0])
+    elif isinstance(val, str):
+        if not val:
+            raise AssertionError('converting empty string to float')
+        else:
+            return float(val)
+    elif isinstance(val, Char):
+        return float(val.ord)
+    else:
+        assert isinstance(val, (int, float)) # https://github.com/python/mypy/issues/3196
+        return float(val)
+
+def pd_to_int(val: PdValue) -> int:
+    if isinstance(val, (list, range)):
+        if not val:
+            raise AssertionError('converting empty list/range to int')
+        else:
+            return pd_to_int(val[0])
+    elif isinstance(val, str):
+        if not val:
+            raise AssertionError('converting empty string to int')
+        else:
+            return int(val)
+    elif isinstance(val, Char):
+        return val.ord
+    else:
+        assert isinstance(val, (int, float)) # https://github.com/python/mypy/issues/3196
+        return int(val)
 # }}}
 # collection & | ^ {{{
 def pd_seq_intersection(a: PdSeq, b: PdSeq) -> PdSeq:

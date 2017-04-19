@@ -106,7 +106,20 @@ def initialize_builtins(env: Environment) -> None:
         Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
     ])
     # }}}
-
+    # Conversions C, F, I, S {{{
+    cput('To_char', ['C'], [
+        Case.value(lambda env, a: [pd_to_char(a)]),
+    ])
+    cput('To_float', ['F'], [
+        Case.value(lambda env, a: [pd_to_float(a)]),
+    ])
+    cput('To_int', ['I'], [
+        Case.value(lambda env, a: [pd_to_int(a)]),
+    ])
+    cput('To_string', ['S'], [
+        Case.value(lambda env, a: [env.pd_str(a)]),
+    ])
+    # }}}
     # Sort, $ {{{
     cput('Sort', [], [
         Case.str_(lambda env, s: [''.join(sorted(s))]),
@@ -180,20 +193,20 @@ def initialize_builtins(env: Environment) -> None:
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
     ])
     cput('Equal_sign', ['='], [
-        Case.number2(lambda env, a, b: [int(a == b)]), # TODO: Char?
+        Case.number2(lambda env, a, b: [int(pd.numerify(a) == pd.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
         Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n))]),
         Case.block_seq_range(lambda env, block, seq: [pd_get_index(env, block, seq)]),
     ])
     cput('Lt', ['<'], [
-        Case.number2(lambda env, a, b: [int(a < b)]), # TODO: Char?
+        Case.number2(lambda env, a, b: [int(pd.numerify(a) < pd.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
     ])
     cput('Gt', ['>'], [
-        Case.number2(lambda env, a, b: [int(a > b)]), # TODO: Char?
+        Case.number2(lambda env, a, b: [int(pd.numerify(a) > pd.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
