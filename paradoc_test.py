@@ -200,5 +200,12 @@ class TestParadoc(unittest.TestCase):
     def test_continue(self):
         self.assertEqual(pd_simple_eval('8,{:3>{K}&:}e'), [0,0,1,1,2,2,3,3,4,5,6,7])
 
+    def test_abs_diff(self):
+        self.assertEqual(pd_simple_eval('3 4±'), [1])
+        self.assertEqual(pd_simple_eval('4 3±'), [1])
+        self.assertEqual(pd_simple_eval('—1 6±'), [7])
+        self.assertEqual(pd_simple_eval('—1 —9±'), [8])
+        self.assertEqual(pd_simple_eval('7 —9±'), [16])
+
 if __name__ == '__main__':
     unittest.main()

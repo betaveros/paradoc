@@ -102,6 +102,9 @@ def initialize_builtins(env: Environment) -> None:
             [second_or_error(pd_find_entry(env, block, seq),
                 "Entry not found in Percent")]),
     ])
+    cput('Abs_diff', ['Ad', '±'], [
+        Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
+    ])
     # }}}
 
     # Sort, $ {{{

@@ -91,6 +91,7 @@ pd_xor = lift_intify(operator.xor)
 
 pd_ceil  = lift_numerify1(lambda x: int(math.ceil(x)))
 pd_floor = lift_numerify1(lambda x: int(math.floor(x)))
+pd_abs   = lift_numerify1(abs) # type: ignore
 
 def pd_add_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):
