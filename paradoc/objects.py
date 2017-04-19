@@ -672,6 +672,24 @@ def pd_seq_uniquify(a: PdSeq) -> PdSeq:
             s.add(element)
     return pd_build_like(a, acc)
 
+def pd_seq_is_identical(a: PdSeq) -> bool:
+    obj = None
+    for element in pd_iterable(a):
+        if obj is None:
+            obj = element
+        elif obj != element:
+            return False
+    return True
+
+def pd_seq_is_unique(a: PdSeq) -> bool:
+    s = set() # type: Set[PdObject]
+    for element in pd_iterable(a):
+        if element in s:
+            return False
+        else:
+            s.add(element)
+    return True
+
 def pd_if_then_empty_list(env: Environment, condition: PdObject, body: Block, negate: bool = False) -> List[PdObject]:
     if pytruth_eval(env, condition) ^ negate: body(env)
     return []

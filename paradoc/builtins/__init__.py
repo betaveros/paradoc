@@ -271,6 +271,27 @@ def initialize_builtins(env: Environment) -> None:
         Case.number(lambda env, a: [num.pd_signum(a)]),
         Case.seq(lambda env, a: [pd_seq_uniquify(a)]),
     ])
+
+    cput('Â', [], [
+        Case.number(lambda env, a: [int(num.numerify(a) > 0)]),
+        Case.seq(lambda env, a: [int(all(pd_iterable(a)))]),
+    ])
+    cput('Ê', [], [
+        Case.number(lambda env, a: [int(num.numerify(a) % 2 == 0)]),
+        Case.seq(lambda env, a: [int(any(pd_iterable(a)))]),
+    ])
+    cput('Î', [], [
+        Case.number(lambda env, a: [int(num.numerify(a) == 1)]),
+        Case.seq(lambda env, a: [int(pd_seq_is_identical(a))]),
+    ])
+    cput('Ô', [], [
+        Case.number(lambda env, a: [int(num.numerify(a) % 2 == 1)]),
+        Case.seq(lambda env, a: [int(not any(pd_iterable(a)))]),
+    ])
+    cput('Û', [], [
+        Case.number(lambda env, a: [int(num.numerify(a) < 0)]),
+        Case.seq(lambda env, a: [int(pd_seq_is_unique(a))]),
+    ])
     @put('~')
     def tilde(env: Environment) -> None:
         a = env.pop()
