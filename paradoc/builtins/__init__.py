@@ -193,20 +193,20 @@ def initialize_builtins(env: Environment) -> None:
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
     ])
     cput('Equal_sign', ['='], [
-        Case.number2(lambda env, a, b: [int(pd.numerify(a) == pd.numerify(b))]),
+        Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
         Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n))]),
         Case.block_seq_range(lambda env, block, seq: [pd_get_index(env, block, seq)]),
     ])
     cput('Lt', ['<'], [
-        Case.number2(lambda env, a, b: [int(pd.numerify(a) < pd.numerify(b))]),
+        Case.number2(lambda env, a, b: [int(num.numerify(a) < num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
     ])
     cput('Gt', ['>'], [
-        Case.number2(lambda env, a, b: [int(pd.numerify(a) > pd.numerify(b))]),
+        Case.number2(lambda env, a, b: [int(num.numerify(a) > num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
