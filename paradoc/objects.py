@@ -7,6 +7,7 @@ from paradoc.num import Char, Num, PdNum
 import paradoc.num as num
 import collections
 import random
+import itertools
 
 # Objects in the Paradoc runtime (type PdObject).
 
@@ -341,6 +342,17 @@ def pd_reversed_iterable(seq: PdSeq) -> Iterable[PdObject]:
         return (Char(ord(c)) for c in reversed(seq))
     return reversed(seq)
 
+def pd_deep_generator(obj: PdObject) -> Generator[PdValue, None, None]:
+    if isinstance(obj, (Char, int, float)):
+        yield obj
+    elif isinstance(obj, str):
+        yield from (Char(ord(c)) for c in obj)
+    elif isinstance(obj, (list, range)):
+        for e in obj:
+            yield from pd_deep_generator(e)
+    else:
+        raise NotImplementedError('can\'t deep-iterate across ' + repr(obj))
+
 def py_enumerate(seq: PdSeq, start: int = 0) -> Iterable[Tuple[int, PdObject]]:
     return enumerate(pd_iterable(seq), start=start)
 
@@ -392,6 +404,23 @@ def pd_build_like(orig: PdSeq, result: List[PdObject]) -> PdSeq:
         )
     else:
         return result
+def pd_mold_from(value_iterable: Iterator[PdValue], template: PdObject) -> PdObject:
+    if isinstance(template, (Char, int, float)): return next(value_iterable)
+    elif isinstance(template, (str, list, range)):
+        acc = []
+        for te in pd_iterable(template):
+            acc.append(pd_mold_from(iter(value_iterable), te))
+        return pd_build_like(template, acc)
+    else:
+        raise AssertionError('can\'t mold like ' + repr(template))
+
+def pd_mold(el_source: PdValue, template: PdSeq) -> PdObject:
+    if isinstance(el_source, (Char, int, float)):
+        return pd_mold_from(
+                (num.pd_add_const(el_source, i) for i in itertools.count(0)),
+                template)
+    else:
+        return pd_mold_from(pd_deep_generator(el_source), template)
 # }}}
 # pd_find_entry et al. (wow code duplication much) {{{
 def pd_find_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optional[int], Optional[PdObject]]:
@@ -632,6 +661,15 @@ def pd_seq_symmetric_difference(a: PdSeq, b: PdSeq) -> PdSeq:
     for element in pd_iterable(b):
         if element not in set_a:
             acc.append(element)
+    return pd_build_like(a, acc)
+
+def pd_seq_uniquify(a: PdSeq) -> PdSeq:
+    s = set() # type: Set[PdObject]
+    acc = [] # type: List[PdObject]
+    for element in pd_iterable(a):
+        if element not in s:
+            acc.append(element)
+            s.add(element)
     return pd_build_like(a, acc)
 
 def pd_if_then_empty_list(env: Environment, condition: PdObject, body: Block, negate: bool = False) -> List[PdObject]:

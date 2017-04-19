@@ -32,6 +32,8 @@ class Char:
         return not (self == other)
     def __str__(self) -> str:
         return "'" + chr(self.ord)
+    def __hash__(self) -> int:
+        return hash(self.ord)
 
 Num = Union[int, float]
 PdNum = Union[Char, int, float]
@@ -89,9 +91,10 @@ pd_and = lift_intify(operator.and_)
 pd_or  = lift_intify(operator.or_)
 pd_xor = lift_intify(operator.xor)
 
-pd_ceil  = lift_numerify1(lambda x: int(math.ceil(x)))
-pd_floor = lift_numerify1(lambda x: int(math.floor(x)))
-pd_abs   = lift_numerify1(abs) # type: ignore
+pd_ceil   = lift_numerify1(lambda x: int(math.ceil(x)))
+pd_floor  = lift_numerify1(lambda x: int(math.floor(x)))
+pd_abs    = lift_numerify1(abs) # type: ignore
+pd_signum = lift_numerify1(lambda x: (x > 0) - (x < 0))
 
 def pd_add_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):

@@ -263,8 +263,13 @@ def initialize_builtins(env: Environment) -> None:
         Case.list_int_range(lambda env, x: [functools.reduce(operator.mul, x, 1)]),
     ])
 
-    cput('Minus', ['Negate', 'M'], [
+    cput('M', [], [
         Case.number(lambda env, a: [num.pd_mul_div_const(a, -1, 1)]),
+        Case.value_seq(lambda env, x, y: [pd_mold(x, y)]),
+    ])
+    cput('U', [], [
+        Case.number(lambda env, a: [num.pd_signum(a)]),
+        Case.seq(lambda env, a: [pd_seq_uniquify(a)]),
     ])
     @put('~')
     def tilde(env: Environment) -> None:

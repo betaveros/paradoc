@@ -220,5 +220,31 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('\'xI'), [120])
         self.assertEqual(pd_simple_eval('98C'), [Char(98)])
 
+    def test_negate(self):
+        self.assertEqual(pd_simple_eval('5M'), [-5])
+        self.assertEqual(pd_simple_eval('6MM'), [6])
+        self.assertEqual(pd_simple_eval('—7M'), [7])
+        self.assertEqual(pd_simple_eval('—8MM'), [-8])
+
+    def test_signum(self):
+        self.assertEqual(pd_simple_eval('1U'), [1])
+        self.assertEqual(pd_simple_eval('2U'), [1])
+        self.assertEqual(pd_simple_eval('1000U'), [1])
+        self.assertEqual(pd_simple_eval('—989U'), [-1])
+        self.assertEqual(pd_simple_eval('727mU'), [-1])
+        self.assertEqual(pd_simple_eval('6986MMU'), [1])
+        self.assertEqual(pd_simple_eval('0U'), [0])
+
+    def test_mold(self):
+        self.assertEqual(pd_simple_eval('[5 6 7 8][[1 2][3 4]]M'), [[[5,6],[7,8]]])
+        self.assertEqual(pd_simple_eval('[[5][6 7][8]][1 2 3 4]M'), [[5,6,7,8]])
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5][[0][0 0 0][0]]M'), [[[3],[1,4,1],[5]]])
+        self.assertEqual(pd_simple_eval('2[[0][0 0 0][0]]M'), [[[2],[3,4,5],[6]]])
+
+    def test_uniquify(self):
+        self.assertEqual(pd_simple_eval('[1 2 3]U'), [[1,2,3]])
+        self.assertEqual(pd_simple_eval('[1 2 3 2 1]U'), [[1,2,3]])
+        self.assertEqual(pd_simple_eval('[9 0 0 9 7 0 9 9 0 7]U'), [[9,0,7]])
+
 if __name__ == '__main__':
     unittest.main()
