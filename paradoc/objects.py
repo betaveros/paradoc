@@ -423,6 +423,19 @@ def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     env.pop_yx()
     return pd_build_like(seq, acc)
 
+def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
+    env.push_yx()
+    acc = [] # type: List[PdObject]
+    try:
+        for i, element in py_enumerate(seq):
+            env.set_yx(i, element)
+            try:
+                acc.extend(pd_sandbox(env, func, [element]))
+            except PdContinueException: pass
+    except PdBreakException: pass
+    env.pop_yx()
+    return sum(acc)
+
 def pd_foreach(env: Environment, func: Block, seq: PdSeq) -> None:
     env.push_yx()
     try:

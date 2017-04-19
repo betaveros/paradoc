@@ -107,6 +107,9 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                 lst_a = objects.pd_to_list_range(env.pop())
                 env.push(objects.pd_zip(env, b, range(len(lst_a)), lst_a))
             return (BuiltIn(b.code_repr() + "_enumap", enumap_b), False)
+        elif token == "š" or token == "_mapsum":
+            return (BuiltIn(b.code_repr() + "_mapsum",
+                    lambda env: apply_pd_list_op(env, b, objects.pd_mapsum)), False)
         elif token == "b" or token == "_bind":
             e = outer_env.pop()
             def bind_b(env: Environment) -> None:

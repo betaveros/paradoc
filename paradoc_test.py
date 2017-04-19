@@ -207,5 +207,9 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('—1 —9±'), [8])
         self.assertEqual(pd_simple_eval('7 —9±'), [16])
 
+    def test_mapsum(self):
+        self.assertEqual(pd_simple_eval('[3 4 5])š'), [15])
+        self.assertEqual(pd_simple_eval('[3 4 5]²š'), [50])
+
 if __name__ == '__main__':
     unittest.main()
