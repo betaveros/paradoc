@@ -250,6 +250,9 @@ def initialize_builtins(env: Environment) -> None:
         Case.list_int_range(lambda env, x: [functools.reduce(operator.mul, x, 1)]),
     ])
 
+    cput('Minus', ['Negate', 'M'], [
+        Case.number(lambda env, a: [num.pd_mul_div_const(a, -1, 1)]),
+    ])
     @put('~')
     def tilde(env: Environment) -> None:
         a = env.pop()
