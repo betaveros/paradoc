@@ -314,7 +314,9 @@ def pd_to_list_range(obj: PdObject) -> Union[list, range]:
     if isinstance(obj, (list, range)):
         return obj
     elif isinstance(obj, str):
-        return range(ord(obj))
+        return [Char(ord(c)) for c in obj]
+    elif isinstance(obj, Char):
+        return range(obj.ord)
     elif isinstance(obj, int):
         return range(obj)
     else:

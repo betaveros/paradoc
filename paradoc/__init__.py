@@ -242,7 +242,7 @@ class CodeBlock(Block):
             if is_nop_or_comment(trailer_token): continue
             if trailer_token == 'i' or trailer_token == '_input':
                 env.stack_trigger = input_triggers.all
-            if trailer_token == 'l' or trailer_token == '_lines':
+            elif trailer_token == 'l' or trailer_token == '_lines':
                 env.stack_trigger = input_triggers.line
             elif trailer_token == 'w' or trailer_token == '_words':
                 env.stack_trigger = input_triggers.word
@@ -273,7 +273,7 @@ class CodeBlock(Block):
             elif trailer_token == 'n' or trailer_token == '_newline':
                 env.put('Ñ', '\n')
             else:
-                raise NotImplementedError('unknown global trailer token ' + trailer_token)
+                raise NotImplementedError('unknown global trailer token ' + repr(trailer_token))
 
         assign_active = False
         destructive_assign = False
