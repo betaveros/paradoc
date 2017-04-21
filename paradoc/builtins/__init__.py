@@ -271,6 +271,10 @@ def initialize_builtins(env: Environment) -> None:
         Case.number(lambda env, a: [num.pd_signum(a)]),
         Case.seq(lambda env, a: [pd_seq_uniquify(a)]),
     ])
+    cput('H', [], [
+        Case.number2(lambda env, a, b: [num.pd_count_multiplicity_in(b, a)]),
+        Case.seq_value(lambda env, s, x: [pd_count_in(x, s)]),
+    ])
 
     cput('Â', [], [
         Case.number(lambda env, a: [int(num.numerify(a) > 0)]),

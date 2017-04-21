@@ -167,8 +167,11 @@ class Case:
     def number_seq(func: Callable[[Environment, PdNum, PdSeq], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_number, just_seq], func, commutative=commutative)
     @staticmethod
-    def value_seq(func: Callable[[Environment, PdValue, PdSeq], List[PdObject]]) -> 'Case':
-        return Case(2, [just_value, just_seq], func)
+    def value_seq(func: Callable[[Environment, PdValue, PdSeq], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(2, [just_value, just_seq], func, commutative=commutative)
+    @staticmethod
+    def seq_value(func: Callable[[Environment, PdValue, PdSeq], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(2, [just_seq, just_value], func, commutative=commutative)
     @staticmethod
     def any_number(func: Callable[[Environment, PdObject, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_any, just_number], func, commutative=commutative)

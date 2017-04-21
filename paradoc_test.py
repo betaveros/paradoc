@@ -291,5 +291,19 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('4 5 )d'), [5,6])
         self.assertEqual(pd_simple_eval('2 3 4 5 +d'), [5,9])
 
+    def test_has(self):
+        self.assertEqual(pd_simple_eval('4 5 H'), [0])
+        self.assertEqual(pd_simple_eval('10 5 H'), [1])
+        self.assertEqual(pd_simple_eval('5000 5 H'), [4])
+        self.assertEqual(pd_simple_eval('6 4 H'), [0])
+        self.assertEqual(pd_simple_eval('28 4 H'), [1])
+        self.assertEqual(pd_simple_eval('224 4 H'), [2])
+        self.assertEqual(pd_simple_eval('[1 5 1 3] 1 H'), [2])
+        self.assertEqual(pd_simple_eval('[1 5 1 3] 2 H'), [0])
+        self.assertEqual(pd_simple_eval('[1 5 1 3] 3 H'), [1])
+        self.assertEqual(pd_simple_eval('"PARADOC" \'A H'), [2])
+        self.assertEqual(pd_simple_eval('"PARADOC" \'a H'), [0])
+        self.assertEqual(pd_simple_eval('"PARADOC" 67 H'), [1])
+
 if __name__ == '__main__':
     unittest.main()

@@ -113,3 +113,13 @@ def pd_power_const(a: PdNum, const: int) -> PdNum:
         return Char(a.ord ** const) # really?
     else:
         return a ** const
+
+def pd_count_multiplicity_in(a0: PdNum, b0: PdNum) -> int:
+    a = intify(a0)
+    b = intify(b0)
+    c = 0
+    if b == 0: return 1/0 # ????
+    while b % a == 0:
+        b //= a
+        c += 1
+    return c
