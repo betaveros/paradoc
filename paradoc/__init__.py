@@ -54,21 +54,34 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
 
     if isinstance(b0, Block):
         b = b0 # type: Block
-        if token == "e" or token == "_each":
+
+        if token == "a" or token == "_anti":
+            def anti_b(env: Environment) -> None:
+                e2, e1 = env.pop2()
+                env.push(e2, e1)
+                b(env)
+            return (BuiltIn(b.code_repr() + "_anti", anti_b), True)
+
+        elif token == "b" or token == "_bind":
+            e = outer_env.pop()
+            def bind_b(env: Environment) -> None:
+                env.push(e)
+                b(env)
+            return (BuiltIn(b.code_repr() + "_bind", bind_b), True)
+
+        elif token == "d" or token == "_double":
+            def double_b(env: Environment) -> None:
+                shadow = env.bracketed_shadow()
+                b(shadow)
+                b(env)
+                env.push_env(shadow)
+            return (BuiltIn(b.code_repr() + "_double", double_b), False)
+
+        elif token == "e" or token == "_each":
             def each_b(env: Environment) -> None:
                 lst = objects.pd_to_list_range(env.pop())
                 objects.pd_foreach(env, b, lst)
             return (BuiltIn(b.code_repr() + "_each", each_b), False)
-
-        elif token == "x" or token == "_xloop":
-            def xloop_b(env: Environment) -> None:
-                lst = objects.pd_to_list_range(env.pop())
-                objects.pd_foreach_x_only(env, b, lst)
-            return (BuiltIn(b.code_repr() + "_xloop", xloop_b), False)
-
-        elif token == "m" or token == "_map":
-            return (BuiltIn(b.code_repr() + "_map",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_map)), False)
 
         elif token == "f" or token == "_filter" or token == "_select":
             return (BuiltIn(b.code_repr() + "_filter",
@@ -77,26 +90,62 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
         elif token == "g" or token == "_get":
             return (BuiltIn(b.code_repr() + "_get",
                     lambda env: apply_pd_list_op(env, b, objects.pd_get)), False)
-        elif token == "l" or token == "_last":
-            return (BuiltIn(b.code_repr() + "_last",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_get_last)), False)
-        elif token == "i" or token == "_index":
-            return (BuiltIn(b.code_repr() + "_index",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_get_index)), False)
+
         elif token == "h" or token == "_high":
             return (BuiltIn(b.code_repr() + "_high",
                     lambda env: apply_pd_list_op(env, b, objects.pd_get_index_last)), False)
+
+        elif token == "i" or token == "_index":
+            return (BuiltIn(b.code_repr() + "_index",
+                    lambda env: apply_pd_list_op(env, b, objects.pd_get_index)), False)
+
+        elif token == "k" or token == "_keep":
+            def keep_b(env: Environment) -> None:
+                shadow = env.keep_shadow()
+                b(shadow)
+                env.push_env(shadow)
+            return (BuiltIn(b.code_repr() + "_keep", keep_b), False)
+
+        elif token == "l" or token == "_last":
+            return (BuiltIn(b.code_repr() + "_last",
+                    lambda env: apply_pd_list_op(env, b, objects.pd_get_last)), False)
+
+        elif token == "m" or token == "_map":
+            return (BuiltIn(b.code_repr() + "_map",
+                    lambda env: apply_pd_list_op(env, b, objects.pd_map)), False)
 
 
         elif token == "r" or token == "_reduce" or token == "_fold":
             return (BuiltIn(b.code_repr() + "_reduce",
                     lambda env: apply_pd_list_op(env, b, objects.pd_reduce)), False)
+
+        elif token == "q" or token == "_keepunder":
+            def keepunder_b(env: Environment) -> None:
+                shadow = env.keep_shadow()
+                b(shadow)
+                env.push_keep_shadow_env_under(shadow)
+            return (BuiltIn(b.code_repr() + "_keepunder", keepunder_b), False)
+
+        elif token == "u" or token == "_under":
+            def under_b(env: Environment) -> None:
+                t = env.pop()
+                b(env)
+                env.push(t)
+            return (BuiltIn(b.code_repr() + "_under", under_b), False)
+
+        elif token == "x" or token == "_xloop":
+            def xloop_b(env: Environment) -> None:
+                lst = objects.pd_to_list_range(env.pop())
+                objects.pd_foreach_x_only(env, b, lst)
+            return (BuiltIn(b.code_repr() + "_xloop", xloop_b), False)
+
         elif token == "z" or token == "_zip":
             def zip_b(env: Environment) -> None:
                 lst_b = objects.pd_to_list_range(env.pop())
                 lst_a = objects.pd_to_list_range(env.pop())
                 env.push(objects.pd_zip(env, b, lst_a, lst_b))
             return (BuiltIn(b.code_repr() + "_zip", zip_b), False)
+
         elif token == "ä" or token == "_autozip":
             def autozip_b(env: Environment) -> None:
                 lst_a = objects.pd_to_list_range(env.pop())
@@ -110,41 +159,7 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
         elif token == "š" or token == "_mapsum":
             return (BuiltIn(b.code_repr() + "_mapsum",
                     lambda env: apply_pd_list_op(env, b, objects.pd_mapsum)), False)
-        elif token == "b" or token == "_bind":
-            e = outer_env.pop()
-            def bind_b(env: Environment) -> None:
-                env.push(e)
-                b(env)
-            return (BuiltIn(b.code_repr() + "_bind", bind_b), True)
 
-        elif token == "u" or token == "_under":
-            def under_b(env: Environment) -> None:
-                t = env.pop()
-                b(env)
-                env.push(t)
-            return (BuiltIn(b.code_repr() + "_under", under_b), False)
-
-        elif token == "k" or token == "_keep":
-            def keep_b(env: Environment) -> None:
-                shadow = env.keep_shadow()
-                b(shadow)
-                env.push_env(shadow)
-            return (BuiltIn(b.code_repr() + "_keep", keep_b), False)
-
-        elif token == "q" or token == "_keepunder":
-            def keepunder_b(env: Environment) -> None:
-                shadow = env.keep_shadow()
-                b(shadow)
-                env.push_keep_shadow_env_under(shadow)
-            return (BuiltIn(b.code_repr() + "_keepunder", keepunder_b), False)
-
-        elif token == "d" or token == "_double":
-            def double_b(env: Environment) -> None:
-                shadow = env.bracketed_shadow()
-                b(shadow)
-                b(env)
-                env.push_env(shadow)
-            return (BuiltIn(b.code_repr() + "_double", double_b), False)
 
         raise NotImplementedError("unknown trailer token " + token + " on blocklike")
     elif isinstance(b0, str):
