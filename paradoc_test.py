@@ -281,5 +281,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[3 2 0]Û'), [1])
         self.assertEqual(pd_simple_eval('[3 7 1]Û'), [1])
 
+    def test_keep_under(self):
+        self.assertEqual(pd_simple_eval('3 4 5 +'),  [3,9])
+        self.assertEqual(pd_simple_eval('3 4 5 +k'), [3,4,5,9])
+        self.assertEqual(pd_simple_eval('3 4 5 +u'), [7,5])
+        self.assertEqual(pd_simple_eval('3 4 5 +q'), [3,9,4,5])
+
 if __name__ == '__main__':
     unittest.main()

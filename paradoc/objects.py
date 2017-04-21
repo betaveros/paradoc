@@ -135,6 +135,11 @@ class Environment: # {{{
     def push_env(self, other: 'Environment') -> None:
         self.push(*other._stack)
 
+    def push_keep_shadow_env_under(self, other: 'KeepShadowEnvironment') -> None:
+        shadow_temp = self.pop_n(other.shadow_i)
+        self.push(*other._stack)
+        self.push(*shadow_temp)
+
     def push_or_eval(self, val: PdObject) -> None:
         if isinstance(val, Block):
             val(self)
@@ -158,6 +163,12 @@ class Environment: # {{{
             raise PdEmptyStackException('Empty stack')
         else:
             return res
+
+    def pop_n(self, n: int) -> List[PdObject]:
+        acc = [] # type: List[PdObject]
+        for _ in range(n):
+            acc.append(self.pop())
+        return acc[::-1]
 
     def try_ensure_length(self, n: int) -> None:
         if len(self._stack) < n:
@@ -233,20 +244,8 @@ class Environment: # {{{
         env.mark_stack()
         return env
 
-    def keep_shadow(self) -> 'Environment':
-        i = 0
-        def keep_trigger() -> Optional[PdObject]:
-            nonlocal i
-            self.try_ensure_length(i + 1)
-            ret = self.index_stack_or_none(i)
-            i += 1
-            return ret
-
-        return Environment(
-                evaluator=self.evaluator,
-                stack=[],
-                vars_delegate=self,
-                stack_trigger=keep_trigger)
+    def keep_shadow(self) -> 'KeepShadowEnvironment':
+        return KeepShadowEnvironment(self)
 
     def capture_stack_as_iterable(self) -> Iterable[PdObject]:
         captured_stack = self._stack
@@ -265,6 +264,21 @@ class Environment: # {{{
             except PdEmptyStackException:
                 pass
         return inner_generator()
+
+class KeepShadowEnvironment(Environment):
+    def __init__(self, shadow_parent: Environment) -> None:
+        Environment.__init__(self,
+                evaluator = shadow_parent.evaluator,
+                stack_trigger = self.shadow_keep_trigger,
+                vars_delegate = shadow_parent)
+        self.shadow_parent = shadow_parent
+        self.shadow_i = 0
+
+    def shadow_keep_trigger(self) -> Optional[PdObject]:
+        self.shadow_parent.try_ensure_length(self.shadow_i + 1)
+        ret = self.shadow_parent.index_stack_or_none(self.shadow_i)
+        self.shadow_i += 1
+        return ret
 # }}}
 # truthiness {{{
 def pytruth(x: PdValue) -> bool:

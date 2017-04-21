@@ -131,6 +131,14 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                 env.push_env(shadow)
             return (BuiltIn(b.code_repr() + "_keep", keep_b), False)
 
+        elif token == "q" or token == "_keepunder":
+            def keepunder_b(env: Environment) -> None:
+                shadow = env.keep_shadow()
+                b(shadow)
+                env.push_keep_shadow_env_under(shadow)
+            return (BuiltIn(b.code_repr() + "_keepunder", keepunder_b), False)
+
+
         raise NotImplementedError("unknown trailer token " + token + " on blocklike")
     elif isinstance(b0, str):
         s = b0 # type: str
