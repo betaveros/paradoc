@@ -287,5 +287,9 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('3 4 5 +u'), [7,5])
         self.assertEqual(pd_simple_eval('3 4 5 +q'), [3,9,4,5])
 
+    def test_double(self):
+        self.assertEqual(pd_simple_eval('4 5 )d'), [5,6])
+        self.assertEqual(pd_simple_eval('2 3 4 5 +d'), [5,9])
+
 if __name__ == '__main__':
     unittest.main()
