@@ -447,13 +447,19 @@ def pd_find_last_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optio
         if pd_truthy(env, func, [e]): return (i, e)
     return (None, None)
 
-def pd_count_in(e: PdValue, seq: PdSeq) -> int:
+def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
     if isinstance(seq, str):
         if isinstance(e, Char):
             return seq.count(chr(e.ord))
         elif isinstance(e, (int, float)):
             return seq.count(chr(int(e)))
-    return seq.count(e)
+        else:
+            return seq.count(env.pd_str(e))
+    elif isinstance(seq, range):
+        # whatever, it's ok to count whatever is in a range
+        return seq.count(e) # type: ignore
+    else:
+        return seq.count(e)
 
 def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     env.push_yx()

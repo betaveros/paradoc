@@ -118,7 +118,7 @@ def pd_count_multiplicity_in(a0: PdNum, b0: PdNum) -> int:
     a = intify(a0)
     b = intify(b0)
     c = 0
-    if b == 0: return 1/0 # ????
+    if b == 0: return -1 # ???
     while b % a == 0:
         b //= a
         c += 1
