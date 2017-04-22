@@ -305,5 +305,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"PARADOC" \'a H'), [0])
         self.assertEqual(pd_simple_eval('"PARADOC" 67 H'), [1])
 
+    def test_some_trig(self):
+        self.assertEqual(pd_simple_eval('0 Sn'), [0.0])
+        self.assertEqual(pd_simple_eval('0 Cs'), [1.0])
+        self.assertEqual(pd_simple_eval('0 Tn'), [0.0])
+        self.assertEqual(pd_simple_eval('Pi½ Sn'), [1.0])
+        self.assertEqual(pd_simple_eval('Pi Cs'), [-1.0])
+        self.assertEqual(pd_simple_eval('[[0] Pi] Cs'), [[[1.0], -1.0]])
+
 if __name__ == '__main__':
     unittest.main()

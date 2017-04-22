@@ -33,6 +33,8 @@ def initialize_builtins(env: Environment) -> None:
     env.put(u'E', 11)
     env.put(u'Ñ', '')
     env.put(u'–', ' ')
+    env.put('Ee', math.e)
+    env.put('Pi', math.pi)
     # }}}
     # Universal functions: stack stuff, list stuff {{{
 
@@ -420,6 +422,24 @@ def initialize_builtins(env: Environment) -> None:
         a = env.pop()
         assert not isinstance(a, Block)
         env.push(pynumber_length(a) % 2 == 0)
+
+    # Other predicates {{{
+    cput('Positive',         ['+p'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e >  0), x)])])
+    cput('Negative',         ['-p'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e <  0), x)])])
+    cput('Positive_or_zero', ['+o'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e >= 0), x)])])
+    cput('Negative_or_zero', ['-o'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e <= 0), x)])])
+    # }}}
+    # Dumping Python's math {{{
+    cput('Sin',     ['Sn'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.sin  , x)])])
+    cput('Cos',     ['Cs'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.cos  , x)])])
+    cput('Tan',     ['Tn'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.tan  , x)])])
+    cput('Asin',    ['As'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.asin , x)])])
+    cput('Acos',    ['Ac'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.acos , x)])])
+    cput('Atan',    ['At'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.atan , x)])])
+    cput('Log_e',   ['Ln'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log  , x)])])
+    cput('Log_ten', ['Lt'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log10, x)])])
+    cput('Log_two', ['Lg'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log2 , x)])])
+    # }}}
 
     cput('Replicate', ['ˆ'], [
         Case.any_number(lambda env, x, n: [pd_replicate(x, num.intify(n))]),

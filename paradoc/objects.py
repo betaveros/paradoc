@@ -345,6 +345,16 @@ def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObj
     # func(temp_env)
     # return temp_env.stack
 # }}}
+# deeply map a Python num -> num function (no Char preservation) {{{
+def pd_deepmap_n2n(func: Callable[[Union[int, float]], PdNum], obj: PdValue) -> PdValue:
+    if isinstance(obj, (Char, int, float)):
+        return func(num.numerify(obj))
+    else:
+        acc = []
+        for e in pd_iterable(obj):
+            acc.append(pd_deepmap_n2n(func, e))
+        return acc
+# }}}
 # iteration wrappers {{{
 def pd_iterable(seq: PdSeq) -> Iterable[PdObject]:
     if isinstance(seq, str):
