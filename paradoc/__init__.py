@@ -176,10 +176,16 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             def interoutput_s(env: Environment) -> None:
                 print(simple_interpolate(env, s, '%'), end="")
             return (BuiltIn(objects.pd_repr(s) + "_interoutput", interoutput_s), False)
-        elif token == "n" or token == "_interoutputn":
-            def interoutputn_s(env: Environment) -> None:
+        elif token == "n" or token == "_interprint":
+            def interprint_s(env: Environment) -> None:
                 env.print_output_record(simple_interpolate(env, s, '%'))
-            return (BuiltIn(objects.pd_repr(s) + "_interoutputn", interoutputn_s), False)
+            return (BuiltIn(objects.pd_repr(s) + "_interprint", interprint_s), False)
+        elif token == "_debug":
+            def debug_s(env: Environment) -> None:
+                print(s, 'dump:',  env.debug_dump(), file=sys.stderr)
+            return (BuiltIn(objects.pd_repr(s) + "_debug", debug_s), False)
+
+        raise NotImplementedError("unknown trailer token " + token + " on string")
     elif isinstance(b0, int):
         i = b0 # type: int
         if token == "m" or token == "_minus":
