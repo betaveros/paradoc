@@ -200,6 +200,15 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                 env.push(i)
                 env.push(t)
             return (BuiltIn(str(i) + "_under", under_i), False)
+        elif token == "_force":
+            def force_i(env: Environment) -> None:
+                xs = env.pop_n(i)
+                env.push(*xs)
+            return (BuiltIn(str(i) + "_force", force_i), False)
+        elif token == "a" or token == "_array":
+            def array_i(env: Environment) -> None:
+                env.push(env.pop_n(i))
+            return (BuiltIn(str(i) + "_array", array_i), False)
 
         raise NotImplementedError("unknown trailer token " + token + " on integer")
     raise NotImplementedError("unknown trailer token " + token + " on unknown thing")
