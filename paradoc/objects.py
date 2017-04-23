@@ -366,7 +366,7 @@ def pd_deep_copy_to_list(obj: PdValue) -> PdValue:
     if isinstance(obj, (Char, int, float)):
         return obj
     else:
-        acc = []
+        acc = [] # type: List[PdValue]
         for e in pd_iterable(obj):
             acc.append(pd_deep_copy_to_list(e))
         return acc
