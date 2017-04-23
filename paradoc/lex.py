@@ -2,6 +2,7 @@
 import typing
 from typing import *
 import re
+import string
 
 def is_nop_or_comment(token: str) -> bool:
     # (Only the special starting lexer would parse #!whatever as a single
@@ -10,13 +11,13 @@ def is_nop_or_comment(token: str) -> bool:
             token.startswith('..') or
             token.startswith('——') or
             token.startswith('#!'))
+lowers = string.ascii_lowercase + "àáâãäåæçèéêëìíîïñòóôõöøùúûüýþÿœšžªºƒ"
+lower_underscore_set = set(lowers + "_")
 def is_trailer(char_or_token: str) -> bool:
-    char = char_or_token[0]
-    return char.islower() or char == '_'
+    return char_or_token[0] in lower_underscore_set
 
 # Blocks are not bunched at the lexing stage.
 # So they're not really string literals.
-lowers = "a-zàáâãäåæçèéêëìíîïñòóôõöøùúûüýþÿœšžªºƒ"
 numeric_literal_token_pattern = re.compile(r"""
     ^
     —?[0-9]+(?:\.[0-9]+)?(?:e[0-9]+)? # number
@@ -73,9 +74,11 @@ def lex_code(code: str) -> Generator[str, None, None]:
 def break_trailer(s: str) -> Tuple[str, str]:
     if s[0] == "'":
         return (s[:2], s[2:])
-    for i in range(len(s) - 1, -1, -1):
-        if not is_trailer(s[i]):
-            return (s[:i+1], s[i+1:])
+    # sad, you can't reverse enumerate
+    for ri, c in enumerate(reversed(s)):
+        if not is_trailer(c):
+            n = len(s)
+            return (s[:n-ri], s[n-ri:])
     raise Exception(s + " Token is all trailer!?")
 
 def is_numeric_literal_token(token: str) -> bool:
