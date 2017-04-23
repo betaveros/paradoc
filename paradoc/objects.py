@@ -247,7 +247,8 @@ class Environment: # {{{
             return None
 
     def debug_dump(self) -> str:
-        return 'Stack dump: {}\nX-stack: {}'.format(repr(self._stack), repr(self._x_stack))
+        return '\n  Stack dump: {}\n  X-stack: {}\n  Markers: {}'.format(
+                repr(self._stack), repr(self._x_stack), repr(self.marker_stack))
 
     def bracketed_shadow(self) -> 'Environment':
         env = Environment(
