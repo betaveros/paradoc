@@ -49,6 +49,13 @@ def x_index(token: str) -> Optional[int]:
     if token == 'X': return 0
     elif token == 'Y': return 1
     elif token == 'Z': return 2
+    # TODO it's pretty unclear if this is actually what we want
+    elif token == 'Xx': return 3
+    elif token == 'Xy': return 4
+    elif token == 'Xz': return 5
+    elif token == 'Yx': return 6
+    elif token == 'Yy': return 7
+    elif token == 'Yz': return 8
     else: return None
 # }}}
 class Environment: # {{{
