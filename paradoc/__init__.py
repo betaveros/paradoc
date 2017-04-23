@@ -165,7 +165,7 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                     lambda env: apply_pd_list_op(env, b, objects.pd_mapsum)), False)
 
 
-        raise NotImplementedError("unknown trailer token " + token + " on blocklike")
+        raise NotImplementedError("unknown trailer token " + token + " on blocklike " + b.code_repr())
     elif isinstance(b0, str):
         s = b0 # type: str
         if token == "i" or token == "_interpolate":
