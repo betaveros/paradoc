@@ -4,22 +4,22 @@ from paradoc.objects import *
 # introspective usefulness. Note we don't typecheck coercions! Their argument
 # needs to be an existential type or something to avoid false alarms.
 class ArgType:
-    def __init__(self, coercions: List[Tuple[Type[PdObject], Callable[[Any], PdObject]]]) -> None:
+    def __init__(self, coercions: List[Tuple[Tuple[Type[PdObject], ...], Callable[[Any], PdObject]]]) -> None:
         self.coercions = coercions
     def accepts(self, arg: PdObject) -> bool:
-        for typ, coercion in self.coercions:
-            if isinstance(arg, typ): return True
+        for typs, coercion in self.coercions:
+            if isinstance(arg, typs): return True
         return False
     def maybe_process(self, arg: PdObject) -> Optional[PdObject]:
-        for typ, coercion in self.coercions:
-            if isinstance(arg, typ):
+        for typs, coercion in self.coercions:
+            if isinstance(arg, typs):
                 res = coercion(arg)
                 return coercion(arg)
         return None
 
     @staticmethod
     def just_type(*typs: Type[PdObject]) -> 'ArgType':
-        return ArgType([(typ, lambda obj: obj) for typ in typs])
+        return ArgType([(tuple(typs), lambda obj: obj)])
 
 just_int    = ArgType.just_type(int)
 just_float  = ArgType.just_type(float)
@@ -33,41 +33,32 @@ just_any    = ArgType.just_type(Char, int, float, str, list, range, Block)
 
 # Accepts a list, coercing Chars or numbers to single-element lists
 list_singleton = ArgType([
-        (Char,  lambda x: [x]),
-        (int,   lambda x: [x]),
-        (float, lambda x: [x]),
-        (list,  lambda x: x),
-        (range, lambda x: x)
+        ((Char, int, float),  lambda x: [x]),
+        ((list, range),       lambda x: x),
         ])
 
 # Accepts a sequence, coercing Chars or numbers to single-element strings or
 # lists
 seq_singleton = ArgType([
-        (Char,  lambda x: chr(x.ord)),
-        (int,   lambda x: [x]),
-        (float, lambda x: [x]),
-        (str,   lambda x: x),
-        (list,  lambda x: x),
-        (range, lambda x: x)
+        ((Char,),            lambda x: chr(x.ord)),
+        ((int, float),       lambda x: [x]),
+        ((str, list, range), lambda x: x),
         ])
 # Accepts a sequence, coercing Chars or numbers to ranges
 seq_range = ArgType([
-        (Char,  lambda x: range(x.ord)),
-        (int,   lambda x: range(x)),
-        (float, lambda x: range(int(x))),
-        (str,   lambda x: x),
-        (list,  lambda x: x),
-        (range, lambda x: x)
+        ((Char,),            lambda x: range(x.ord)),
+        ((int,),             lambda x: range(x)),
+        ((float,),           lambda x: range(int(x))),
+        ((str, list, range), lambda x: x),
         ])
 
 # Accepts a list, coercing strings to lists of integers and Chars or numbers to ranges
 list_int_range = ArgType([
-        (Char,  lambda x: range(x.ord)),
-        (int,   lambda x: range(x)),
-        (float, lambda x: range(int(x))),
-        (str,   lambda x: [ord(c) for c in x]),
-        (list,  lambda x: x),
-        (range, lambda x: x)
+        ((Char,),       lambda x: range(x.ord)),
+        ((int,),        lambda x: range(x)),
+        ((float,),      lambda x: range(int(x))),
+        ((str,),        lambda x: [ord(c) for c in x]),
+        ((list, range), lambda x: x),
         ])
 
 # A case in a function definition, which specifies a list of types of
