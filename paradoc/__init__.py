@@ -409,7 +409,7 @@ class CodeBlock(Block):
             block_level -= 1
             if block_level == 0:
                 act_after_trailer_tokens(env,
-                        CodeBlock(block_acc), lex_trailer(trailer),
+                        CodeBlock(block_acc), [],
                         reluctant=True, post_executor=executor)
                 block_acc = []
                 executor = None
