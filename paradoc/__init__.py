@@ -41,10 +41,11 @@ def simple_interpolate(env: Environment, content: str, target: str) -> str:
 
 def apply_pd_list_op(
         env: Environment, b: Block,
-        op: Callable[[Environment, Block, PdSeq], PdObject]
+        op: Callable[[Environment, Block, PdSeq], PdObject],
+        coerce_start: int = 0,
         ) -> None:
 
-    lst = objects.pd_to_list_range(env.pop())
+    lst = objects.pd_to_list_range(env.pop(), coerce_start)
     env.push(op(env, b, lst))
 
 # bool is whether the result is "reluctant"
@@ -114,6 +115,9 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             return (BuiltIn(b.code_repr() + "_map",
                     lambda env: apply_pd_list_op(env, b, objects.pd_map)), False)
 
+        elif token == "o" or token == "_onemap":
+            return (BuiltIn(b.code_repr() + "_onemap",
+                    lambda env: apply_pd_list_op(env, b, objects.pd_map, coerce_start=1)), False)
 
         elif token == "r" or token == "_reduce" or token == "_fold":
             return (BuiltIn(b.code_repr() + "_reduce",

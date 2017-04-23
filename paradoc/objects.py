@@ -317,15 +317,15 @@ def pynumber_length(x: PdValue) -> Union[int, float]:
     else:
         return x
 
-def pd_to_list_range(obj: PdObject) -> Union[list, range]:
+def pd_to_list_range(obj: PdObject, coerce_start: int = 0) -> Union[list, range]:
     if isinstance(obj, (list, range)):
         return obj
     elif isinstance(obj, str):
         return [Char(ord(c)) for c in obj]
     elif isinstance(obj, Char):
-        return range(obj.ord)
+        return range(coerce_start, coerce_start + obj.ord)
     elif isinstance(obj, int):
-        return range(obj)
+        return range(coerce_start, coerce_start + obj)
     else:
         raise AssertionError(repr(obj) + " cannot be converted to list")
 # }}}
