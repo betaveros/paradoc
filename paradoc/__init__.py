@@ -268,7 +268,8 @@ def make_for_loop_over(iterable: Iterable[PdObject]) -> BodyExecutor:
 
 class CodeBlock(Block):
     def __init__(self, tokens: List[str]) -> None:
-        self.tokens = tokens
+        # TODO: make this an option?
+        self.tokens = [token for token in tokens if not token.startswith('..') and not token == ' ' and not token == '\n']
 
     def code_repr(self) -> str:
         # TODO
