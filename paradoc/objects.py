@@ -445,6 +445,8 @@ def pd_mold(el_source: PdValue, template: PdSeq) -> PdObject:
                 template)
     else:
         return pd_mold_from(pd_deep_generator(el_source), template)
+def pd_zip_as_list(seq1: PdSeq, seq2: PdSeq) -> PdObject:
+    return [[e1, e2] for e1, e2 in zip(pd_iterable(seq1), pd_iterable(seq2))]
 # }}}
 # pd_find_entry et al. (wow code duplication much) {{{
 def pd_find_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optional[int], Optional[PdObject]]:

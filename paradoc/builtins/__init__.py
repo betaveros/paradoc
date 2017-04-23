@@ -143,11 +143,13 @@ def initialize_builtins(env: Environment) -> None:
     cput('Enumerate', [], [enumerate_case])
     enumerate_one_case = Case.seq(lambda env, seq: [pd_enumerate(seq, start=1)])
     cput('Enumerate_one', [], [enumerate_one_case])
+    filter_indexes_case = Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq)])
+    cput('Filter_indexes', [], [filter_indexes_case])
 
     cput('Comma', [','], [
         range_case,
         enumerate_case,
-        Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq)]),
+        filter_indexes_case,
     ])
     cput('J', [], [
         range_one_case,
@@ -235,28 +237,30 @@ def initialize_builtins(env: Environment) -> None:
         Case.number(lambda env, a: [num.pd_add_const(a, 2)]),
         Case.seq(lambda env, a: [a[1:]]),
     ])
+    head_case = Case.seq(lambda env, a: [pd_index(a, 0)])
+    cput('Head', [], [head_case])
     cput('Single_left', ['‹'], [
         Case.number(lambda env, a: [num.pd_floor(a)]),
-        Case.seq(lambda env, a: [pd_index(a, 0)]),
+        head_case,
     ])
+    last_case = Case.seq(lambda env, a: [pd_index(a, -1)])
+    cput('Last', [], [last_case])
     cput('Single_right', ['›'], [
         Case.number(lambda env, a: [num.pd_ceil(a)]),
-        Case.seq(lambda env, a: [pd_index(a, -1)]),
+        last_case,
     ])
     # }}}
     # Uncons, Unsnoc, Parens() {{{
+    decr_case = Case.number(lambda env, a: [num.pd_add_const(a, -1)])
+    cput('Decr', [], [decr_case])
+    incr_case = Case.number(lambda env, a: [num.pd_add_const(a, 1)])
+    cput('Incr', [], [incr_case])
     uncons_case = Case.seq(lambda env, a: [a[1:], pd_index(a, 0)])
     cput('Uncons', [], [uncons_case])
     unsnoc_case = Case.seq(lambda env, a: [a[:-1], pd_index(a, -1)])
     cput('Unsnoc', [], [unsnoc_case])
-    cput('(', [], [
-        Case.number(lambda env, a: [num.pd_add_const(a, -1)]),
-        unsnoc_case,
-    ])
-    cput(')', [], [
-        Case.number(lambda env, a: [num.pd_add_const(a, 1)]),
-        uncons_case,
-    ])
+    cput('(', [], [decr_case, unsnoc_case])
+    cput(')', [], [incr_case, uncons_case])
     # }}}
     cput('Sum', ['Š'], [
         Case.list_int_range(lambda env, x: [sum(x)]),
@@ -276,6 +280,12 @@ def initialize_builtins(env: Environment) -> None:
     cput('H', [], [
         Case.number2(lambda env, a, b: [num.pd_count_multiplicity_in(b, a)]),
         Case.seq_value(lambda env, s, x: [pd_count_in(env, x, s)]),
+    ])
+    cput('Reverse', ['Down', 'D'], [
+        Case.seq_range(lambda env, a: [a[::-1]]),
+    ])
+    cput('Zip', [], [
+        Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
     ])
 
     cput('Â', [], [
@@ -402,7 +412,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Double', ['×'], pd_constant_fraction_cases(2, 1))
     # }}}
 
-    @put('L')
+    @put('L', 'Length')
     def pd_ell(env: Environment) -> None:
         a = env.pop()
         if isinstance(a, (int, float)):
