@@ -471,6 +471,16 @@ def initialize_builtins(env: Environment) -> None:
         ]),
     ])
 
+    cput('Key_new', [], [
+        Case.list_list_singleton_value(lambda env, kvs, dims, filler: [pd_new_array(kvs, dims, filler)]),
+    ])
+    cput('Key_map', [], [
+        Case.list_list_block(lambda env, arr, ks, func: [pd_array_keys_map(env, arr, ks, func)]),
+    ])
+    cput('Key_get', [], [
+        Case.list_list_singleton(lambda env, arr, k: [pd_array_key_get(arr, k)]),
+    ])
+
     @put('Debug', 'Dump')
     def dump(env: Environment) -> None:
         print('Dump:', env.debug_dump(), file=sys.stderr)

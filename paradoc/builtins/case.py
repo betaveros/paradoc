@@ -152,6 +152,9 @@ class Case:
     def list2(func: Callable[[Environment, Union[list, range], Union[list, range]], List[PdObject]]) -> 'Case':
         return Case(2, [just_list, just_list], func)
     @staticmethod
+    def list_list_singleton(func: Callable[[Environment, Union[list, range], Union[list, range]], List[PdObject]]) -> 'Case':
+        return Case(2, [just_list, list_singleton], func)
+    @staticmethod
     def list2_singleton(func: Callable[[Environment, Union[list, range], Union[list, range]], List[PdObject]]) -> 'Case':
         return Case(2, [list_singleton, list_singleton], func)
     @staticmethod
@@ -188,6 +191,12 @@ class Case:
     @staticmethod
     def any_any_number(func: Callable[[Environment, PdObject, PdObject, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(3, [just_any, just_any, just_number], func, commutative=commutative)
+    @staticmethod
+    def list_list_singleton_value(func: Callable[[Environment, list, list, PdValue], List[PdObject]]) -> 'Case':
+        return Case(3, [just_list, list_singleton, just_value], func)
+    @staticmethod
+    def list_list_block(func: Callable[[Environment, list, list, Block], List[PdObject]]) -> 'Case':
+        return Case(3, [just_list, just_list, just_block], func)
 
 class CasedBuiltIn(Block):
     def __init__(self, name: str, cases: List[Case]) -> None:

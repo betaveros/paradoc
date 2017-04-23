@@ -345,7 +345,17 @@ def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObj
     # func(temp_env)
     # return temp_env.stack
 # }}}
-# deeply map a Python num -> num function (no Char preservation) {{{
+# deep actions {{{
+# copy a thing recursively, fully structured as mutable lists
+def pd_deep_copy_to_list(obj: PdValue) -> PdValue:
+    if isinstance(obj, (Char, int, float)):
+        return obj
+    else:
+        acc = []
+        for e in pd_iterable(obj):
+            acc.append(pd_deep_copy_to_list(e))
+        return acc
+# deeply map a Python num -> num function (no Char preservation)
 def pd_deepmap_n2n(func: Callable[[Union[int, float]], PdNum], obj: PdValue) -> PdValue:
     if isinstance(obj, (Char, int, float)):
         return func(num.numerify(obj))
@@ -733,4 +743,39 @@ def pd_seq_is_unique(a: PdSeq) -> bool:
 def pd_if_then_empty_list(env: Environment, condition: PdObject, body: Block, negate: bool = False) -> List[PdObject]:
     if pytruth_eval(env, condition) ^ negate: body(env)
     return []
+# }}}
+
+# key/array operations {{{
+def new_array_of_dims(dims: List[int], filler: PdValue) -> list:
+    if len(dims) == 1:
+        return [filler] * dims[0]
+    else:
+        return [new_array_of_dims(dims[1:], filler) for _ in range(dims[0])]
+
+def pd_new_array(kvs: list, dims: list, filler: PdValue) -> list:
+    arr = new_array_of_dims(dims, filler)
+    # TODO: do it lazily so we can loop last value
+    for key, value in kvs:
+        target = arr
+        for i in key[:-1]: target = target[i]
+        target[key[-1]] = value
+    return arr
+
+# def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObject]:
+def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> list:
+    arr_new = pd_deep_copy_to_list(arr)
+    for key in ks:
+        try:
+            target = arr_new
+            for i in key[:-1]: target = target[i]
+            target[key[-1]] = pd_sandbox(env, func, [target[key[-1]]])[-1]
+        except IndexError as e:
+            raise AssertionError('could not index {} into {}'.format(key, arr_new)) from e
+    return arr_new
+
+def pd_array_key_get(arr: list, k: list) -> PdObject:
+    target = arr
+    for sk in k:
+        target = target[sk]
+    return target
 # }}}
