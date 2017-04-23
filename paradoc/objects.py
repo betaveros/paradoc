@@ -222,7 +222,7 @@ class Environment: # {{{
         if isinstance(obj, (list, range)):
             return self.join_output_fields(self.pd_str(e) for e in obj)
         else: # includes str, int, float etc.
-            return str(obj)
+            return basic_pd_str(obj)
 
     def pop_stack_marker(self) -> int:
         if self.marker_stack:
@@ -631,6 +631,8 @@ def pd_zip(env: Environment,
 def basic_pd_str(obj: PdObject) -> str:
     if isinstance(obj, (list, range)):
         return ''.join(basic_pd_str(e) for e in obj)
+    elif isinstance(obj, Char):
+        return chr(obj.ord)
     else: # includes str, int, float etc.
         return str(obj)
 
