@@ -155,7 +155,14 @@ class Environment: # {{{
 
     def pop_or_none(self) -> Optional[PdObject]:
         try:
-            return self._stack.pop()
+            ret = self._stack.pop()
+            stack_len = len(self._stack)
+            for i in range(len(self.marker_stack) - 1, -1, -1):
+                if self.marker_stack[i] > stack_len:
+                    self.marker_stack[i] = stack_len
+                else:
+                    break
+            return ret
         except IndexError:
             res = self.stack_trigger()
             if res is None:
