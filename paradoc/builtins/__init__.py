@@ -58,6 +58,15 @@ def initialize_builtins(env: Environment) -> None:
     @put(']', 'Pack')
     def pack(env: Environment) -> None:
         env.push(env.pop_until_stack_marker())
+    @put(']_case')
+    def stack_marker_case(env: Environment) -> None:
+        case_list = env.pop_until_stack_marker()
+        target = env.pop()
+        # TODO
+        for condition, result in case_list:
+            if target == condition:
+                env.push(result)
+                break
     cput('†', [], [Case.any(lambda env, x: [[x]])])
     cput('‡', [], [Case.any2(lambda env, x, y: [[x, y]])])
     # }}}
