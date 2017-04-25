@@ -480,14 +480,34 @@ def initialize_builtins(env: Environment) -> None:
         ]),
     ])
 
-    cput('Key_new', [], [
+    cput('Key_new', ['Kn'], [
         Case.list_list_singleton_value(lambda env, kvs, dims, filler: [pd_new_array(kvs, dims, filler)]),
     ])
-    cput('Key_map', [], [
+    cput('Key_map', ['Km'], [
         Case.list_list_block(lambda env, arr, ks, func: [pd_array_keys_map(env, arr, ks, func)]),
     ])
-    cput('Key_get', [], [
+    cput('Key_get', ['Kg'], [
         Case.list_list_singleton(lambda env, arr, k: [pd_array_key_get(arr, k)]),
+    ])
+
+    cput('Space_join', ['Sj'], [
+        Case.seq_range(lambda env, seq: [' '.join(env.pd_str(e) for e in pd_iterable(seq))]),
+    ])
+
+    cput('Permutations', ['¡'], [
+        Case.number(lambda env, n: [num.pd_factorial(n)]),
+        Case.seq(lambda env, seq:
+            [list(itertools.permutations(pd_iterable(seq)))]),
+        Case.block_seq_range(lambda env, block, seq:
+            [pd_map_iterable(env, block,
+                map(list, itertools.permutations(pd_iterable(seq))))]),
+    ])
+    cput('Subsequences', ['¿'], [
+        Case.number(lambda env, n: [2 ** num.numerify(n)]),
+        Case.seq(lambda env, seq: [pd_subsequences(seq)]),
+        Case.block_seq_range(lambda env, block, seq:
+            [pd_map_iterable(env, block,
+                pd_subsequences(seq))]),
     ])
 
     @put('Debug', 'Dump')

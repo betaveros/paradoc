@@ -470,8 +470,30 @@ def pd_mold(el_source: PdValue, template: PdSeq) -> PdObject:
                 template)
     else:
         return pd_mold_from(pd_deep_generator(el_source), template)
-def pd_zip_as_list(seq1: PdSeq, seq2: PdSeq) -> PdObject:
-    return [[e1, e2] for e1, e2 in zip(pd_iterable(seq1), pd_iterable(seq2))]
+def pd_zip_as_list(*seq: PdSeq) -> PdObject:
+    return [list(es) for es in zip(*(pd_iterable(s) for s in seq))]
+
+def pd_subsequences_gen(seq: Union[str, list]) -> Generator[Union[str, list], None, None]:
+    if not seq:
+        yield seq
+    else:
+        yield from pd_subsequences_gen(seq[1:])
+
+        if isinstance(seq, str):
+            fst = seq[0]
+        else:
+            fst = [seq[0]]
+        for s in pd_subsequences_gen(seq[1:]):
+            yield fst + s
+
+def pd_subsequences(seq: PdSeq) -> Iterable[PdSeq]:
+    if isinstance(seq, range):
+        return pd_subsequences_gen(list(seq))
+    else:
+        return pd_subsequences_gen(seq)
+
+def pd_subsequences_list(seq: PdSeq) -> List[PdSeq]:
+    return list(pd_subsequences(seq))
 # }}}
 # pd_find_entry et al. (wow code duplication much) {{{
 def pd_find_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optional[int], Optional[PdObject]]:
@@ -498,18 +520,22 @@ def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
     else:
         return seq.count(e)
 
-def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
+def pd_map_iterable(env: Environment, func: Block, it: Iterable[PdObject]) -> List[PdObject]:
     env.push_yx()
     acc = [] # type: List[PdObject]
     try:
-        for i, element in py_enumerate(seq):
+        for i, element in enumerate(it):
             env.set_yx(i, element)
             try:
                 acc.extend(pd_sandbox(env, func, [element]))
             except PdContinueException: pass
     except PdBreakException: pass
     env.pop_yx()
-    return pd_build_like(seq, acc)
+    return acc
+
+def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
+    return pd_build_like(seq,
+        pd_map_iterable(env, func, pd_iterable(seq)))
 
 def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     env.push_yx()
