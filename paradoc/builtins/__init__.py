@@ -58,12 +58,21 @@ def initialize_builtins(env: Environment) -> None:
     @put(']', 'Pack')
     def pack(env: Environment) -> None:
         env.push(env.pop_until_stack_marker())
-    @put(']_case')
+    @put(']_case', ']c')
     def stack_marker_case(env: Environment) -> None:
         case_list = env.pop_until_stack_marker()
         target = env.pop()
         # TODO
         for condition, result in case_list:
+            if target == condition:
+                env.push(result)
+                break
+    @put(']_stream', ']s')
+    def stack_marker_stream(env: Environment) -> None:
+        case_list = env.pop_until_stack_marker()
+        target = env.pop()
+        # TODO
+        for condition, result in zip(case_list[::2], case_list[1::2]):
             if target == condition:
                 env.push(result)
                 break
