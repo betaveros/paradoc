@@ -147,11 +147,12 @@ class Environment: # {{{
         self.push(*other._stack)
         self.push(*shadow_temp)
 
-    def push_or_eval(self, val: PdObject) -> None:
-        if isinstance(val, Block):
-            val(self)
-        else:
-            self.push(val)
+    def push_or_eval(self, *vals: PdObject) -> None:
+        for val in vals:
+            if isinstance(val, Block):
+                val(self)
+            else:
+                self.push(val)
 
     def pop_or_none(self) -> Optional[PdObject]:
         try:
@@ -368,7 +369,10 @@ def pd_deep_copy_to_list(obj: PdValue) -> PdValue:
     else:
         acc = [] # type: List[PdValue]
         for e in pd_iterable(obj):
-            acc.append(pd_deep_copy_to_list(e))
+            if isinstance(e, Block):
+                raise AssertionError("can't deep copy Block")
+            else:
+                acc.append(pd_deep_copy_to_list(e))
         return acc
 # deeply map a Python num -> num function (no Char preservation)
 def pd_deepmap_n2n(func: Callable[[Union[int, float]], PdNum], obj: PdValue) -> PdValue:
@@ -377,7 +381,10 @@ def pd_deepmap_n2n(func: Callable[[Union[int, float]], PdNum], obj: PdValue) -> 
     else:
         acc = []
         for e in pd_iterable(obj):
-            acc.append(pd_deepmap_n2n(func, e))
+            if isinstance(e, Block):
+                raise AssertionError("can't map numeric function across Block")
+            else:
+                acc.append(pd_deepmap_n2n(func, e))
         return acc
 # }}}
 # iteration wrappers {{{
@@ -473,24 +480,31 @@ def pd_mold(el_source: PdValue, template: PdSeq) -> PdObject:
 def pd_zip_as_list(*seq: PdSeq) -> PdObject:
     return [list(es) for es in zip(*(pd_iterable(s) for s in seq))]
 
-def pd_subsequences_gen(seq: Union[str, list]) -> Generator[Union[str, list], None, None]:
+def pd_str_subsequences_gen(seq: str) -> Generator[str, None, None]:
     if not seq:
         yield seq
     else:
-        yield from pd_subsequences_gen(seq[1:])
+        yield from pd_str_subsequences_gen(seq[1:])
+        fst = seq[0]
+        for s in pd_str_subsequences_gen(seq[1:]):
+            yield fst + s
 
-        if isinstance(seq, str):
-            fst = seq[0]
-        else:
-            fst = [seq[0]]
-        for s in pd_subsequences_gen(seq[1:]):
+def pd_lst_subsequences_gen(seq: list) -> Generator[list, None, None]:
+    if not seq:
+        yield []
+    else:
+        yield from pd_lst_subsequences_gen(seq[1:])
+        fst = [seq[0]]
+        for s in pd_lst_subsequences_gen(seq[1:]):
             yield fst + s
 
 def pd_subsequences(seq: PdSeq) -> Iterable[PdSeq]:
-    if isinstance(seq, range):
-        return pd_subsequences_gen(list(seq))
+    if isinstance(seq, str):
+        return pd_str_subsequences_gen(seq)
+    elif isinstance(seq, range):
+        return pd_lst_subsequences_gen(list(seq))
     else:
-        return pd_subsequences_gen(seq)
+        return pd_lst_subsequences_gen(seq)
 
 def pd_subsequences_list(seq: PdSeq) -> List[PdSeq]:
     return list(pd_subsequences(seq))
@@ -805,18 +819,29 @@ def pd_new_array(kvs: list, dims: list, filler: PdValue) -> list:
     return arr
 
 # def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObject]:
-def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> list:
+def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> PdValue:
     arr_new = pd_deep_copy_to_list(arr)
     for key in ks:
         try:
-            target = arr_new
-            for i in key[:-1]: target = target[i]
-            target[key[-1]] = pd_sandbox(env, func, [target[key[-1]]])[-1]
+            target = arr_new # type: PdObject
+            for i in key[:-1]:
+                if isinstance(target, (str, list, range)):
+                    target = pd_index(target, i)
+                else:
+                    raise AssertionError(
+                        'could not index {} into {}: {} not indexable'.format(
+                        repr(key), repr(arr_new), i, repr(target)))
+            if isinstance(target, list):
+                target[key[-1]] = pd_sandbox(env, func, [target[key[-1]]])[-1]
+            else:
+                raise AssertionError(
+                    'could not assign into index {} of {}: {} not list'.format(
+                    repr(key), repr(arr_new), repr(target)))
         except IndexError as e:
-            raise AssertionError('could not index {} into {}'.format(key, arr_new)) from e
+            raise AssertionError('could not index {} into {}: IndexError'.format(key, arr_new)) from e
     return arr_new
 
-def pd_array_key_get(arr: list, k: list) -> PdObject:
+def pd_array_key_get(arr: Union[list, range], k: Union[list, range]) -> PdObject:
     target = arr
     for sk in k:
         target = target[sk]

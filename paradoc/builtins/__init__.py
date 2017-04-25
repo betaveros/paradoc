@@ -62,19 +62,26 @@ def initialize_builtins(env: Environment) -> None:
     def stack_marker_case(env: Environment) -> None:
         case_list = env.pop_until_stack_marker()
         target = env.pop()
-        # TODO
-        for condition, result in case_list:
-            if target == condition:
-                env.push(result)
-                break
+        for case in case_list:
+            if isinstance(case, list):
+                if case:
+                    condition, *result = case
+                    # TODO: more lenient matching
+                    if target == condition:
+                        env.push_or_eval(*result)
+                        break
+                else:
+                    raise AssertionError('Empty case')
+            else:
+                raise AssertionError('Non-list case')
     @put(']_stream', ']s')
     def stack_marker_stream(env: Environment) -> None:
         case_list = env.pop_until_stack_marker()
         target = env.pop()
-        # TODO
         for condition, result in zip(case_list[::2], case_list[1::2]):
+            # TODO: more lenient matching
             if target == condition:
-                env.push(result)
+                env.push_or_eval(result)
                 break
     cput('†', [], [Case.any(lambda env, x: [[x]])])
     cput('‡', [], [Case.any2(lambda env, x, y: [[x, y]])])
@@ -504,7 +511,7 @@ def initialize_builtins(env: Environment) -> None:
     ])
     cput('Subsequences', ['¿'], [
         Case.number(lambda env, n: [2 ** num.numerify(n)]),
-        Case.seq(lambda env, seq: [pd_subsequences(seq)]),
+        Case.seq(lambda env, seq: [pd_subsequences_list(seq)]),
         Case.block_seq_range(lambda env, block, seq:
             [pd_map_iterable(env, block,
                 pd_subsequences(seq))]),
