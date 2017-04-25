@@ -150,6 +150,20 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                 env.push(objects.pd_zip(env, b, lst_a, lst_b))
             return (BuiltIn(b.code_repr() + "_zip", zip_b), False)
 
+        elif token == "â" or token == "_all":
+            def all_b(env: Environment) -> None:
+                lst = objects.pd_to_list_range(env.pop())
+                env.push(int(all(
+                    objects.pd_map(env, b, lst))))
+            return (BuiltIn(b.code_repr() + "_all", all_b), False)
+
+        elif token == "ê" or token == "_exists":
+            def exists_b(env: Environment) -> None:
+                lst = objects.pd_to_list_range(env.pop())
+                env.push(int(any(
+                    objects.pd_map(env, b, lst))))
+            return (BuiltIn(b.code_repr() + "_exists", all_b), False)
+
         elif token == "ä" or token == "_autozip":
             def autozip_b(env: Environment) -> None:
                 lst_a = objects.pd_to_list_range(env.pop())
