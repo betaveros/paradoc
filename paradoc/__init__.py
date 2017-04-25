@@ -16,6 +16,7 @@ from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_code, br
 from paradoc.num import Char, PdNum
 from paradoc.objects import Block, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException, PdAbortException, PdBreakException, PdContinueException
 import paradoc.objects as objects
+import paradoc.base as base
 import paradoc.input_triggers as input_triggers
 from paradoc.builtins import initialize_builtins
 import sys
@@ -223,6 +224,15 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             def array_i(env: Environment) -> None:
                 env.push(env.pop_n(i))
             return (BuiltIn(str(i) + "_array", array_i), False)
+        elif token == "z" or token == "_zip":
+            def zip_i(env: Environment) -> None:
+                env.push(objects.pd_zip_as_list(*env.pop_n(i)))
+            return (BuiltIn(str(i) + "_zip", zip_i), False)
+        elif token == "b" or token == "_bits":
+            i_bits = base.to_base_digits_at_least_two(2, i)
+            def bits_i(env: Environment) -> None:
+                env.push(*i_bits)
+            return (BuiltIn(str(i) + "_bits", bits_i), False)
 
         raise NotImplementedError("unknown trailer token " + token + " on integer")
     raise NotImplementedError("unknown trailer token " + token + " on unknown thing")
