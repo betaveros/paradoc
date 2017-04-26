@@ -110,17 +110,19 @@ def initialize_builtins(env: Environment) -> None:
     ])
     cput('Slash', ['/'], [
         Case.number2(lambda env, a, b: [num.pd_div(a, b)]),
-        # TODO: split, chunks
+        Case.number_seq(lambda env, n, seq: [pd_split_seq(seq, n, include_leftover=True)]),
+        # TODO: split
         Case.block_seq_range(lambda env, block, seq:
             pd_foreach_then_empty_list(env, block, seq)),
     ])
     cput('Intdiv', ['÷'], [
         Case.number2(lambda env, a, b: [num.pd_intdiv(a, b)]),
-        # TODO: split discarding remainder? something else?
+        Case.number_seq(lambda env, n, seq: [pd_split_seq(seq, n, include_leftover=False)]),
     ])
     cput('Percent', ['%'], [
         Case.number2(lambda env, a, b: [num.pd_mod(a, b)]),
-        # TODO: split by, mod index
+        Case.number_seq(lambda env, n, seq: [seq[::num.intify(n)]]),
+        # TODO: split by
         Case.block_seq_range(lambda env, block, seq: [pd_map(env, block, seq)]),
     ])
     cput('Octothorpe', ['#'], [
@@ -217,7 +219,7 @@ def initialize_builtins(env: Environment) -> None:
 
     # Comparators <=> Max Min {{{
     cput('Equal', ['Eq'], [
-        Case.number2(lambda env, a, b: [int(a == b)]), # TODO: Char?
+        Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
     ])
@@ -340,6 +342,8 @@ def initialize_builtins(env: Environment) -> None:
             a(env)
         elif isinstance(a, str):
             env.evaluate(a)
+        elif isinstance(a, (list, range)):
+            env.push(*a)
         elif isinstance(a, int):
             env.push(~a)
         else:

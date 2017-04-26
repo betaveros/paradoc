@@ -445,6 +445,17 @@ def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
         return seq * n_int
     else:
         return list(seq) * n_int
+def pd_split_seq_int_gen(seq: PdSeq, n: PdNum, include_leftover: bool) -> Generator[PdSeq, None, None]:
+    n_int = num.intify(n)
+    while len(seq) >= n_int:
+        yield seq[:n_int]
+        seq = seq[n_int:]
+    if include_leftover and seq: yield seq
+
+def pd_split_seq(seq: PdSeq, n: PdNum, include_leftover: bool) -> List[PdSeq]:
+    return list(pd_split_seq_int_gen(
+        seq, num.intify(n), include_leftover))
+
 def pd_replicate(atom: PdObject, n: int) -> PdSeq:
     if isinstance(atom, Char):
         return chr(atom.ord) * n

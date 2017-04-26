@@ -6,9 +6,12 @@ import operator
 # Char-ness.
 
 class Char:
-    def __init__(self, ord: int) -> None:
-        assert isinstance(ord, int)
-        self.ord = ord
+    def __init__(self, arg: Union[int, str]) -> None:
+        assert isinstance(arg, (int, str))
+        if isinstance(arg, int):
+            self.ord = arg
+        else:
+            self.ord = ord(arg)
     def __nonzero__(self) -> bool:
         return bool(self.ord)
     def __lt__(self, other: Any) -> bool:
@@ -33,6 +36,8 @@ class Char:
         return not (self == other)
     def __str__(self) -> str:
         return "'" + chr(self.ord)
+    def __repr__(self) -> str:
+        return "Char(" + repr(chr(self.ord)) + ")"
     def __hash__(self) -> int:
         return hash(self.ord)
 

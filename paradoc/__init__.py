@@ -290,13 +290,20 @@ def make_for_loop_over(iterable: Iterable[PdObject]) -> BodyExecutor:
             body(env)
     return inner
 
+space_set = set([' ', '\n', '\r', '\t'])
+
 class CodeBlock(Block):
-    def __init__(self, tokens: List[str]) -> None:
-        # TODO: make this an option?
-        self.tokens = [token for token in tokens if not token.startswith('..') and not token == ' ' and not token == '\n']
+    def __init__(self, tokens: Iterable[str],
+            optimize_comments: bool = True,
+            optimize_spaces: bool = True,
+            ) -> None:
+        self.tokens = [token for token in tokens if
+                not (optimize_comments and token.startswith('..'))
+                and
+                not (optimize_spaces and token in space_set)
+                ]
 
     def code_repr(self) -> str:
-        # TODO
         return '{' + ''.join(self.tokens) + '}'
 
     def __call__(self, env: Environment) -> None:

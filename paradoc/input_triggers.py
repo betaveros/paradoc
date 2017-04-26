@@ -2,8 +2,8 @@ from typing import *
 from typing import IO # ???
 import sys
 
-# TODO: I'm closing the file after finishing reading from it so that I can read
-# all from stdin exactly once, even if it's empty, while avoiding keeping track
+# I'm closing the file after finishing reading from it so that I can read all
+# from stdin exactly once, even if it's empty, while avoiding keeping track
 # of my own state.
 
 # If mypy were not a concern, I would extract
