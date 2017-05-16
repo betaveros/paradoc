@@ -40,7 +40,10 @@ PdObject = Union[PdValue, Block]
 # exceptions {{{
 class PdEmptyStackException(Exception): pass
 class PdEndOfFileException(Exception): pass
-class PdAbortException(Exception): pass
+class PdAbortException(Exception):
+    def __init__(self, msg: str, code: int = 0) -> None:
+        super(Exception, self).__init__(msg)
+        self.code = code
 class PdBreakException(Exception): pass
 class PdContinueException(Exception): pass
 # }}}

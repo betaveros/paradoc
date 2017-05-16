@@ -475,6 +475,8 @@ def paradoc_repl() -> None:
             print(objects.pd_repr(env._stack))
         except EOFError:
             break
+        except PdAbortException:
+            raise
         except Exception as e:
             print(e, file=sys.stderr)
 
@@ -491,17 +493,20 @@ def main() -> None:
             help='Paradoc expression to execute')
     args = parser.parse_args()
 
-    if args.e is not None:
-        main_with_code(args.e)
-    elif args.prog_file is not None:
-        if args.prog_file.endswith('.cp1252.prdc'):
-            import codecs
-            with codecs.open(args.prog_file, 'r', 'cp1252') as prog_file:
-                main_with_code(prog_file.read())
+    try:
+        if args.e is not None:
+            main_with_code(args.e)
+        elif args.prog_file is not None:
+            if args.prog_file.endswith('.cp1252.prdc'):
+                import codecs
+                with codecs.open(args.prog_file, 'r', 'cp1252') as prog_file:
+                    main_with_code(prog_file.read())
+            else:
+                with open(args.prog_file, 'r') as prog_file:
+                    main_with_code(prog_file.read())
         else:
-            with open(args.prog_file, 'r') as prog_file:
-                main_with_code(prog_file.read())
-    else:
-        paradoc_repl()
+            paradoc_repl()
+    except PdAbortException as e:
+        sys.exit(e.code)
 
 if __name__ == "__main__": main()

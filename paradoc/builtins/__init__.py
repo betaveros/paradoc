@@ -380,7 +380,16 @@ def initialize_builtins(env: Environment) -> None:
     # Abort, Break, Continue {{{
     @put('Abort', 'A')
     def abort(env: Environment) -> None:
-        raise PdAbortException('Abort')
+        raise PdAbortException("Abort")
+    @put('Abort_with', 'Aw')
+    def abort_with(env: Environment) -> None:
+        e = env.pop()
+        if isinstance(e, (int, float, Char)):
+            raise PdAbortException("Abort", num.intify(e))
+        else:
+            print("Abort: " + str(e), file=sys.stderr)
+            raise PdAbortException(str(e), 1)
+
     @put('Break', 'Quit_loop', 'Q')
     def break_(env: Environment) -> None:
         raise PdBreakException('Break')
