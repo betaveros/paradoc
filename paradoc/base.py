@@ -19,6 +19,6 @@ def to_base_digits_at_least_two(base: int, num: int) -> List[int]:
 
 def from_base_digits(base: int, digits: List[int]) -> int:
     acc = 0
-    for digit in reversed(digits):
+    for digit in digits:
         acc = base * acc + digit
     return acc

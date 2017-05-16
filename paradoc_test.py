@@ -313,5 +313,12 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('Pi Cs'), [-1.0])
         self.assertEqual(pd_simple_eval('[[0] Pi] Cs'), [[[1.0], -1.0]])
 
+    def test_base(self):
+        self.assertEqual(pd_simple_eval('4 3 B'), [[1,1]])
+        self.assertEqual(pd_simple_eval('48762 16 B'), [[11,14,7,10]])
+        self.assertEqual(pd_simple_eval('5 D 10 B'), [43210])
+        self.assertEqual(pd_simple_eval('"be7a" 16 B'), [48762])
+        self.assertEqual(pd_simple_eval('"DeFaCeD" 16 B'), [233811181])
+
 if __name__ == '__main__':
     unittest.main()

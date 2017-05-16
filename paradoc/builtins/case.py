@@ -149,6 +149,14 @@ class Case:
     def list2_singleton(func: Callable[[Environment, Union[list, range], Union[list, range]], List[PdObject]]) -> 'Case':
         return Case(2, [list_singleton, list_singleton], func)
     @staticmethod
+    def list_number(func: Callable[[Environment, Union[list, range], PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(2, [just_list, just_number], func,
+                commutative=commutative)
+    @staticmethod
+    def str_number(func: Callable[[Environment, str, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(2, [just_str, just_number], func,
+                commutative=commutative)
+    @staticmethod
     def seq2(func: Callable[[Environment, PdSeq, PdSeq], List[PdObject]]) -> 'Case':
         return Case(2, [just_seq, just_seq], func)
     @staticmethod

@@ -3,6 +3,7 @@
 from paradoc.objects import *
 # import paradoc.objects
 import paradoc.num as num
+import paradoc.base as base
 import sys, math, collections
 from paradoc.builtins.case import Case, CasedBuiltIn
 
@@ -212,6 +213,11 @@ def initialize_builtins(env: Environment) -> None:
             env.push_or_eval(c)
     # }}}
 
+    cput('Base', ['B'], [
+        Case.number2(lambda env, n, b: [base.to_base_digits(num.intify(b), num.intify(n))]),
+        Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), lst)]),
+        Case.str_number(lambda env, s, b: [int(s, b)]),
+    ])
     cput('Reduce', ['R'], [
         Case.seq2_singleton(lambda env, seq, joiner: [pd_join(env, seq, joiner)]),
         Case.block_seq_range(lambda env, block, seq: [pd_reduce(env, block, seq)]),
