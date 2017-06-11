@@ -97,6 +97,11 @@ pd_and = lift_intify(operator.and_)
 pd_or  = lift_intify(operator.or_)
 pd_xor = lift_intify(operator.xor)
 
+def int_gcd(a: int, b: int) -> int:
+	return a if b == 0 else int_gcd(b, a % b)
+
+pd_gcd = lift_intify(int_gcd)
+
 pd_ceil   = lift_numerify1(lambda x: int(math.ceil(x)))
 pd_floor  = lift_numerify1(lambda x: int(math.floor(x)))
 pd_abs    = lift_numerify1(abs) # type: ignore

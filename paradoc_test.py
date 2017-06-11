@@ -53,6 +53,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('7 3÷'), [7//3])
         self.assertEqual(pd_simple_eval('7.0 2.0/'), [3.5])
         self.assertEqual(pd_simple_eval('0.25 0.25+'), [0.5])
+        self.assertEqual(pd_simple_eval('7 3G'), [1])
+        self.assertEqual(pd_simple_eval('8 36G'), [4])
 
     def test_comparison(self):
         self.assertEqual(pd_simple_eval('7 7='), [1])
@@ -262,6 +264,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[[5][6 7][8]][1 2 3 4]M'), [[5,6,7,8]])
         self.assertEqual(pd_simple_eval('[3 1 4 1 5][[0][0 0 0][0]]M'), [[[3],[1,4,1],[5]]])
         self.assertEqual(pd_simple_eval('2[[0][0 0 0][0]]M'), [[[2],[3,4,5],[6]]])
+
+    def test_group(self):
+        self.assertEqual(pd_simple_eval('[3 9 9 9 8 8 9]Group'), [[[3],[9,9,9],[8,8],[9]]])
+        self.assertEqual(pd_simple_eval('"aaaaargh"G'), [["aaaaa", "r", "g", "h"]])
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6]{Odd}G'), [[[3, 1],[4],[1,5,9],[2,6]]])
 
     def test_uniquify(self):
         self.assertEqual(pd_simple_eval('[1 2 3]U'), [[1,2,3]])

@@ -474,6 +474,31 @@ def pd_build_like(orig: PdSeq, result: List[PdObject]) -> PdSeq:
         )
     else:
         return result
+
+def pd_group_by_function(seq: PdSeq, proj: Callable[[PdObject], PdObject]) -> list:
+    result = []
+    current_group = []
+    current_group_proj = None
+    for e in pd_iterable(seq):
+        e_proj = proj(e)
+        if current_group_proj is None or current_group_proj == e_proj:
+            current_group.append(e)
+        else:
+            result.append(pd_build_like(seq, current_group))
+            current_group = [e]
+        current_group_proj = e_proj
+
+    if current_group:
+        result.append(pd_build_like(seq, current_group))
+    return result
+
+def pd_group(seq: PdSeq) -> list:
+    return pd_group_by_function(seq, lambda x: x)
+
+def pd_group_by(env: Environment, func: Block, seq: PdSeq) -> list:
+    # Should we use the entire sandbox as the key?
+    return pd_group_by_function(seq, lambda x: pd_sandbox(env, func, [x]))
+
 def pd_mold_from(value_iterable: Iterator[PdValue], template: PdObject) -> PdObject:
     if isinstance(template, (Char, int, float)): return next(value_iterable)
     elif isinstance(template, (str, list, range)):

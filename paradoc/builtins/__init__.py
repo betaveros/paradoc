@@ -333,6 +333,23 @@ def initialize_builtins(env: Environment) -> None:
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
     ])
 
+    # G for Gcd or group, and friends {{{
+    cput('Group', [], [
+        Case.seq(lambda env, seq: [pd_group(seq)]),
+    ])
+    cput('Group_by', [], [
+        Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
+    ])
+    cput('Gcd', [], [
+        Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
+    ])
+    cput('G', [], [
+        Case.seq(lambda env, seq: [pd_group(seq)]),
+        Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
+    ])
+    # }}}
+
     cput('Â', [], [
         Case.number(lambda env, a: [int(num.numerify(a) > 0)]),
         Case.seq(lambda env, a: [int(all(pd_iterable(a)))]),
