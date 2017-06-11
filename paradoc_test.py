@@ -54,6 +54,28 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('7.0 2.0/'), [3.5])
         self.assertEqual(pd_simple_eval('0.25 0.25+'), [0.5])
 
+    def test_comparison(self):
+        self.assertEqual(pd_simple_eval('7 7='), [1])
+        self.assertEqual(pd_simple_eval('7 7<'), [0])
+        self.assertEqual(pd_simple_eval('7 7>'), [0])
+        self.assertEqual(pd_simple_eval('7 7<e'), [1])
+        self.assertEqual(pd_simple_eval('7 7>e'), [1])
+        self.assertEqual(pd_simple_eval('6 7='),  [0])
+        self.assertEqual(pd_simple_eval('6 7<'),  [1])
+        self.assertEqual(pd_simple_eval('6 7>'),  [0])
+        self.assertEqual(pd_simple_eval('6 7<e'), [1])
+        self.assertEqual(pd_simple_eval('6 7>e'), [0])
+        self.assertEqual(pd_simple_eval('8 7='),  [0])
+        self.assertEqual(pd_simple_eval('8 7<'),  [0])
+        self.assertEqual(pd_simple_eval('8 7>'),  [1])
+        self.assertEqual(pd_simple_eval('8 7<e'), [0])
+        self.assertEqual(pd_simple_eval('8 7>e'), [1])
+        self.assertEqual(pd_simple_eval('"abcd" "efgh" <'), [1])
+        self.assertEqual(pd_simple_eval('"abcd" "efgh" ='), [0])
+        self.assertEqual(pd_simple_eval('"abcd" "efgh" >'), [0])
+        self.assertEqual(pd_simple_eval('[0 1 2][0 1] >e'), [1])
+        self.assertEqual(pd_simple_eval('[0 0 2][0 1] >e'), [0])
+
     def test_multiplication(self):
         self.assertEqual(pd_simple_eval('"foo"3*'), ["foofoofoo"])
         self.assertEqual(pd_simple_eval('3"foo"*'), ["foofoofoo"])

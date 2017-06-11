@@ -248,6 +248,18 @@ def initialize_builtins(env: Environment) -> None:
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
     ])
+    cput('Leq', ['<e'], [
+        Case.number2(lambda env, a, b: [int(num.numerify(a) <= num.numerify(b))]),
+        Case.str2(lambda env, a, b: [int(a <= b)]),
+        Case.list2(lambda env, a, b: [int(list(a) <= list(b))]),
+        Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)+1]]),
+    ])
+    cput('Geq', ['>e'], [
+        Case.number2(lambda env, a, b: [int(num.numerify(a) >= num.numerify(b))]),
+        Case.str2(lambda env, a, b: [int(a >= b)]),
+        Case.list2(lambda env, a, b: [int(list(a) >= list(b))]),
+        Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]), # TODO: ?
+    ])
     cput('Min', ['<m', 'Õ'], [
         Case.any2(lambda env, a, b: [min(a, b)]), # TODO
     ])
