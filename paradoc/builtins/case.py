@@ -100,6 +100,9 @@ class Case:
         return res
 
     @staticmethod
+    def void(func: Callable[[Environment], List[PdObject]]) -> 'Case':
+        return Case(0, [], func)
+    @staticmethod
     def any(func: Callable[[Environment, PdObject], List[PdObject]]) -> 'Case':
         return Case(1, [just_any], func)
     @staticmethod

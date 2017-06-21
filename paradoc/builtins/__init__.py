@@ -5,6 +5,7 @@ from paradoc.objects import *
 import paradoc.num as num
 import paradoc.base as base
 import sys, math, collections
+import time, datetime
 from paradoc.builtins.case import Case, CasedBuiltIn
 
 def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdObject:
@@ -569,3 +570,27 @@ def initialize_builtins(env: Environment) -> None:
     def dump(env: Environment) -> None:
         print('Dump:', env.debug_dump(), file=sys.stderr)
 
+    # Time {{{
+    cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])])
+    now = datetime.datetime.now
+    fromtimestamp = datetime.datetime.fromtimestamp
+
+    cput('Now_minute',       ['Nb'], [Case.void (lambda env:    [                          now()           .minute                 ])])
+    cput('Time_minute',      ['Tb'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).minute             , x)])])
+    cput('Now_day',          ['Nd'], [Case.void (lambda env:    [                          now()           .day                    ])])
+    cput('Time_day',         ['Td'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).day                , x)])])
+    cput('Now_hour',         ['Nh'], [Case.void (lambda env:    [                          now()           .hour                   ])])
+    cput('Time_hour',        ['Th'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).hour               , x)])])
+    cput('Now_twelve_hour',  ['Ni'], [Case.void (lambda env:    [                         (now()           .hour - 1) % 12 + 1     ])])
+    cput('Time_twelve_hour', ['Ti'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1 , x)])])
+    cput('Now_day_of_year',  ['Nj'], [Case.void (lambda env:    [                          now()           .timetuple().tm_yday    ])])
+    cput('Time_day_of_year', ['Tj'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).timetuple().tm_yday, x)])])
+    cput('Now_month',        ['Nm'], [Case.void (lambda env:    [                          now()           .month                  ])])
+    cput('Time_month',       ['Tm'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).month              , x)])])
+    cput('Now_second',       ['Ns'], [Case.void (lambda env:    [                          now()           .second                 ])])
+    cput('Time_second',      ['Ts'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).second             , x)])])
+    cput('Now_iso_weekday',  ['Nv'], [Case.void (lambda env:    [                          now()           .isoweekday()           ])])
+    cput('Time_iso_weekday', ['Tv'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).isoweekday()       , x)])])
+    cput('Now_weekday',      ['Nw'], [Case.void (lambda env:    [                          now()           .weekday()              ])])
+    cput('Time_weekday',     ['Tw'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).weekday()          , x)])])
+    # }}}
