@@ -104,6 +104,10 @@ def initialize_builtins(env: Environment) -> None:
         # TODO: filter not in
         Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
     ])
+    cput('Antiminus', ['¯'], [
+        Case.number2(lambda env, a, b: [num.pd_sub(b, a)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
+    ])
     cput('Mul', ['*'], [
         Case.number2(lambda env, a, b: [num.pd_mul(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_mul_seq(seq, n)]),
