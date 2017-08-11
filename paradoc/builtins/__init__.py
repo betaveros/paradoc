@@ -60,6 +60,9 @@ def initialize_builtins(env: Environment) -> None:
     @put(']', 'Pack')
     def pack(env: Environment) -> None:
         env.push(env.pop_until_stack_marker())
+    @put('¬', 'Pack_reverse', 'Pack_down')
+    def pack_reverse(env: Environment) -> None:
+        env.push(env.pop_until_stack_marker()[::-1])
     @put(']_case', ']c')
     def stack_marker_case(env: Environment) -> None:
         case_list = env.pop_until_stack_marker()
