@@ -221,7 +221,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Base', ['B'], [
         Case.number2(lambda env, n, b: [base.to_base_digits(num.intify(b), num.intify(n))]),
         Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), lst)]),
-        Case.str_number(lambda env, s, b: [int(s, b)]),
+        Case.str_number(lambda env, s, b: [int(s, num.intify(b))]),
     ])
     cput('Reduce', ['R'], [
         Case.seq2_singleton(lambda env, seq, joiner: [pd_join(env, seq, joiner)]),
@@ -587,8 +587,8 @@ def initialize_builtins(env: Environment) -> None:
     cput('Time_hour',        ['Th'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).hour               , x)])])
     cput('Now_twelve_hour',  ['Ni'], [Case.void (lambda env:    [                         (now()           .hour - 1) % 12 + 1     ])])
     cput('Time_twelve_hour', ['Ti'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1 , x)])])
-    cput('Now_day_of_year',  ['Nj'], [Case.void (lambda env:    [                          now()           .timetuple().tm_yday    ])])
-    cput('Time_day_of_year', ['Tj'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).timetuple().tm_yday, x)])])
+    cput('Now_day_of_year',  ['Nj'], [Case.void (lambda env:    [                          now()           .timetuple().tm_yday    ])]) # type: ignore
+    cput('Time_day_of_year', ['Tj'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).timetuple().tm_yday, x)])]) # type: ignore
     cput('Now_month',        ['Nm'], [Case.void (lambda env:    [                          now()           .month                  ])])
     cput('Time_month',       ['Tm'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).month              , x)])])
     cput('Now_second',       ['Ns'], [Case.void (lambda env:    [                          now()           .second                 ])])

@@ -504,8 +504,8 @@ def main() -> None:
         elif args.prog_file is not None:
             if args.prog_file.endswith('.cp1252.prdc'):
                 import codecs
-                with codecs.open(args.prog_file, 'r', 'cp1252') as prog_file:
-                    main_with_code(prog_file.read())
+                with codecs.open(args.prog_file, 'r', 'cp1252') as cp1252_prog_file:
+                    main_with_code(cp1252_prog_file.read())
             else:
                 with open(args.prog_file, 'r') as prog_file:
                     main_with_code(prog_file.read())
