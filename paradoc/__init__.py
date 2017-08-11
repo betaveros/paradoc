@@ -197,6 +197,9 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             return (BuiltIn(objects.pd_repr(s) + "_interprint", interprint_s), False)
         elif token == "f" or token == "_format":
             format_count = s.count('%') - 2 * s.count('%%')
+            if format_count == 0:
+                s = "%" + s
+                format_count = 1
             def format_s(env: Environment) -> None:
                 env.push(s % tuple(env.pop_n(format_count)))
             return (BuiltIn(objects.pd_repr(s) + "_format", format_s), False)
