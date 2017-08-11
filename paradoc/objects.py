@@ -198,6 +198,14 @@ class Environment: # {{{
                 acc.append(trig)
             self._stack = acc[::-1] + self._stack
 
+    def maximize_length(self) -> None:
+        acc = []
+        while True:
+            trig = self.stack_trigger()
+            if trig is None: break
+            acc.append(trig)
+        self._stack = acc[::-1] + self._stack
+
     def peek(self) -> PdObject:
         return self._stack[-1]
 
@@ -228,15 +236,21 @@ class Environment: # {{{
         else: # includes str, int, float etc.
             return basic_pd_str(obj)
 
-    def pop_stack_marker(self) -> int:
+    def pop_stack_marker(self) -> Optional[int]:
         if self.marker_stack:
             return self.marker_stack.pop()
         else:
-            return 0
+            return None
+
     def pop_until_stack_marker(self) -> List[PdObject]:
         marker = self.pop_stack_marker()
-        ret = self._stack[marker:]
-        self._stack = self._stack[:marker]
+        if marker is None:
+            self.maximize_length()
+            ret = self._stack
+            self._stack = []
+        else:
+            ret = self._stack[marker:]
+            self._stack = self._stack[:marker]
         return ret
 
     def index_stack(self, index: int) -> PdObject:
