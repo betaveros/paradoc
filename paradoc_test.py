@@ -419,5 +419,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval("' Wp"), [1])
         self.assertEqual(pd_simple_eval('"Os C"Up'), [[1,0,0,1]])
 
+    def test_split(self):
+        self.assertEqual(pd_simple_eval('"assdfs""s"/'), [["a","","df",""]])
+        self.assertEqual(pd_simple_eval('[1 2 3 4 2 3 5 2 3 2 3 3 3 3 3][2 3]/'), [[[1],[4],[5],[],[3,3,3,3]]])
+        self.assertEqual(pd_simple_eval('[2 3 2 3][2 3]/'), [[[],[],[]]])
+        self.assertEqual(pd_simple_eval('"assdfs""s"%'), [["a","df"]])
+        self.assertEqual(pd_simple_eval('[2 3 2 3][2 3]%'), [[]])
+        self.assertEqual(pd_simple_eval('"pair of doc"W'), [["pair","of","doc"]])
+
 if __name__ == '__main__':
     unittest.main()

@@ -130,7 +130,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Slash', ['/'], [
         Case.number2(lambda env, a, b: [num.pd_div(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_split_seq(seq, n, include_leftover=True)]),
-        # TODO: split
+        Case.seq2(lambda env, seq, tok: [pd_split_seq_by(seq, tok)]),
         Case.block_seq_range(lambda env, block, seq:
             pd_foreach_then_empty_list(env, block, seq)),
     ])
@@ -141,7 +141,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Percent', ['%'], [
         Case.number2(lambda env, a, b: [num.pd_mod(a, b)]),
         Case.number_seq(lambda env, n, seq: [seq[::num.intify(n)]]),
-        # TODO: split by
+        Case.seq2(lambda env, seq, tok: [[s for s in pd_split_seq_by(seq, tok) if s]]),
         Case.block_seq_range(lambda env, block, seq: [pd_map(env, block, seq)]),
     ])
     cput('Octothorpe', ['#'], [
@@ -636,6 +636,14 @@ def initialize_builtins(env: Environment) -> None:
     cput('Space_join', [' r'], [
         Case.seq_range(lambda env, seq: [' '.join(env.pd_str(e) for e in pd_iterable(seq))]),
     ])
+
+    # W for Window and W for Words {{{
+    words_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
+    window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
+    cput('Window', [], [window_case])
+    cput('Space_split', ['Words'], [words_case, window_case])
+    cput('W', [], [words_case, window_case])
+    # }}}
 
     cput('Permutations', ['¡'], [
         Case.number(lambda env, n: [num.pd_factorial(n)]),

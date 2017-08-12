@@ -501,16 +501,48 @@ def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
 def pd_cartesian_product_seq(*seqs: PdSeq) -> list:
     return list(list(e) for e in itertools.product(pd_iterable(seq) for seq in seqs))
 
-def pd_split_seq_int_gen(seq: PdSeq, n: PdNum, include_leftover: bool) -> Generator[PdSeq, None, None]:
-    n_int = num.intify(n)
-    while len(seq) >= n_int:
-        yield seq[:n_int]
-        seq = seq[n_int:]
-    if include_leftover and seq: yield seq
+def pd_split_seq_int_gen(seq: PdSeq, n: int, include_leftover: bool) -> Generator[PdSeq, None, None]:
+    for i in range(0, len(seq), n):
+        if i + n <= len(seq) or include_leftover:
+            yield seq[i:i+n]
 
 def pd_split_seq(seq: PdSeq, n: PdNum, include_leftover: bool) -> List[PdSeq]:
-    return list(pd_split_seq_int_gen(
-        seq, num.intify(n), include_leftover))
+    return list(pd_split_seq_int_gen(seq, num.intify(n), include_leftover))
+
+def pd_split_seq_by_gen(seq: PdSeq, tok: PdSeq) -> Generator[PdSeq, None, None]:
+    i = 0
+    cur_start = 0
+    seqlen = len(seq)
+    toklen = len(tok)
+    while True:
+        if i + toklen > len(seq):
+            # No more breaks are possible.
+            yield seq[cur_start:]
+            return
+        elif list(seq[i:i+toklen]) == list(tok):
+            yield seq[cur_start:i]
+            i += toklen
+            cur_start = i
+        else:
+            i += 1
+
+def pd_split_seq_by(seq: PdSeq, tok: PdSeq) -> List[PdSeq]:
+    if isinstance(seq, str):
+        # Python is probably faster than we are. And less error-prone :)
+        # Ignoring types to pretend List is covariant
+        if isinstance(tok, str):
+            return seq.split(tok) # type: ignore
+        elif isinstance(tok, Char):
+            return seq.split(tok.chr) # type: ignore
+        # TODO: Special case for list of Chars?
+    return list(pd_split_seq_by_gen(seq, tok))
+
+def pd_sliding_window_seq_int_gen(seq: PdSeq, n: int) -> Generator[PdSeq, None, None]:
+    for i in range(n + 1 - len(seq)):
+        yield seq[i:i+n]
+
+def pd_sliding_window_seq(seq: PdSeq, n: PdNum) -> List[PdSeq]:
+    return list(pd_sliding_window_seq_int_gen(seq, num.intify(n)))
 
 def pd_replicate(atom: PdObject, n: int) -> PdSeq:
     if isinstance(atom, Char):
