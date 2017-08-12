@@ -57,7 +57,10 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
     if isinstance(b0, Block):
         b = b0 # type: Block
 
-        if token == "a" or token == "_anti":
+        if token == "_":
+            return (b, True)
+
+        elif token == "a" or token == "_anti":
             def anti_b(env: Environment) -> None:
                 e2, e1 = env.pop2()
                 env.push(e2, e1)
