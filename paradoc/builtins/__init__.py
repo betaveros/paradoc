@@ -18,9 +18,10 @@ def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdO
 def initialize_builtins(env: Environment) -> None:
 
     def put(*ss: str) -> Callable[[Callable[[Environment], None]], None]:
+        name = ss[0]
         def inner_put(f: Callable[[Environment], None]) -> None:
             for s in ss:
-                env.put(s, BuiltIn(s, f), fail_if_overwrite=True)
+                env.put(s, BuiltIn(name, f), fail_if_overwrite=True)
         return inner_put
 
     def cput(name: str, extra_names: List[str], cases: List[Case]) -> None:
