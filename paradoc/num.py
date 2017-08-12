@@ -107,6 +107,7 @@ pd_gcd = lift_intify(int_gcd)
 
 pd_ceil   = lift_numerify1(lambda x: int(math.ceil(x)))
 pd_floor  = lift_numerify1(lambda x: int(math.floor(x)))
+pd_round  = lift_numerify1(round)
 pd_abs    = lift_numerify1(abs) # type: ignore
 pd_signum = lift_numerify1(lambda x: (x > 0) - (x < 0))
 

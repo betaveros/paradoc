@@ -254,6 +254,17 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             return (BuiltIn(str(i) + "_bits", bits_i), False)
 
         raise NotImplementedError("unknown trailer token " + token + " on integer")
+    elif isinstance(b0, float):
+        f = b0 # type: float
+        if token == "m" or token == "_minus":
+            return (-f, False)
+        elif token == "h" or token == "_hundred":
+            return (f * 100, False)
+        elif token == "k" or token == "_thousand":
+            return (f * 1000, False)
+
+        raise NotImplementedError("unknown trailer token " + token + " on float")
+
     raise NotImplementedError("unknown trailer token " + token + " on unknown thing")
 
 BodyExecutor = Callable[[Environment, Block], None]

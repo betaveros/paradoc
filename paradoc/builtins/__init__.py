@@ -316,18 +316,22 @@ def initialize_builtins(env: Environment) -> None:
         Case.number(lambda env, a: [num.pd_add_const(a, 2)]),
         Case.seq(lambda env, a: [a[1:]]),
     ])
-    head_case = Case.seq(lambda env, a: [pd_index(a, 0)])
-    cput('Head', [], [head_case])
-    cput('Single_left', ['‹'], [
-        Case.number(lambda env, a: [num.pd_floor(a)]),
-        head_case,
-    ])
+    floor_case = Case.number(lambda env, a: [num.pd_floor(a)])
+    first_case = Case.seq(lambda env, a: [pd_index(a, 0)])
+    cput('Floor',         ['<i'], [floor_case           ])
+    cput('First',         [    ], [            first_case])
+    cput('Floor_or_head', ['‹' ], [floor_case, first_case])
+    ceil_case = Case.number(lambda env, a: [num.pd_ceil(a)])
     last_case = Case.seq(lambda env, a: [pd_index(a, -1)])
-    cput('Last', [], [last_case])
-    cput('Single_right', ['›'], [
-        Case.number(lambda env, a: [num.pd_ceil(a)]),
-        last_case,
-    ])
+    cput('Ceiling',         ['>i'], [ceil_case           ])
+    cput('Last',            [    ], [           last_case])
+    cput('Ceiling_or_last', ['›' ], [ceil_case, last_case])
+
+    round_case = Case.number(lambda env, a: [num.pd_round(a)])
+    first_and_last_case = Case.seq(lambda env, a: [pd_index(a, 0), pd_index(a, -1)])
+    cput('Round',                   ['=i'], [round_case                     ])
+    cput('First_and_last',          [    ], [            first_and_last_case])
+    cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case])
     # }}}
     # Uncons, Unsnoc, Parens() {{{
     decr_case = Case.number(lambda env, a: [num.pd_add_const(a, -1)])

@@ -78,6 +78,24 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[0 1 2][0 1] >e'), [1])
         self.assertEqual(pd_simple_eval('[0 0 2][0 1] >e'), [0])
 
+    def test_rounding(self):
+        self.assertEqual(pd_simple_eval('1.2I'), [1])
+        self.assertEqual(pd_simple_eval('1.2<i'), [1])
+        self.assertEqual(pd_simple_eval('1.2>i'), [2])
+        self.assertEqual(pd_simple_eval('1.2=i'), [1])
+        self.assertEqual(pd_simple_eval('3.5I'), [3])
+        self.assertEqual(pd_simple_eval('3.5<i'), [3])
+        self.assertEqual(pd_simple_eval('3.5>i'), [4])
+        self.assertEqual(pd_simple_eval('3.5=i'), [4])
+        self.assertEqual(pd_simple_eval('8.9I'), [8])
+        self.assertEqual(pd_simple_eval('8.9<i'), [8])
+        self.assertEqual(pd_simple_eval('8.9>i'), [9])
+        self.assertEqual(pd_simple_eval('8.9=i'), [9])
+        self.assertEqual(pd_simple_eval('3.5mI'), [-3])
+        self.assertEqual(pd_simple_eval('3.5m<i'), [-4])
+        self.assertEqual(pd_simple_eval('3.5m>i'), [-3])
+        self.assertEqual(pd_simple_eval('3.5m=i'), [-4])
+
     def test_multiplication(self):
         self.assertEqual(pd_simple_eval('"foo"3*'), ["foofoofoo"])
         self.assertEqual(pd_simple_eval('3"foo"*'), ["foofoofoo"])
