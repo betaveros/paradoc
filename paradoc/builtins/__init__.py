@@ -569,11 +569,13 @@ def initialize_builtins(env: Environment) -> None:
     cput('Double', ['×'], pd_constant_fraction_cases(2, 1))
     # }}}
 
+    # Len, abs {{{
     abs_case = Case.number(lambda env, n: [num.pd_abs(n)])
     len_case = Case.seq(lambda env, seq: [len(seq)])
     cput('Len', [], [len_case])
     cput('Abs', [], [abs_case])
     cput('Abs_or_len', ['L'], [abs_case, len_case])
+    # }}}
 
     # Other predicates {{{
     cput('Positive',         ['+p'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e >  0), x)])])
