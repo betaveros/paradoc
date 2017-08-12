@@ -39,6 +39,9 @@ def initialize_builtins(env: Environment) -> None:
     env.put(u'–', ' ')
     env.put('Ee', math.e)
     env.put('Pi', math.pi)
+    golden_ratio = (1 + math.sqrt(5)) / 2
+    env.put('Ph',  golden_ratio)
+    env.put('Phi', golden_ratio)
 
     env.put('Ua', string.ascii_uppercase)
     env.put('La', string.ascii_lowercase)
@@ -54,7 +57,7 @@ def initialize_builtins(env: Environment) -> None:
     #     a = env.pop()
     #     env.push(a, a)
     cput('Dup', [':'], [Case.any(lambda env, x: [x, x])])
-    cput('Dup_pair', ['Dp', '¦'], [Case.any2(lambda env, x, y: [x, y, x, y])])
+    cput('Dup_pair', [':p', '¦'], [Case.any2(lambda env, x, y: [x, y, x, y])])
     cput('Swap', ['\\'], [Case.any2(lambda env, a, b: [b, a])])
     cput('Rotate', ['Rot', '@'], [Case.any3(lambda env, a, b, c: [b, a])])
     cput('Pop', [';'], [Case.any(lambda env, x: [])])
@@ -120,6 +123,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Mul', ['*'], [
         Case.number2(lambda env, a, b: [num.pd_mul(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_mul_seq(seq, n)]),
+        Case.seq2(lambda env, a, b: [pd_cartesian_product_seq(a, b)]),
         Case.block_seq_range(lambda env, block, seq:
             pd_foreach_x_only_then_empty_list(env, block, seq)),
     ])
@@ -144,7 +148,7 @@ def initialize_builtins(env: Environment) -> None:
         Case.number2(lambda env, a, b: [num.pd_pow(a, b)]),
         Case.block_seq_range(lambda env, block, seq:
             [second_or_error(pd_find_entry(env, block, seq),
-                "Entry not found in Percent")]),
+                "Entry not found in Octothorpe")]),
     ])
     cput('Abs_diff', ['Ad', '±'], [
         Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
@@ -506,6 +510,13 @@ def initialize_builtins(env: Environment) -> None:
     def pd_print(env: Environment) -> None:
         a = env.pop()
         print(env.pd_str(a))
+
+    @put('Space_output', ' o')
+    def pd_space_output(env: Environment) -> None:
+        print(' ', end="")
+    @put('Newline_output', '\no', '\\no')
+    def pd_newline_output(env: Environment) -> None:
+        print()
     # }}}
 
     # Abort, Break, Continue {{{
@@ -529,33 +540,16 @@ def initialize_builtins(env: Environment) -> None:
         raise PdContinueException('Continue')
     # }}}
 
-    @put('Fc', 'Factorial')
-    def factorial(env: Environment) -> None:
-        a = env.pop()
-        assert isinstance(a, (float, int))
-        p = 1
-        for x in range(1, int(a) + 1): p *= x
-        env.push(p)
-
     # Square, Cube {{{
-    @put('Square', 'Sq', '²')
-    def square(env: Environment) -> None:
-        a = env.pop()
-        assert isinstance(a, (Char, float, int))
-        env.push(num.pd_power_const(a, 2))
-
-    @put('Cube', 'Cb', '³')
-    def cube(env: Environment) -> None:
-        a = env.pop()
-        assert isinstance(a, (Char, int, float))
-        env.push(num.pd_power_const(a, 3))
+    cput('Square', ['²'], [
+        Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
+        Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s)]),
+    ])
+    cput('Cube', ['³'], [
+        Case.number(lambda env, n: [num.pd_power_const(n, 3)]),
+        Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s, s)]),
+    ])
     # }}}
-
-    @put('Ao', 'Antirange_one')
-    def antirange_one(env: Environment) -> None:
-        a = env.pop()
-        assert isinstance(a, int)
-        env.push(range(a, 0, -1))
 
     # Constant fractions {{{
     def pd_constant_fraction_cases(p: int, q: int) -> List[Case]:
@@ -634,7 +628,10 @@ def initialize_builtins(env: Environment) -> None:
         Case.list_list_singleton(lambda env, arr, k: [pd_array_key_get(arr, k)]),
     ])
 
-    cput('Space_join', ['Sj'], [
+    cput('Line_join', ['\nr', '\\nr'], [
+        Case.seq_range(lambda env, seq: ['\n'.join(env.pd_str(e) for e in pd_iterable(seq))]),
+    ])
+    cput('Space_join', [' r'], [
         Case.seq_range(lambda env, seq: [' '.join(env.pd_str(e) for e in pd_iterable(seq))]),
     ])
 

@@ -498,6 +498,9 @@ def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
         return seq * n_int
     else:
         return list(seq) * n_int
+def pd_cartesian_product_seq(*seqs: PdSeq) -> list:
+    return list(list(e) for e in itertools.product(pd_iterable(seq) for seq in seqs))
+
 def pd_split_seq_int_gen(seq: PdSeq, n: PdNum, include_leftover: bool) -> Generator[PdSeq, None, None]:
     n_int = num.intify(n)
     while len(seq) >= n_int:

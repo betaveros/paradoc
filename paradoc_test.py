@@ -126,8 +126,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('7('), [6])
         self.assertEqual(pd_simple_eval('7)'), [8])
         self.assertEqual(pd_simple_eval('7½'), [3.5])
-        self.assertEqual(pd_simple_eval('7Sq'), [49])
-        self.assertEqual(pd_simple_eval('7Cb'), [343])
+        self.assertEqual(pd_simple_eval('7²'), [49])
+        self.assertEqual(pd_simple_eval('7³'), [343])
 
     def test_if(self):
         self.assertEqual(pd_simple_eval('0 2 3?'), [3])
@@ -197,7 +197,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10J*r'), [3628800])
 
     def test_square_map(self):
-        self.assertEqual(pd_simple_eval('5Sqm'), [[0,1,4,9,16]])
+        self.assertEqual(pd_simple_eval('5²m'), [[0,1,4,9,16]])
 
     def test_strings(self):
         self.assertEqual(pd_simple_eval('"foo"'), ["foo"])
