@@ -5,6 +5,7 @@ from paradoc.objects import *
 import paradoc.num as num
 import paradoc.base as base
 import sys, math, collections
+import string
 import time, datetime
 from paradoc.builtins.case import Case, CasedBuiltIn
 
@@ -37,6 +38,10 @@ def initialize_builtins(env: Environment) -> None:
     env.put(u'–', ' ')
     env.put('Ee', math.e)
     env.put('Pi', math.pi)
+
+    env.put('Ua', string.ascii_uppercase)
+    env.put('La', string.ascii_lowercase)
+    env.put('Aa', string.ascii_letters)
     # }}}
     # Universal functions: stack stuff, list stuff {{{
 
@@ -225,6 +230,12 @@ def initialize_builtins(env: Environment) -> None:
         Case.number2(lambda env, n, b: [base.to_base_digits(num.intify(b), num.intify(n))]),
         Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), lst)]),
         Case.str_number(lambda env, s, b: [int(s, num.intify(b))]),
+    ])
+    cput('Lower_base', ['Lb'], [
+        Case.number2(lambda env, n, b: [base.to_base_digits_lower(num.intify(b), num.intify(n))]),
+    ])
+    cput('Upper_base', ['Ub'], [
+        Case.number2(lambda env, n, b: [base.to_base_digits_upper(num.intify(b), num.intify(n))]),
     ])
     cput('Reduce', ['R'], [
         Case.seq2_singleton(lambda env, seq, joiner: [pd_join(env, seq, joiner)]),
@@ -587,6 +598,16 @@ def initialize_builtins(env: Environment) -> None:
     cput('Log_e',   ['Ln'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log  , x)])])
     cput('Log_ten', ['Lt'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log10, x)])])
     cput('Log_two', ['Lg'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log2 , x)])])
+    # }}}
+    # Case-related functions {{{
+    cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower() , x)])])
+    cput('Uppercase', ['Uc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.upper() , x)])])
+    cput('Exchange_case',         ['Xc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.swapcase(), x)])])
+
+    cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.isalpha()), x)])])
+    cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.islower()), x)])])
+    cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.isupper()), x)])])
+    cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.isspace()), x)])])
     # }}}
 
     cput('Replicate', ['ˆ'], [

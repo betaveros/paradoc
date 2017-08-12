@@ -361,5 +361,28 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"be7a" 16 B'), [48762])
         self.assertEqual(pd_simple_eval('"DeFaCeD" 16 B'), [233811181])
 
+    def test_base_string(self):
+        self.assertEqual(pd_simple_eval('48762 16 Lb'), ['be7a'])
+        self.assertEqual(pd_simple_eval('48762 16 Ub'), ['BE7A'])
+        self.assertEqual(pd_simple_eval('233811181 16 Lb'), ['defaced'])
+        self.assertEqual(pd_simple_eval('233811181 16 Ub'), ['DEFACED'])
+
+    def test_string_transformations(self):
+        self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Uc'), ["HELLO :) 123 XD"])
+        self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Lc'), ["hello :) 123 xd"])
+        self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Xc'), ["HeLlO :) 123 Xd"])
+
+    def test_string_predicates(self):
+        self.assertEqual(pd_simple_eval("'1Ap"), [0])
+        self.assertEqual(pd_simple_eval("'bAp"), [1])
+        self.assertEqual(pd_simple_eval("'eUp"), [0])
+        self.assertEqual(pd_simple_eval("'TUp"), [1])
+        self.assertEqual(pd_simple_eval("'aLp"), [1])
+        self.assertEqual(pd_simple_eval("'VLp"), [0])
+        self.assertEqual(pd_simple_eval("'eWp"), [0])
+        self.assertEqual(pd_simple_eval("'RWp"), [0])
+        self.assertEqual(pd_simple_eval("' Wp"), [1])
+        self.assertEqual(pd_simple_eval('"Os C"Up'), [[1,0,0,1]])
+
 if __name__ == '__main__':
     unittest.main()

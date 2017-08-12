@@ -1,6 +1,7 @@
 # coding: utf-8
 # Pure base manipulation utilities.
 from typing import List, Iterable
+import string
 
 def to_base_digits(base: int, num: int) -> List[int]:
     if num == 0: return [0]
@@ -22,3 +23,10 @@ def from_base_digits(base: int, digits: Iterable[int]) -> int:
     for digit in digits:
         acc = base * acc + digit
     return acc
+
+digits_lower = string.digits + string.ascii_lowercase
+digits_upper = string.digits + string.ascii_uppercase
+def to_base_digits_lower(base: int, num: int) -> str:
+    return ''.join(digits_lower[d] for d in to_base_digits(base, num))
+def to_base_digits_upper(base: int, num: int) -> str:
+    return ''.join(digits_upper[d] for d in to_base_digits(base, num))
