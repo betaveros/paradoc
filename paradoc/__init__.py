@@ -212,7 +212,20 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                 s = "%" + s
                 format_count = 1
             def format_s(env: Environment) -> None:
-                env.push(s % tuple(env.pop_n(format_count)))
+                format_args = env.pop_n(format_count)
+                try:
+                    format_res = s % tuple(format_args)
+                except TypeError:
+                    # TODO: this is super hacky and awful, but useful, and I
+                    # guess there's no real way to correctly type-coerce into
+                    # format strings short of writing our own format parser...
+                    try:
+                        format_res = s % tuple(
+                                map(num.intify, format_args)) # type: ignore
+                    except TypeError:
+                        raise Exception('Could not format string ' + repr(s) +
+                                ' with arguments ' + repr(format_args))
+                env.push(format_res)
             return (BuiltIn(objects.pd_repr(s) + "_format", format_s), False)
         elif token == "_debug":
             def debug_s(env: Environment) -> None:
