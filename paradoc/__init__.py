@@ -523,10 +523,11 @@ def paradoc_repl() -> None:
         except Exception as e:
             print(e, file=sys.stderr)
 
-def list_builtins() -> None:
+def list_builtins(name_filter: Callable[[str], bool]) -> None:
     env = initialized_environment()
     for name, obj in sorted(env.vars.items()):
-        print(name, repr(obj))
+        if name_filter(name):
+            print(name, repr(obj))
 
 def main() -> None:
     # code = "3 4+"
@@ -540,11 +541,14 @@ def main() -> None:
     parser.add_argument('-e', type=str, metavar='EXPR',
             help='Paradoc expression to execute')
     parser.add_argument('--list-builtins', action='store_true')
+    parser.add_argument('--list-short-builtins', action='store_true')
     args = parser.parse_args()
 
     try:
         if args.list_builtins:
-            list_builtins()
+            list_builtins(lambda _: True)
+        elif args.list_short_builtins:
+            list_builtins(lambda name: len(name) <= 2)
         elif args.e is not None:
             main_with_code(args.e)
         elif args.prog_file is not None:
