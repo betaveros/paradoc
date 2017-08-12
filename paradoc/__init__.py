@@ -499,6 +499,11 @@ def paradoc_repl() -> None:
         except Exception as e:
             print(e, file=sys.stderr)
 
+def list_builtins() -> None:
+    env = initialized_environment()
+    for name, obj in sorted(env.vars.items()):
+        print(name, repr(obj))
+
 def main() -> None:
     # code = "3 4+"
     # code = "Eval Pack Uncons Range"
@@ -510,10 +515,13 @@ def main() -> None:
             help='Source Paradoc file')
     parser.add_argument('-e', type=str, metavar='EXPR',
             help='Paradoc expression to execute')
+    parser.add_argument('--list-builtins', action='store_true')
     args = parser.parse_args()
 
     try:
-        if args.e is not None:
+        if args.list_builtins:
+            list_builtins()
+        elif args.e is not None:
             main_with_code(args.e)
         elif args.prog_file is not None:
             if args.prog_file.endswith('.cp1252.prdc'):

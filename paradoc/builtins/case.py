@@ -220,3 +220,5 @@ class CasedBuiltIn(Block):
         raise NotImplementedError('No cases match for built-in ' + self.name + ' with args ' + repr(collected_args))
     def code_repr(self) -> str:
         return self.name
+    def __repr__(self) -> str:
+        return '<CasedBuiltIn {}>'.format(self.name)

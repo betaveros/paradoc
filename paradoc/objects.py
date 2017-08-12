@@ -33,6 +33,9 @@ class BuiltIn(Block):
 
     def code_repr(self) -> str:
         return self.name
+
+    def __repr__(self) -> str:
+        return '<BuiltIn {}>'.format(self.name)
 # }}}
 
 PdSeq = Union[str, list, range]
