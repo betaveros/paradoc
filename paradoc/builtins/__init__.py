@@ -174,7 +174,7 @@ def initialize_builtins(env: Environment) -> None:
         Case.list_(lambda env, x: [list(sorted(x))]),
     ])
     # }}}
-    # Range/enumerate; Comma, J {{{
+    # Range/enumerate/flatten; Comma, J {{{
     range_case = Case.number(lambda env, n: [range(num.intify(n))])
     cput('Range', [], [range_case])
     range_one_case = Case.number(lambda env, n: [range(1, num.intify(n) + 1)])
@@ -187,16 +187,31 @@ def initialize_builtins(env: Environment) -> None:
     filter_indexes_case = Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq)])
     cput('Filter_indexes', [], [filter_indexes_case])
 
-    cput('Comma', [','], [
+    cput('Range_enumerate_or_filter_indices', [','], [
         range_case,
         enumerate_case,
         filter_indexes_case,
     ])
-    cput('J', [], [
+    cput('Range_enumerate_one_or_reject_indices', ['J'], [
         range_one_case,
         enumerate_one_case,
         Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq, negate=True)]),
     ])
+
+    range_til_case = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi))])
+    range_to_case  = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi) + 1)])
+    cput('Exclusive_range', ['Tl'], [range_til_case])
+    cput('Inclusive_range', ['To'], [range_to_case])
+    flatten_once_case = Case.seq(lambda env, seq: [pd_flatten_once(seq)])
+    flatten_case      = Case.seq(lambda env, seq: [pd_flatten(seq)])
+    cput('Flatten_once', [], [flatten_once_case])
+    cput('Flatten',      [], [flatten_case])
+    # Note: The dots are the opposite convention of Ruby, where .. is inclusive
+    # and ... is exclusive. I don't particularly like that convention. The
+    # three-dot range having one more element than the two-dot range makes
+    # sense to me.
+    cput('Exclusive_range_or_flatten_once', ['¨'], [flatten_once_case, range_til_case])
+    cput('Inclusive_range_or_flatten',      ['…'], [flatten_case,      range_to_case])
     # }}}
     # Binary operators &|^ {{{
     cput('Vertical_bar', ['|'], [

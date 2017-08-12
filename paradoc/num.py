@@ -12,6 +12,9 @@ class Char:
             self.ord = arg
         else:
             self.ord = ord(arg)
+    @property
+    def chr(self) -> str:
+        return chr(self.ord)
     def __nonzero__(self) -> bool:
         return bool(self.ord)
     def __lt__(self, other: Any) -> bool:
@@ -35,9 +38,9 @@ class Char:
     def __ne__(self, other: Any) -> bool:
         return not (self == other)
     def __str__(self) -> str:
-        return "'" + chr(self.ord)
+        return "'" + self.chr
     def __repr__(self) -> str:
-        return "Char(" + repr(chr(self.ord)) + ")"
+        return "Char(" + repr(self.chr) + ")"
     def __hash__(self) -> int:
         return hash(self.ord)
 

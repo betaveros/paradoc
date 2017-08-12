@@ -346,6 +346,23 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"PARADOC" \'a H'), [0])
         self.assertEqual(pd_simple_eval('"PARADOC" 67 H'), [1])
 
+    def test_ranges(self):
+        self.assertEqual(pd_simple_eval('3,[0 1 2]='), [1])
+        self.assertEqual(pd_simple_eval('3,[0 1 3]='), [0])
+        self.assertEqual(pd_simple_eval('3 5To[3 4 5]='), [1])
+        self.assertEqual(pd_simple_eval('5 9Tl[5 6 7 8]='), [1])
+        self.assertEqual(pd_simple_eval('2 6¨[2 3 4 5]='), [1])
+        self.assertEqual(pd_simple_eval('1 5…[1 2 3 4 5]='), [1])
+
+    def test_flatten(self):
+        self.assertEqual(pd_simple_eval('["foo""bar""baz"]¨'), ["foobarbaz"])
+        self.assertEqual(pd_simple_eval("['P'a'r'a'd'o'c]¨"), ["Paradoc"])
+        self.assertEqual(pd_simple_eval("['P'a'r'a'd'o'c]…"), ["Paradoc"])
+        self.assertEqual(pd_simple_eval('[[2 4]6[0 1]]¨'), [[2,4,6,0,1]])
+        self.assertEqual(pd_simple_eval('[[[2 4]]6[[0 2]]]¨'), [[[2,4],6,[0,2]]])
+        self.assertEqual(pd_simple_eval('[[2 4]6[0 1]]…'), [[2,4,6,0,1]])
+        self.assertEqual(pd_simple_eval('[[[2 4]]6[[0 2]]]…'), [[2,4,6,0,2]])
+
     def test_some_trig(self):
         self.assertEqual(pd_simple_eval('0 Sn'), [0.0])
         self.assertEqual(pd_simple_eval('0 Cs'), [1.0])

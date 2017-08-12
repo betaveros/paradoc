@@ -413,7 +413,7 @@ def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue) -> PdValue:
     if isinstance(obj, str):
         return func(obj)
     elif isinstance(obj, Char):
-        return Char(func(chr(obj.ord)))
+        return Char(func(obj.chr))
     elif isinstance(obj, (int, float)):
         return Char(func(chr(num.intify(obj))))
     else:
@@ -523,6 +523,47 @@ def pd_build_like(orig: PdSeq, result: List[PdObject]) -> PdSeq:
     else:
         return result
 
+def pd_flatten_once(val: PdValue) -> PdValue:
+    if isinstance(val, (Char, int, float, str, range)):
+        return val
+    else: # list
+        if all(isinstance(e, (Char, str)) for e in val):
+            return ''.join(
+                    e.chr if isinstance(e, Char) else e # type: ignore
+                    for e in val
+                    )
+        else:
+            acc = [] # type: List[PdObject]
+            for e in val:
+                if isinstance(e, str):
+                    acc.extend(Char(c) for c in e)
+                elif isinstance(e, (list, range)):
+                    acc.extend(e)
+                else:
+                    acc.append(e)
+            return acc
+
+def pd_flatten(val: PdValue) -> PdValue:
+    if isinstance(val, (Char, int, float, str, range)):
+        return val
+    else: # list
+        acc = [] # type: List[PdObject]
+        for e in val:
+            if isinstance(e, str):
+                acc.extend(Char(c) for c in e)
+            elif isinstance(e, (list, range)):
+                acc.extend(pd_flatten(e)) # type: ignore
+                # TODO: it should be possible to type this with overloads
+                # or something
+            else:
+                acc.append(e)
+        if all(isinstance(e, (Char, str)) for e in acc):
+            return ''.join(
+                    e.chr if isinstance(e, Char) else e # type: ignore
+                    for e in acc)
+        else:
+            return acc
+
 def pd_group_by_function(seq: PdSeq, proj: Callable[[PdObject], PdObject]) -> list:
     result = []
     current_group = []
@@ -610,7 +651,7 @@ def pd_find_last_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optio
 def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
     if isinstance(seq, str):
         if isinstance(e, Char):
-            return seq.count(chr(e.ord))
+            return seq.count(e.chr)
         elif isinstance(e, (int, float)):
             return seq.count(chr(int(e)))
         else:
@@ -784,7 +825,7 @@ def basic_pd_str(obj: PdObject) -> str:
     if isinstance(obj, (list, range)):
         return ''.join(basic_pd_str(e) for e in obj)
     elif isinstance(obj, Char):
-        return chr(obj.ord)
+        return obj.chr
     else: # includes str, int, float etc.
         return str(obj)
 

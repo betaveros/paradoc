@@ -40,7 +40,7 @@ list_singleton = ArgType([
 # Accepts a sequence, coercing Chars or numbers to single-element strings or
 # lists
 seq_singleton = ArgType([
-        ((Char,),            lambda x: chr(x.ord)),
+        ((Char,),            lambda x: x.chr),
         ((int, float),       lambda x: [x]),
         ((str, list, range), lambda x: x),
         ])
