@@ -358,26 +358,89 @@ def initialize_builtins(env: Environment) -> None:
     ])
     # }}}
 
-    cput('Â', [], [
-        Case.number(lambda env, a: [int(num.numerify(a) > 0)]),
+    # Circumflexed vowels {{{
+    even_case = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 0)])
+    odd_case  = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 1)])
+    cput('Even', ['Ev'], [even_case])
+    cput('Odd',  ['Od'], [odd_case])
+    def all_fold_f(es: Optional[List[PdObject]]) -> Optional[bool]:
+        if es is None:
+            return True
+        else:
+            for e in es:
+                if not e: return False
+            return None
+    def any_fold_f(es: Optional[List[PdObject]]) -> Optional[bool]:
+        if es is None:
+            return False
+        else:
+            for e in es:
+                if e: return True
+            return None
+    def make_unique_fold_f() -> Callable[[Optional[List[PdObject]]], Optional[bool]]:
+        s = set() # type: Set[PdObject]
+        def f(es: Optional[List[PdObject]]) -> Optional[bool]:
+            if es is None:
+                return True
+            else:
+                for e in es:
+                    if e in s: return False
+                    else: s.add(e)
+                return None
+        return f
+    def make_identical_fold_f() -> Callable[[Optional[List[PdObject]]], Optional[bool]]:
+        obj = None # type: Optional[PdObject]
+        def f(es: Optional[List[PdObject]]) -> Optional[bool]:
+            nonlocal obj
+            if es is None:
+                return True
+            else:
+                for e in es:
+                    if obj is None: obj = e
+                    elif obj != e: return False
+                return None
+        return f
+    all_cases = [
         Case.seq(lambda env, a: [int(all(pd_iterable(a)))]),
-    ])
-    cput('Ê', [], [
-        Case.number(lambda env, a: [int(num.numerify(a) % 2 == 0)]),
+        Case.block_seq_range(lambda env, block, seq:
+            [int(pd_map_fold_into(env, block, seq, all_fold_f))]),
+    ]
+    any_cases = [
         Case.seq(lambda env, a: [int(any(pd_iterable(a)))]),
-    ])
+        Case.block_seq_range(lambda env, block, seq:
+            [int(pd_map_fold_into(env, block, seq, any_fold_f))]),
+    ]
+    not_any_cases = [
+        Case.seq(lambda env, a: [int(not any(pd_iterable(a)))]),
+        Case.block_seq_range(lambda env, block, seq:
+            [int(not pd_map_fold_into(env, block, seq, any_fold_f))]),
+    ]
+    identical_cases = [
+        Case.seq(lambda env, a: [int(pd_seq_is_identical(a))]),
+        Case.block_seq_range(lambda env, block, seq:
+            [int(pd_map_fold_into(env, block, seq, make_identical_fold_f()))]),
+    ]
+    unique_cases = [
+        Case.seq(lambda env, a: [int(pd_seq_is_unique(a))]),
+        Case.block_seq_range(lambda env, block, seq:
+            [int(pd_map_fold_into(env, block, seq, make_unique_fold_f()))]),
+    ]
+    cput('All', [], all_cases)
+    cput('Any', [], any_cases)
+    cput('Identical', [], identical_cases)
+    cput('Unique', [], unique_cases)
+    cput('Â', [], [
+        Case.number(lambda env, a: [int(num.numerify(a) > 0)])
+    ] + all_cases)
+    cput('Ê', [], [even_case] + any_cases)
     cput('Î', [], [
         Case.number(lambda env, a: [int(num.numerify(a) == 1)]),
-        Case.seq(lambda env, a: [int(pd_seq_is_identical(a))]),
-    ])
-    cput('Ô', [], [
-        Case.number(lambda env, a: [int(num.numerify(a) % 2 == 1)]),
-        Case.seq(lambda env, a: [int(not any(pd_iterable(a)))]),
-    ])
+    ] + identical_cases)
+    cput('Ô', [], [odd_case] + not_any_cases)
     cput('Û', [], [
         Case.number(lambda env, a: [int(num.numerify(a) < 0)]),
-        Case.seq(lambda env, a: [int(pd_seq_is_unique(a))]),
-    ])
+    ] + unique_cases)
+    # }}}
     @put('~')
     def tilde(env: Environment) -> None:
         a = env.pop()
@@ -503,16 +566,6 @@ def initialize_builtins(env: Environment) -> None:
         else:
             raise NotImplementedError
 
-    @put('Od', 'Odd')
-    def pd_odd(env: Environment) -> None:
-        a = env.pop()
-        assert not isinstance(a, Block)
-        env.push(pynumber_length(a) % 2 != 0)
-    @put('Ev', 'Even')
-    def pd_even(env: Environment) -> None:
-        a = env.pop()
-        assert not isinstance(a, Block)
-        env.push(pynumber_length(a) % 2 == 0)
 
     # Other predicates {{{
     cput('Positive',         ['+p'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e >  0), x)])])

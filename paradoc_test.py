@@ -310,6 +310,18 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[3 2 0]Û'), [1])
         self.assertEqual(pd_simple_eval('[3 7 1]Û'), [1])
 
+    def test_mapped_list_predicates(self):
+        self.assertEqual(pd_simple_eval('[3 2 0]{1+}Â'), [1])
+        self.assertEqual(pd_simple_eval('[3 2 1]{1-}Â'), [0])
+        self.assertEqual(pd_simple_eval('[3 2 1]{0*}Ê'), [0])
+        self.assertEqual(pd_simple_eval('[0 0 3]{1*}Ê'), [1])
+        self.assertEqual(pd_simple_eval('[3 2 1]{0*}Î'), [1])
+        self.assertEqual(pd_simple_eval('[3 3 1]{2*}Î'), [0])
+        self.assertEqual(pd_simple_eval('[3 2 1]{0*}Ô'), [1])
+        self.assertEqual(pd_simple_eval('[1 1 3]{1-}Ô'), [0])
+        self.assertEqual(pd_simple_eval('[3 2 3m]{:*}Û'), [0])
+        self.assertEqual(pd_simple_eval('[3 2 4m]{:*}Û'), [1])
+
     def test_keep_under(self):
         self.assertEqual(pd_simple_eval('3 4 5 +'),  [3,9])
         self.assertEqual(pd_simple_eval('3 4 5 +k'), [3,4,5,9])

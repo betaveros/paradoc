@@ -9,6 +9,8 @@ import collections
 import random
 import itertools
 
+T = TypeVar('T')
+
 # Objects in the Paradoc runtime (type PdObject).
 
 # Block, BuiltIn {{{
@@ -599,6 +601,30 @@ def pd_map_iterable(env: Environment, func: Block, it: Iterable[PdObject]) -> Li
     except PdBreakException: pass
     env.pop_yx()
     return acc
+
+def pd_map_fold_into(env: Environment, func: Block, seq: PdSeq,
+        f: Callable[[Optional[List[PdObject]]], Optional[T]]) -> T:
+    # Couldn't come up with a great name for this. Runs the block on successive
+    # elements of the sequence and calls f on the result, and finally call f
+    # with None, until it returns a non-None element, which we return. It may
+    # be helpful for f to be stateful, and it should return a non-None answer
+    # when given None.
+    env.push_yx()
+    ret = None # type: Optional[T]
+    try:
+        for i, element in enumerate(pd_iterable(seq)):
+            env.set_yx(i, element)
+            try:
+                ret = f(pd_sandbox(env, func, [element]))
+            except PdContinueException: pass
+            if ret is not None: break
+    except PdBreakException: pass
+    env.pop_yx()
+    if ret is None:
+        ret = f(None)
+        if ret is None:
+            raise AssertionError("pd_map_fold_into: function(None) should return non-None")
+    return ret
 
 def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     return pd_build_like(seq,
