@@ -580,6 +580,10 @@ def initialize_builtins(env: Environment) -> None:
     cput('Asin',    ['As'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.asin , x)])])
     cput('Acos',    ['Ac'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.acos , x)])])
     cput('Atan',    ['At'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.atan , x)])])
+    cput('Sec',     ['Sc'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda t: 1/math.cos(t), x)])])
+    cput('Csc',     ['Cc'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda t: 1/math.sin(t), x)])])
+    cput('Cot',     ['Ct'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda t: 1/math.tan(t), x)])])
+    cput('Exp',     ['Ex'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.exp  , x)])])
     cput('Log_e',   ['Ln'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log  , x)])])
     cput('Log_ten', ['Lt'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log10, x)])])
     cput('Log_two', ['Lg'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log2 , x)])])
@@ -625,6 +629,7 @@ def initialize_builtins(env: Environment) -> None:
             [pd_map_iterable(env, block,
                 pd_subsequences(seq))]),
     ])
+    cput('Power_of_ten', ['°'], [Case.number(lambda env, n: [10 ** num.numerify(n)])])
 
     @put('Debug', 'Dump')
     def dump(env: Environment) -> None:
