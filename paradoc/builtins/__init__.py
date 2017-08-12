@@ -20,13 +20,13 @@ def initialize_builtins(env: Environment) -> None:
     def put(*ss: str) -> Callable[[Callable[[Environment], None]], None]:
         def inner_put(f: Callable[[Environment], None]) -> None:
             for s in ss:
-                env.put(s, BuiltIn(s, f))
+                env.put(s, BuiltIn(s, f), fail_if_overwrite=True)
         return inner_put
 
     def cput(name: str, extra_names: List[str], cases: List[Case]) -> None:
         builtin = CasedBuiltIn(name, cases)
         env.put(name, builtin)
-        for xname in extra_names: env.put(xname, builtin)
+        for xname in extra_names: env.put(xname, builtin, fail_if_overwrite=True)
 
     # Default variables {{{
     env.put('N', '\n')
@@ -270,13 +270,13 @@ def initialize_builtins(env: Environment) -> None:
         Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n))]),
         Case.block_seq_range(lambda env, block, seq: [pd_get_index(env, block, seq)]),
     ])
-    cput('Lt', ['<'], [
+    cput('Less_than', ['<'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) < num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
     ])
-    cput('Gt', ['>'], [
+    cput('Greater_than', ['>'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) > num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
@@ -555,18 +555,6 @@ def initialize_builtins(env: Environment) -> None:
         a = env.pop()
         assert isinstance(a, int)
         env.push(range(a, 0, -1))
-
-
-    @put('¤', 'Currency')
-    def pd_currency(env: Environment) -> None:
-        a = env.pop()
-        if isinstance(a, (Char, int, float)):
-            b = pd_to_list_range(env.pop())
-            env.push(b[:num.intify(a)], b[num.intify(a):])
-        elif isinstance(a, (str, list, range)):
-            env.push(a[:len(a)//2], a[len(a)//2:])
-        else:
-            raise NotImplementedError(repr(a))
 
     # Constant fractions {{{
     def pd_constant_fraction_cases(p: int, q: int) -> List[Case]:

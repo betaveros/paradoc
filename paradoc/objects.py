@@ -134,11 +134,13 @@ class Environment: # {{{
         if ret is None: return other
         else: return ret
 
-    def put(self, token: str, val: PdObject) -> None:
+    def put(self, token: str, val: PdObject, fail_if_overwrite: bool = False) -> None:
         xi = x_index(token)
         if xi is not None:
             self.set_x(xi, val)
         elif self.vars_delegate is None:
+            if fail_if_overwrite and token in self.vars:
+                raise AssertionError('Failing on overwriting ' + repr(token))
             self.vars[token] = val
         else:
             self.vars_delegate.put(token, val)
