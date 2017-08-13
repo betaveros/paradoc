@@ -666,6 +666,14 @@ def initialize_builtins(env: Environment) -> None:
     def dump(env: Environment) -> None:
         print('Dump:', env.debug_dump(), file=sys.stderr)
 
+    @put('Read_input', 'V')
+    def read_input(env: Environment) -> None:
+        e = env.input_trigger()
+        if e is None:
+            raise Exception('No more input!')
+        else:
+            env.push(e)
+
     # Time {{{
     cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])])
     now = datetime.datetime.now

@@ -385,15 +385,15 @@ class CodeBlock(Block):
             body_start += 1
             if is_nop_or_comment(trailer_token): continue
             if trailer_token == 'i' or trailer_token == '_input':
-                env.stack_trigger = input_triggers.all
+                env.input_trigger = input_triggers.all
             elif trailer_token == 'l' or trailer_token == '_lines':
-                env.stack_trigger = input_triggers.line
+                env.input_trigger = input_triggers.line
             elif trailer_token == 'w' or trailer_token == '_words':
-                env.stack_trigger = input_triggers.word
+                env.input_trigger = input_triggers.word
             elif trailer_token == 'v' or trailer_token == '_value':
-                env.stack_trigger = input_triggers.value
+                env.input_trigger = input_triggers.value
             elif trailer_token == 'c' or trailer_token == '_chars':
-                env.stack_trigger = input_triggers.char
+                env.input_trigger = input_triggers.char
 
             elif trailer_token == 'f' or trailer_token == '_for':
                 set_executor(make_for_loop_over(
@@ -438,6 +438,7 @@ class CodeBlock(Block):
                         raise Exception("closing curly brace out of nowhere")
                     elif token.startswith('{'):
                         block_level += 1
+                        if trailer: block_acc.append(trailer)
                     elif token.startswith('..') or token.startswith('——'):
                         pass # comment
                     elif token.startswith('"'):
@@ -510,7 +511,8 @@ def basic_evaluator(env: Environment, code: str) -> None:
     CodeBlock(list(lex_code(code)))(env)
 
 def initialized_environment() -> Environment:
-    env = Environment(basic_evaluator)
+    env = Environment(basic_evaluator,
+            stack_trigger = lambda: env.input_trigger())
     initialize_builtins(env)
     return env
 

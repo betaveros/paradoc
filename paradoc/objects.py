@@ -69,11 +69,13 @@ def x_index(token: str) -> Optional[int]:
 class Environment: # {{{
     def __init__(self,
             evaluator: Callable[['Environment', str], None],
+            input_trigger: Callable[[], Optional[PdObject]] = lambda: None,
             stack_trigger: Callable[[], Optional[PdObject]] = lambda: None,
             stack: Optional[List[PdObject]] = None,
             x_stack: Optional[List[PdObject]] = None,
             vars_delegate: Optional['Environment'] = None) -> None:
         self.evaluator = evaluator
+        self.input_trigger = input_trigger
         self.stack_trigger = stack_trigger
         self.vars = dict() # type: Dict[str, PdObject]
         self._stack   =   stack or [] # type: List[PdObject]
@@ -280,6 +282,7 @@ class Environment: # {{{
                 evaluator=self.evaluator,
                 stack=[],
                 vars_delegate=self,
+                input_trigger=self.input_trigger,
                 stack_trigger=self.pop_or_none)
         env.mark_stack()
         return env
@@ -309,6 +312,7 @@ class KeepShadowEnvironment(Environment):
     def __init__(self, shadow_parent: Environment) -> None:
         Environment.__init__(self,
                 evaluator = shadow_parent.evaluator,
+                input_trigger = shadow_parent.input_trigger,
                 stack_trigger = self.shadow_keep_trigger,
                 vars_delegate = shadow_parent)
         self.shadow_parent = shadow_parent
