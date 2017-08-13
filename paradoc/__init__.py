@@ -353,6 +353,17 @@ def make_for_loop_over(iterable: Iterable[PdObject]) -> BodyExecutor:
             body(env)
     return inner
 
+# helping mypy out
+def to_int_for_forloop(n: PdObject) -> int:
+    if isinstance(n, int):
+        return n
+    elif isinstance(n, float):
+        return int(n)
+    elif isinstance(n, str):
+        return int(n)
+    else:
+        raise Exception('Non-numeric non-string ' + repr(n) + ' cannot be used as forloop limit')
+
 space_set = set([' ', '\n', '\r', '\t'])
 
 class CodeBlock(Block):
@@ -404,16 +415,14 @@ class CodeBlock(Block):
                         env.capture_stack_as_iterable()))
             elif trailer_token == 'z' or trailer_token == '_zerofor':
                 try:
-                    n = env.pop()
-                    assert isinstance(n, (int, float, str))
-                    set_executor(make_for_loop_over(range(int(n))))
+                    n = to_int_for_forloop(env.pop())
+                    set_executor(make_for_loop_over(range(n)))
                 except PdEmptyStackException:
                     set_executor(make_for_loop_over(itertools.count(0)))
             elif trailer_token == 'o' or trailer_token == '_onefor':
                 try:
-                    n = env.pop()
-                    assert isinstance(n, (int, float, str))
-                    set_executor(make_for_loop_over(range(1, int(n)+1)))
+                    n = to_int_for_forloop(env.pop())
+                    set_executor(make_for_loop_over(range(1, n+1)))
                 except PdEmptyStackException:
                     set_executor(make_for_loop_over(itertools.count(1)))
             elif trailer_token == 's' or trailer_token == '_space':

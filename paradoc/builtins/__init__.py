@@ -275,41 +275,43 @@ def initialize_builtins(env: Environment) -> None:
         Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n))]),
         Case.block_seq_range(lambda env, block, seq: [pd_get_index(env, block, seq)]),
     ])
+    # A bunch of arithmetic operations between Union[int, float] and
+    # Union[int, float] have type ignored below
     cput('Less_than', ['<'], [
-        Case.number2(lambda env, a, b: [int(num.numerify(a) < num.numerify(b))]),
+        Case.number2(lambda env, a, b: [int(num.numerify(a) < num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
     ])
     cput('Greater_than', ['>'], [
-        Case.number2(lambda env, a, b: [int(num.numerify(a) > num.numerify(b))]),
+        Case.number2(lambda env, a, b: [int(num.numerify(a) > num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
     ])
     cput('Leq', ['<e'], [
-        Case.number2(lambda env, a, b: [int(num.numerify(a) <= num.numerify(b))]),
+        Case.number2(lambda env, a, b: [int(num.numerify(a) <= num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a <= b)]),
         Case.list2(lambda env, a, b: [int(list(a) <= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)+1]]),
     ])
     cput('Geq', ['>e'], [
-        Case.number2(lambda env, a, b: [int(num.numerify(a) >= num.numerify(b))]),
+        Case.number2(lambda env, a, b: [int(num.numerify(a) >= num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a >= b)]),
         Case.list2(lambda env, a, b: [int(list(a) >= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]), # TODO: ?
     ])
     cput('Less_than_approx', ['<a'], [
         Case.number2(lambda env, a, b:
-            [int(num.numerify(a) - num.numerify(b) < env.get_epsilon())]),
+            [int(num.numerify(a) - num.numerify(b) < env.get_epsilon())]), # type: ignore
     ])
     cput('Greater_than_approx', ['>a'], [
         Case.number2(lambda env, a, b:
-            [int(num.numerify(b) - num.numerify(a) < env.get_epsilon())]),
+            [int(num.numerify(b) - num.numerify(a) < env.get_epsilon())]), # type: ignore
     ])
     cput('Equal_approx', ['=a'], [
         Case.number2(lambda env, a, b:
-            [int(abs(num.numerify(a) - num.numerify(b)) < env.get_epsilon())]),
+            [int(abs(num.numerify(a) - num.numerify(b)) < env.get_epsilon())]), # type: ignore
     ])
     cput('Min', ['<m', 'Õ'], [
         Case.any2(lambda env, a, b: [min(a, b)]), # TODO
