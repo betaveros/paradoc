@@ -19,15 +19,15 @@ def arithmetic_literal_trigger(varname: str) -> Optional[PdObject]:
         return None
     elif len(varname) == 2:
         c1, c2 = varname
-        if c1 not in 'ÁÉÍÓÚÀÈÌÒÙÝ': return None
-        if 'a' <= c2 <= 'z':
-            n = ord(c2) - ord('a') + 10
-        elif c2 in 'äëïöüÿ':
-            n = 2 ** (6 + 'äëïöüÿ'.index(c2)) # 64, 128 .. 2048
+        if c2 not in 'áéíóúàèìòùý': return None
+        if 'A' <= c1 <= 'Z':
+            n = ord(c1) - ord('A') + 10
+        elif c1 in 'ÄËÏÖÜŸ':
+            n = 2 ** (6 + 'ÄËÏÖÜŸ'.index(c2)) # 64, 128 .. 2048
         else:
             return None
 
-        return ag_convert(c1, n, varname)
+        return ag_convert(c2, n, varname)
     else:
         return None
 

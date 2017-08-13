@@ -464,16 +464,16 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('0 Random_seed {[2 5 3]Rc}5*'), [5,5,2,5,3])
 
     def test_arithmetic_literals(self):
-        self.assertEqual(pd_simple_eval('[1 27m 7]Áum'), [[31,3,37]])
-        self.assertEqual(pd_simple_eval('[15 13]Àbm'), [[4,2]])
-        self.assertEqual(pd_simple_eval('Éa'), [1024])
-        self.assertEqual(pd_simple_eval('Èb'), [121])
-        self.assertEqual(pd_simple_eval('Íg'), [1/16])
-        self.assertEqual(pd_simple_eval('Ìh'), [-17])
-        self.assertEqual(pd_simple_eval('[1 3 5]Óum'), [[30,90,150]])
-        self.assertEqual(pd_simple_eval('200Òa'), [20.0])
-        self.assertEqual(pd_simple_eval('200Úh'), [13])
-        self.assertEqual(pd_simple_eval('Ýa'), [10000000000])
+        self.assertEqual(pd_simple_eval('[1 27m 7]Uám'), [[31,3,37]])
+        self.assertEqual(pd_simple_eval('[15 13]Bàm'), [[4,2]])
+        self.assertEqual(pd_simple_eval('Aé'), [1024])
+        self.assertEqual(pd_simple_eval('Bè'), [121])
+        self.assertEqual(pd_simple_eval('Gí'), [1/16])
+        self.assertEqual(pd_simple_eval('Hì'), [-17])
+        self.assertEqual(pd_simple_eval('[1 3 5]Uóm'), [[30,90,150]])
+        self.assertEqual(pd_simple_eval('200Aò'), [20.0])
+        self.assertEqual(pd_simple_eval('200Hú'), [13])
+        self.assertEqual(pd_simple_eval('Aý'), [10000000000])
 
     def test_discrete_math(self):
         self.assertEqual(pd_simple_eval('5 2 Bc'), [10])

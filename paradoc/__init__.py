@@ -284,7 +284,7 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             return (BuiltIn(str(i) + "_root", root_i), False)
         elif token in 'áéíóúàèìòùý':
             # TODO: Should some of these be reluctant?
-            return (ag_convert(token.upper(), i, str(i) + token), False)
+            return (ag_convert(token, i, str(i) + token), False)
 
         raise NotImplementedError("unknown trailer token " + token + " on integer")
     elif isinstance(b0, float):
