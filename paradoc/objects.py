@@ -597,6 +597,19 @@ def pd_flatten_once(val: PdValue) -> PdValue:
                     acc.append(e)
             return acc
 
+@overload
+def pd_flatten(val: range) -> range: ...
+@overload
+def pd_flatten(val: list) -> Union[list, str]: ...
+@overload
+def pd_flatten(val: Char) -> Char: ...
+@overload
+def pd_flatten(val: int) -> int: ...
+@overload
+def pd_flatten(val: float) -> float: ...
+@overload
+def pd_flatten(val: str) -> str: ...
+
 def pd_flatten(val: PdValue) -> PdValue:
     if isinstance(val, (Char, int, float, str, range)):
         return val
@@ -606,9 +619,7 @@ def pd_flatten(val: PdValue) -> PdValue:
             if isinstance(e, str):
                 acc.extend(Char(c) for c in e)
             elif isinstance(e, (list, range)):
-                acc.extend(pd_flatten(e)) # type: ignore
-                # TODO: it should be possible to type this with overloads
-                # or something
+                acc.extend(pd_flatten(e))
             else:
                 acc.append(e)
         if all(isinstance(e, (Char, str)) for e in acc):
