@@ -265,6 +265,22 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             def bits_i(env: Environment) -> None:
                 env.push(*i_bits)
             return (BuiltIn(str(i) + "_bits", bits_i), False)
+        elif token == "p" or token == "_power":
+            def power_i(env: Environment) -> None:
+                v = env.pop()
+                if isinstance(v, Block):
+                    raise Exception('Cannot take power of block')
+                else:
+                    env.push(objects.pd_deepmap_n2n(lambda e: e ** i, v))
+            return (BuiltIn(str(i) + "_power", power_i), False)
+        elif token == "r" or token == "_root":
+            def root_i(env: Environment) -> None:
+                v = env.pop()
+                if isinstance(v, Block):
+                    raise Exception('Cannot take root of block')
+                else:
+                    env.push(objects.pd_deepmap_n2n(lambda e: e ** (1/i), v))
+            return (BuiltIn(str(i) + "_root", root_i), False)
 
         raise NotImplementedError("unknown trailer token " + token + " on integer")
     elif isinstance(b0, float):

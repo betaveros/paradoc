@@ -14,7 +14,7 @@ Hello, world! (unterminated strings are on the TODO list)
 Print squares from 0 to 100, separated by spaces
 
     sE²m                 .. 4 bytes (if encoded as CP1252)
-    sESqm                .. 5 ASCII characters
+    sE2pm                .. 5 ASCII characters
     _space 11 Square_map .. Expanded version
 
 Print Fibonacci numbers from 0 to 89, separated by spaces (there will definitely be a 2-byte way to push the initial 0 and 1, but I haven't locked it down yet):
@@ -36,7 +36,7 @@ Run a file:
 
 Evaluate a command:
 
-    python3 -m paradoc -e "sESqm"
+    python3 -m paradoc -e "sE2pm"
 
 Design Philosophy
 =================

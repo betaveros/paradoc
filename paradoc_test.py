@@ -31,6 +31,14 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(list(lex_code('—3x3')), ['—3x', '3'])
         self.assertEqual(list(lex_code('—3—4—5')), ['—3', '—4', '—5'])
 
+    def test_readme(self):
+        self.assertEqual(pd_simple_eval('E²m'), [[0,1,4,9,16,25,36,49,64,81,100]])
+        self.assertEqual(pd_simple_eval('E2pm'), [[0,1,4,9,16,25,36,49,64,81,100]])
+        self.assertEqual(pd_simple_eval('11 Square_map'), [[0,1,4,9,16,25,36,49,64,81,100]])
+
+        self.assertEqual(pd_simple_eval('0 1T+kx'), [0,1,1,2,3,5,8,13,21,34,55,89])
+        self.assertEqual(pd_simple_eval('0 1 10 +_keep_xloop'), [0,1,1,2,3,5,8,13,21,34,55,89])
+
     def test_numeric_literals(self):
         self.assertEqual(pd_simple_eval('555'), [555])
         self.assertEqual(pd_simple_eval('.5'), [0.5])
