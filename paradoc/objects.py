@@ -243,6 +243,15 @@ class Environment: # {{{
     def print_output_record(self, s: str, outfile: typing.IO[str] = sys.stdout) -> None:
         print(s, end=self.get_output_record_separator(), file=outfile)
 
+    def get_epsilon(self) -> float:
+        ret = self.get_or_none('Ep')
+        if ret is None:
+            raise Exception('No variable named Ep (epsilon)')
+        elif isinstance(ret, (int, float)):
+            return float(ret)
+        else:
+            raise Exception('Ep (epsilon) is not numeric')
+
     def pd_str(self, obj: PdObject) -> str:
         if isinstance(obj, (list, range)):
             return self.join_output_fields(self.pd_str(e) for e in obj)

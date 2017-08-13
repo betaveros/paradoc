@@ -41,6 +41,7 @@ def initialize_builtins(env: Environment) -> None:
     env.put(u'Ñ', '')
     env.put(u'–', ' ')
     env.put('Ee', math.e)
+    env.put('Ep', 1e-9)
     env.put('Pi', math.pi)
     golden_ratio = (1 + math.sqrt(5)) / 2
     env.put('Ph',  golden_ratio)
@@ -297,6 +298,18 @@ def initialize_builtins(env: Environment) -> None:
         Case.str2(lambda env, a, b: [int(a >= b)]),
         Case.list2(lambda env, a, b: [int(list(a) >= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]), # TODO: ?
+    ])
+    cput('Less_than_approx', ['<a'], [
+        Case.number2(lambda env, a, b:
+            [int(num.numerify(a) - num.numerify(b) < env.get_epsilon())]),
+    ])
+    cput('Greater_than_approx', ['>a'], [
+        Case.number2(lambda env, a, b:
+            [int(num.numerify(b) - num.numerify(a) < env.get_epsilon())]),
+    ])
+    cput('Equal_approx', ['=a'], [
+        Case.number2(lambda env, a, b:
+            [int(abs(num.numerify(a) - num.numerify(b)) < env.get_epsilon())]),
     ])
     cput('Min', ['<m', 'Õ'], [
         Case.any2(lambda env, a, b: [min(a, b)]), # TODO
