@@ -73,7 +73,8 @@ class Environment: # {{{
             stack_trigger: Callable[[], Optional[PdObject]] = lambda: None,
             stack: Optional[List[PdObject]] = None,
             x_stack: Optional[List[PdObject]] = None,
-            vars_delegate: Optional['Environment'] = None) -> None:
+            vars_delegate: Optional['Environment'] = None,
+            lazy_var_triggers: Optional[List[Callable[[str], Optional[PdObject]]]] = None) -> None:
         self.evaluator = evaluator
         self.input_trigger = input_trigger
         self.stack_trigger = stack_trigger
@@ -82,6 +83,7 @@ class Environment: # {{{
         self._x_stack = x_stack or [0, [], ''] # type: List[PdObject]
         self.STACK_TRIGGER_X = 2 # ???
         self.vars_delegate = vars_delegate
+        self.lazy_var_triggers = lazy_var_triggers or [] # type: List[Callable[[str], Optional[PdObject]]]
         self.marker_stack = [] # type: List[int]
 
     def evaluate(self, code: str) -> None:
@@ -113,23 +115,25 @@ class Environment: # {{{
     def set_x_top(self, obj: PdObject) -> None:
         self._x_stack[-1] = obj
 
-    def get(self, token: str) -> PdObject:
-        xi = x_index(token)
-        if xi is not None:
-            return self.index_x(xi)
-        elif self.vars_delegate is None:
-            return self.vars[token]
-        else:
-            return self.vars_delegate.get(token)
-
     def get_or_none(self, token: str) -> Optional[PdObject]:
         xi = x_index(token)
         if xi is not None:
             return self.index_x(xi)
         if self.vars_delegate is None:
-            return self.vars.get(token)
+            ret = self.vars.get(token)
+            if ret is None:
+                for lvt in self.lazy_var_triggers:
+                    ret = lvt(token)
+                    if ret is not None: return ret
+            return ret
         else:
             return self.vars_delegate.get_or_none(token)
+
+    def get(self, token: str) -> PdObject:
+        ret = self.get_or_none(token)
+        if ret is None:
+            raise Exception('No variable with name ' + repr(token))
+        else: return ret
 
     def get_or_else(self, token: str, other: PdObject) -> PdObject:
         ret = self.get_or_none(token)

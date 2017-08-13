@@ -19,6 +19,7 @@ import paradoc.objects as objects
 import paradoc.base as base
 import paradoc.input_triggers as input_triggers
 from paradoc.builtins import initialize_builtins
+from paradoc.builtins.acutegrave import ag_convert
 import sys
 import argparse
 
@@ -281,6 +282,9 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                 else:
                     env.push(objects.pd_deepmap_n2n(lambda e: e ** (1/i), v))
             return (BuiltIn(str(i) + "_root", root_i), False)
+        elif token in 'áéíóúàèìòùý':
+            # TODO: Should some of these be reluctant?
+            return (ag_convert(token.upper(), i, str(i) + token), False)
 
         raise NotImplementedError("unknown trailer token " + token + " on integer")
     elif isinstance(b0, float):

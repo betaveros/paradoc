@@ -9,6 +9,7 @@ import string
 import time, datetime
 import random
 from paradoc.builtins.case import Case, CasedBuiltIn
+from paradoc.builtins.lazy_vars import arithmetic_literal_trigger
 
 def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdObject:
     t, t2 = x
@@ -724,3 +725,4 @@ def initialize_builtins(env: Environment) -> None:
         else:
             raise AssertionError("Can't seed random with non-numeric non-string value " + repr(e))
     # }}}
+    env.lazy_var_triggers.append(arithmetic_literal_trigger)

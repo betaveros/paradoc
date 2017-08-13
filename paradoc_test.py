@@ -64,6 +64,16 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('7 3G'), [1])
         self.assertEqual(pd_simple_eval('8 36G'), [4])
 
+    def test_arithmetic_trailers(self):
+        self.assertEqual(pd_simple_eval('2 3á'), [5])
+        self.assertEqual(pd_simple_eval('2 3à'), [-1])
+        self.assertEqual(pd_simple_eval('8é'), [256])
+        self.assertEqual(pd_simple_eval('42è'), [1764])
+        self.assertEqual(pd_simple_eval('3í'), [1/3])
+        self.assertEqual(pd_simple_eval('3 7ó'), [21])
+        self.assertEqual(pd_simple_eval('3 7ò'), [3/7])
+        self.assertEqual(pd_simple_eval('2017 13ú'), [2])
+
     def test_comparison(self):
         self.assertEqual(pd_simple_eval('7 7='), [1])
         self.assertEqual(pd_simple_eval('7 7<'), [0])
@@ -442,6 +452,18 @@ class TestParadoc(unittest.TestCase):
                 [0.9417154046806644, -1.39657810470115, -0.6797144480784211])
         self.assertEqual(pd_simple_eval('0 Random_seed {5Ri}5*'), [3,3,0,2,4])
         self.assertEqual(pd_simple_eval('0 Random_seed {[2 5 3]Rc}5*'), [5,5,2,5,3])
+
+    def test_arithmetic_literals(self):
+        self.assertEqual(pd_simple_eval('[1 27m 7]Áum'), [[31,3,37]])
+        self.assertEqual(pd_simple_eval('[15 13]Àbm'), [[4,2]])
+        self.assertEqual(pd_simple_eval('Éa'), [1024])
+        self.assertEqual(pd_simple_eval('Èb'), [121])
+        self.assertEqual(pd_simple_eval('Íg'), [1/16])
+        self.assertEqual(pd_simple_eval('Ìh'), [-17])
+        self.assertEqual(pd_simple_eval('[1 3 5]Óum'), [[30,90,150]])
+        self.assertEqual(pd_simple_eval('200Òa'), [20.0])
+        self.assertEqual(pd_simple_eval('200Úh'), [13])
+        self.assertEqual(pd_simple_eval('Ýa'), [10000000000])
 
 if __name__ == '__main__':
     unittest.main()
