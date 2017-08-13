@@ -138,13 +138,3 @@ def pd_count_multiplicity_in(a0: PdNum, b0: PdNum) -> int:
         b //= a
         c += 1
     return c
-
-def pd_factorial(a: PdNum) -> PdNum:
-    if isinstance(a, Char):
-        return pd_factorial(a.ord)
-    elif isinstance(a, int):
-        p = 1
-        for i in range(1, a + 1): p *= a
-        return p
-    else:
-        return math.gamma(a + 1)

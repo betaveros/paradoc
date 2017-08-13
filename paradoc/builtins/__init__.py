@@ -10,6 +10,7 @@ import time, datetime
 import random
 from paradoc.builtins.case import Case, CasedBuiltIn
 from paradoc.builtins.lazy_vars import arithmetic_literal_trigger
+import paradoc.discrete as discrete
 
 def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdObject:
     t, t2 = x
@@ -603,35 +604,35 @@ def initialize_builtins(env: Environment) -> None:
     cput('Abs_or_len', ['L'], [abs_case, len_case])
     # }}}
     # Other numeric predicates {{{
-    cput('Positive',         ['+p'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e >  0), x)])])
-    cput('Negative',         ['-p'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e <  0), x)])])
-    cput('Positive_or_zero', ['+o'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e >= 0), x)])])
-    cput('Negative_or_zero', ['-o'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e <= 0), x)])])
+    cput('Positive',         ['+p'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: int(e >  0), x)])])
+    cput('Negative',         ['-p'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: int(e <  0), x)])])
+    cput('Positive_or_zero', ['+o'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: int(e >= 0), x)])])
+    cput('Negative_or_zero', ['-o'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: int(e <= 0), x)])])
     # }}}
     # Dumping Python's math {{{
-    cput('Sin',     ['Sn'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.sin  , x)])])
-    cput('Cos',     ['Cs'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.cos  , x)])])
-    cput('Tan',     ['Tn'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.tan  , x)])])
-    cput('Asin',    ['As'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.asin , x)])])
-    cput('Acos',    ['Ac'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.acos , x)])])
-    cput('Atan',    ['At'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.atan , x)])])
-    cput('Sec',     ['Sc'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda t: 1/math.cos(t), x)])])
-    cput('Csc',     ['Cc'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda t: 1/math.sin(t), x)])])
-    cput('Cot',     ['Ct'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda t: 1/math.tan(t), x)])])
-    cput('Exp',     ['Ex'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.exp  , x)])])
-    cput('Log_e',   ['Ln'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log  , x)])])
-    cput('Log_ten', ['Lt'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log10, x)])])
-    cput('Log_two', ['Lg'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log2 , x)])])
+    cput('Sin',     ['Sn'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.sin  , x)])])
+    cput('Cos',     ['Cs'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.cos  , x)])])
+    cput('Tan',     ['Tn'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.tan  , x)])])
+    cput('Asin',    ['As'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.asin , x)])])
+    cput('Acos',    ['Ac'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.acos , x)])])
+    cput('Atan',    ['At'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.atan , x)])])
+    cput('Sec',     ['Sc'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda t: 1/math.cos(t), x)])])
+    cput('Csc',     ['Cc'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda t: 1/math.sin(t), x)])])
+    cput('Cot',     ['Ct'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda t: 1/math.tan(t), x)])])
+    cput('Exp',     ['Ex'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.exp  , x)])])
+    cput('Log_e',   ['Ln'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.log  , x)])])
+    cput('Log_ten', ['Lt'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.log10, x)])])
+    cput('Log_two', ['Lg'], [Case.value(lambda env, x: [pd_deepmap_n2v(math.log2 , x)])])
     # }}}
     # Letter-case-related functions {{{
     cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower() , x)])])
     cput('Uppercase', ['Uc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.upper() , x)])])
     cput('Exchange_case',         ['Xc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.swapcase(), x)])])
 
-    cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.isalpha()), x)])])
-    cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.islower()), x)])])
-    cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.isupper()), x)])])
-    cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.isspace()), x)])])
+    cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isalpha()), x)])])
+    cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.islower()), x)])])
+    cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isupper()), x)])])
+    cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])])
     # }}}
     # Replicate {{{
     cput('Replicate', ['ˆ'], [
@@ -663,15 +664,27 @@ def initialize_builtins(env: Environment) -> None:
     cput('Space_split', ['Words'], [words_case, window_case])
     cput('W', [], [words_case, window_case])
     # }}}
-    # Permutations and subsequences {{{
-    cput('Permutations', ['¡'], [
-        Case.number(lambda env, n: [num.pd_factorial(n)]),
+    # Combinatorics {{{
+    factorial_case = Case.number(
+            lambda env, n: [discrete.factorial(num.numerify(n))]
+    )
+    permutation_cases = [
         Case.seq(lambda env, seq:
             [list(itertools.permutations(pd_iterable(seq)))]),
         Case.block_seq_range(lambda env, block, seq:
             [pd_map_iterable(env, block,
                 map(list, itertools.permutations(pd_iterable(seq))))]),
-    ])
+    ]
+    cput('Permutations', [], permutation_cases)
+    cput('Factorial', [], [factorial_case])
+    cput('Permutations_or_factorial', ['¡', '!p'],
+            [factorial_case] + permutation_cases)
+    binomial_coefficient_case = (
+        Case.number2(lambda env, n, k: [discrete.binomial_coefficient(
+            num.numerify(n), num.numerify(k))])
+    )
+    cput('Binomial_coefficient', ['Bc'], [binomial_coefficient_case])
+    # TODO: choose
     cput('Subsequences', ['¿'], [
         Case.number(lambda env, n: [2 ** num.numerify(n)]),
         Case.seq(lambda env, seq: [pd_subsequences_list(seq)]),
@@ -680,29 +693,46 @@ def initialize_builtins(env: Environment) -> None:
                 pd_subsequences(seq))]),
     ])
     # }}}
+    # Number theory (primes etc) {{{
+    cput('Is_prime', ['Pp'], [
+        Case.value(lambda env, x: [pd_deepmap_n2v(discrete.is_prime_as_int, x)]),
+    ])
+    cput('Prev_prime', ['(p'], [
+        Case.value(lambda env, x: [pd_deepmap_n2v(discrete.prev_prime, x)]),
+    ])
+    cput('Next_prime', [')p'], [
+        Case.value(lambda env, x: [pd_deepmap_n2v(discrete.next_prime, x)]),
+    ])
+    cput('Factorize', ['Fc'], [
+        Case.value(lambda env, x: [pd_deepmap_n2v(discrete.prime_factorization_wrapped, x)]),
+    ])
+    cput('Factorize_flat', ['Ff'], [
+        Case.value(lambda env, x: [pd_deepmap_n2v(discrete.prime_factorization_flat, x)]),
+    ])
+    # }}}
     # Time {{{
     cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])])
     now = datetime.datetime.now
     fromtimestamp = datetime.datetime.fromtimestamp
 
     cput('Now_minute',       ['Nb'], [Case.void (lambda env:    [                          now()           .minute                 ])])
-    cput('Time_minute',      ['Tb'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).minute             , x)])])
+    cput('Time_minute',      ['Tb'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e:  fromtimestamp(e).minute             , x)])])
     cput('Now_day',          ['Nd'], [Case.void (lambda env:    [                          now()           .day                    ])])
-    cput('Time_day',         ['Td'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).day                , x)])])
+    cput('Time_day',         ['Td'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e:  fromtimestamp(e).day                , x)])])
     cput('Now_hour',         ['Nh'], [Case.void (lambda env:    [                          now()           .hour                   ])])
-    cput('Time_hour',        ['Th'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).hour               , x)])])
+    cput('Time_hour',        ['Th'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e:  fromtimestamp(e).hour               , x)])])
     cput('Now_twelve_hour',  ['Ni'], [Case.void (lambda env:    [                         (now()           .hour - 1) % 12 + 1     ])])
-    cput('Time_twelve_hour', ['Ti'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1 , x)])])
+    cput('Time_twelve_hour', ['Ti'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1 , x)])])
     cput('Now_day_of_year',  ['Nj'], [Case.void (lambda env:    [                          now()           .timetuple().tm_yday    ])]) # type: ignore
-    cput('Time_day_of_year', ['Tj'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).timetuple().tm_yday, x)])]) # type: ignore
+    cput('Time_day_of_year', ['Tj'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e:  fromtimestamp(e).timetuple().tm_yday, x)])]) # type: ignore
     cput('Now_month',        ['Nm'], [Case.void (lambda env:    [                          now()           .month                  ])])
-    cput('Time_month',       ['Tm'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).month              , x)])])
+    cput('Time_month',       ['Tm'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e:  fromtimestamp(e).month              , x)])])
     cput('Now_second',       ['Ns'], [Case.void (lambda env:    [                          now()           .second                 ])])
-    cput('Time_second',      ['Ts'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).second             , x)])])
+    cput('Time_second',      ['Ts'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e:  fromtimestamp(e).second             , x)])])
     cput('Now_iso_weekday',  ['Nv'], [Case.void (lambda env:    [                          now()           .isoweekday()           ])])
-    cput('Time_iso_weekday', ['Tv'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).isoweekday()       , x)])])
+    cput('Time_iso_weekday', ['Tv'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e:  fromtimestamp(e).isoweekday()       , x)])])
     cput('Now_weekday',      ['Nw'], [Case.void (lambda env:    [                          now()           .weekday()              ])])
-    cput('Time_weekday',     ['Tw'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).weekday()          , x)])])
+    cput('Time_weekday',     ['Tw'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e:  fromtimestamp(e).weekday()          , x)])])
     # }}}
     # Randomness {{{
     cput('Random_float', ['Rf'], [Case.void(lambda env: [random.random()])])

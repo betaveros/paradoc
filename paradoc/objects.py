@@ -406,8 +406,8 @@ def pd_deep_copy_to_list(obj: PdValue) -> PdValue:
             else:
                 acc.append(pd_deep_copy_to_list(e))
         return acc
-# deeply map a Python num -> num function (no Char preservation)
-def pd_deepmap_n2n(func: Callable[[Union[int, float]], PdNum], obj: PdValue) -> PdValue:
+# deeply map a Python num -> PdValue function (no Char preservation)
+def pd_deepmap_n2v(func: Callable[[Union[int, float]], PdValue], obj: PdValue) -> PdValue:
     if isinstance(obj, (Char, int, float)):
         return func(num.numerify(obj))
     else:
@@ -416,7 +416,7 @@ def pd_deepmap_n2n(func: Callable[[Union[int, float]], PdNum], obj: PdValue) -> 
             if isinstance(e, Block):
                 raise AssertionError("can't map numeric function across Block")
             else:
-                acc.append(pd_deepmap_n2n(func, e))
+                acc.append(pd_deepmap_n2v(func, e))
         return acc
 # deeply map a Python str -> str function on strs, Chars, numbers
 def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue) -> PdValue:
@@ -434,9 +434,9 @@ def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue) -> PdValue:
             else:
                 acc.append(pd_deepmap_s2s(func, e))
         return acc
-# deeply map a Python str -> PdNum function on strs, Chars, numbers
+# deeply map a Python str -> PdValue function on strs, Chars, numbers
 # The difference from above is no Char/string preservation
-def pd_deepmap_s2n(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
+def pd_deepmap_s2v(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
     if isinstance(obj, (Char, int, float)):
         return func(chr(num.intify(obj)))
     else:
@@ -445,7 +445,7 @@ def pd_deepmap_s2n(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
             if isinstance(e, Block):
                 raise AssertionError("can't map string function across Block")
             else:
-                acc.append(pd_deepmap_s2n(func, e))
+                acc.append(pd_deepmap_s2v(func, e))
         return acc
 # }}}
 # iteration wrappers {{{

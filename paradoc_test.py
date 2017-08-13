@@ -465,5 +465,15 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('200Úh'), [13])
         self.assertEqual(pd_simple_eval('Ýa'), [10000000000])
 
+    def test_discrete_math(self):
+        self.assertEqual(pd_simple_eval('5 2 Bc'), [10])
+        self.assertEqual(pd_simple_eval('5 !p'), [120])
+        self.assertEqual(pd_simple_eval('12 Pp'), [0])
+        self.assertEqual(pd_simple_eval('13 Pp'), [1])
+        self.assertEqual(pd_simple_eval('26 (p'), [23])
+        self.assertEqual(pd_simple_eval('26 )p'), [29])
+        self.assertEqual(pd_simple_eval('60 Fc'), [[[2,2],[3,1],[5,1]]])
+        self.assertEqual(pd_simple_eval('60 Ff'), [[2,2,3,5]])
+
 if __name__ == '__main__':
     unittest.main()
