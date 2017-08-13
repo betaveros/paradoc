@@ -245,7 +245,7 @@ def initialize_builtins(env: Environment) -> None:
             # print('False!')
             env.push_or_eval(c)
     # }}}
-
+    # Base {{{
     cput('Base', ['B'], [
         Case.number2(lambda env, n, b: [base.to_base_digits(num.intify(b), num.intify(n))]),
         Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), lst)]),
@@ -257,11 +257,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Upper_base', ['Ub'], [
         Case.number2(lambda env, n, b: [base.to_base_digits_upper(num.intify(b), num.intify(n))]),
     ])
-    cput('Reduce', ['R'], [
-        Case.seq2_singleton(lambda env, seq, joiner: [pd_join(env, seq, joiner)]),
-        Case.block_seq_range(lambda env, block, seq: [pd_reduce(env, block, seq)]),
-    ])
-
+    # }}}
     # Comparators <=> Max Min {{{
     cput('Equal', ['Eq'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
@@ -350,32 +346,54 @@ def initialize_builtins(env: Environment) -> None:
     cput('(', [], [decr_case, unsnoc_case])
     cput(')', [], [incr_case, uncons_case])
     # }}}
+    # Sum, Product {{{
     cput('Sum', ['Š'], [
         Case.list_int_range(lambda env, x: [sum(x)]),
     ])
     cput('Product', ['Þ'], [
         Case.list_int_range(lambda env, x: [functools.reduce(operator.mul, x, 1)]),
     ])
-
-    cput('M', [], [
-        Case.number(lambda env, a: [num.pd_mul_div_const(a, -1, 1)]),
-        Case.value_seq(lambda env, x, y: [pd_mold(x, y)]),
-    ])
-    cput('U', [], [
-        Case.number(lambda env, a: [num.pd_signum(a)]),
-        Case.seq(lambda env, a: [pd_seq_uniquify(a)]),
-    ])
+    # }}}
+    # M for Minus (negate) and Mold {{{
+    negate_case = Case.number(lambda env, a: [num.pd_mul_div_const(a, -1, 1)])
+    mold_case = Case.value_seq(lambda env, x, y: [pd_mold(x, y)])
+    cput('Negate', [], [negate_case])
+    cput('Mold', [], [mold_case])
+    cput('Negate_or_mold', ['M'], [negate_case, mold_case])
+    # }}}
+    # U for Signum or Uniquify {{{
+    signum_case = Case.number(lambda env, a: [num.pd_signum(a)])
+    uniquify_case = Case.seq(lambda env, a: [pd_seq_uniquify(a)])
+    cput('Signum', [], [signum_case])
+    cput('Uniquify', [], [uniquify_case])
+    cput('Signum_or_uniquify', ['U'], [signum_case, uniquify_case])
+    # }}}
+    # Has as factor / count {{{
     cput('H', [], [
         Case.number2(lambda env, a, b: [num.pd_count_multiplicity_in(b, a)]),
         Case.seq_value(lambda env, s, x: [pd_count_in(env, x, s)]),
     ])
+    # }}}
+    # Down and Zip {{{
     cput('Reverse', ['Down', 'D'], [
         Case.seq_range(lambda env, a: [a[::-1]]),
     ])
     cput('Zip', [], [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
     ])
-
+    # }}}
+    # Reduce/join {{{
+    cput('Reduce', ['R'], [
+        Case.seq2_singleton(lambda env, seq, joiner: [pd_join(env, seq, joiner)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_reduce(env, block, seq)]),
+    ])
+    cput('Line_join', ['\nr', '\\nr'], [
+        Case.seq_range(lambda env, seq: ['\n'.join(env.pd_str(e) for e in pd_iterable(seq))]),
+    ])
+    cput('Space_join', [' r'], [
+        Case.seq_range(lambda env, seq: [' '.join(env.pd_str(e) for e in pd_iterable(seq))]),
+    ])
+    # }}}
     # G for Gcd or group, and friends {{{
     cput('Group', [], [
         Case.seq(lambda env, seq: [pd_group(seq)]),
@@ -392,7 +410,6 @@ def initialize_builtins(env: Environment) -> None:
         Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
     ])
     # }}}
-
     # Circumflexed vowels {{{
     even_case = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 0)])
     odd_case  = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 1)])
@@ -476,6 +493,7 @@ def initialize_builtins(env: Environment) -> None:
         Case.number(lambda env, a: [int(num.numerify(a) < 0)]),
     ] + unique_cases)
     # }}}
+    # Tilde and Eval {{{
     @put('~')
     def tilde(env: Environment) -> None:
         a = env.pop()
@@ -490,7 +508,6 @@ def initialize_builtins(env: Environment) -> None:
         else:
             raise NotImplementedError
 
-
     @put('Eval')
     def pd_eval(env: Environment) -> None:
         a = env.pop()
@@ -498,9 +515,16 @@ def initialize_builtins(env: Environment) -> None:
             env.evaluate(a)
         else:
             raise NotImplementedError
+    # }}}
+    # Input, output, and debugging {{{
+    @put('Read_input', 'V')
+    def read_input(env: Environment) -> None:
+        e = env.input_trigger()
+        if e is None:
+            raise Exception('No more input!')
+        else:
+            env.push(e)
 
-
-    # Output and Print {{{
     @put('Output', 'O')
     def pd_output(env: Environment) -> None:
         a = env.pop()
@@ -517,8 +541,11 @@ def initialize_builtins(env: Environment) -> None:
     @put('Newline_output', '\no', '\\no')
     def pd_newline_output(env: Environment) -> None:
         print()
-    # }}}
 
+    @put('Debug', 'Dump')
+    def dump(env: Environment) -> None:
+        print('Dump:', env.debug_dump(), file=sys.stderr)
+    # }}}
     # Abort, Break, Continue {{{
     @put('Abort', 'A')
     def abort(env: Environment) -> None:
@@ -539,19 +566,7 @@ def initialize_builtins(env: Environment) -> None:
     def continue_(env: Environment) -> None:
         raise PdContinueException('Continue')
     # }}}
-
-    # Square, Cube {{{
-    cput('Square', ['²'], [
-        Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
-        Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s)]),
-    ])
-    cput('Cube', ['³'], [
-        Case.number(lambda env, n: [num.pd_power_const(n, 3)]),
-        Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s, s)]),
-    ])
-    # }}}
-
-    # Constant fractions {{{
+    # Constant powers and fractions {{{
     def pd_constant_fraction_cases(p: int, q: int) -> List[Case]:
         # Cannot sensibly handle improper fractions p/q > 1 if q > 1.
         return [
@@ -567,8 +582,17 @@ def initialize_builtins(env: Environment) -> None:
     cput('Quarter', ['¼'], pd_constant_fraction_cases(1, 4))
     cput('Three_quarters', ['¾'], pd_constant_fraction_cases(3, 4))
     cput('Double', ['×'], pd_constant_fraction_cases(2, 1))
-    # }}}
 
+    cput('Square', ['²'], [
+        Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
+        Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s)]),
+    ])
+    cput('Cube', ['³'], [
+        Case.number(lambda env, n: [num.pd_power_const(n, 3)]),
+        Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s, s)]),
+    ])
+    cput('Power_of_ten', ['°'], [Case.number(lambda env, n: [10 ** num.numerify(n)])])
+    # }}}
     # Len, abs {{{
     abs_case = Case.number(lambda env, n: [num.pd_abs(n)])
     len_case = Case.seq(lambda env, seq: [len(seq)])
@@ -576,8 +600,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Abs', [], [abs_case])
     cput('Abs_or_len', ['L'], [abs_case, len_case])
     # }}}
-
-    # Other predicates {{{
+    # Other numeric predicates {{{
     cput('Positive',         ['+p'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e >  0), x)])])
     cput('Negative',         ['-p'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e <  0), x)])])
     cput('Positive_or_zero', ['+o'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e: int(e >= 0), x)])])
@@ -598,7 +621,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Log_ten', ['Lt'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log10, x)])])
     cput('Log_two', ['Lg'], [Case.value(lambda env, x: [pd_deepmap_n2n(math.log2 , x)])])
     # }}}
-    # Case-related functions {{{
+    # Letter-case-related functions {{{
     cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower() , x)])])
     cput('Uppercase', ['Uc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.upper() , x)])])
     cput('Exchange_case',         ['Xc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.swapcase(), x)])])
@@ -608,7 +631,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.isupper()), x)])])
     cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2n(lambda e: int(e.isspace()), x)])])
     # }}}
-
+    # Replicate {{{
     cput('Replicate', ['ˆ'], [
         Case.any_number(lambda env, x, n: [pd_replicate(x, num.intify(n))]),
     ])
@@ -619,7 +642,8 @@ def initialize_builtins(env: Environment) -> None:
             pd_replicate(x, -num.intify(n))
         ]),
     ])
-
+    # }}}
+    # Key_* functions, for big arrays {{{
     cput('Key_new', ['Kn'], [
         Case.list_list_singleton_value(lambda env, kvs, dims, filler: [pd_new_array(kvs, dims, filler)]),
     ])
@@ -629,14 +653,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Key_get', ['Kg'], [
         Case.list_list_singleton(lambda env, arr, k: [pd_array_key_get(arr, k)]),
     ])
-
-    cput('Line_join', ['\nr', '\\nr'], [
-        Case.seq_range(lambda env, seq: ['\n'.join(env.pd_str(e) for e in pd_iterable(seq))]),
-    ])
-    cput('Space_join', [' r'], [
-        Case.seq_range(lambda env, seq: [' '.join(env.pd_str(e) for e in pd_iterable(seq))]),
-    ])
-
+    # }}}
     # W for Window and W for Words {{{
     words_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
     window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
@@ -644,7 +661,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Space_split', ['Words'], [words_case, window_case])
     cput('W', [], [words_case, window_case])
     # }}}
-
+    # Permutations and subsequences {{{
     cput('Permutations', ['¡'], [
         Case.number(lambda env, n: [num.pd_factorial(n)]),
         Case.seq(lambda env, seq:
@@ -660,20 +677,7 @@ def initialize_builtins(env: Environment) -> None:
             [pd_map_iterable(env, block,
                 pd_subsequences(seq))]),
     ])
-    cput('Power_of_ten', ['°'], [Case.number(lambda env, n: [10 ** num.numerify(n)])])
-
-    @put('Debug', 'Dump')
-    def dump(env: Environment) -> None:
-        print('Dump:', env.debug_dump(), file=sys.stderr)
-
-    @put('Read_input', 'V')
-    def read_input(env: Environment) -> None:
-        e = env.input_trigger()
-        if e is None:
-            raise Exception('No more input!')
-        else:
-            env.push(e)
-
+    # }}}
     # Time {{{
     cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])])
     now = datetime.datetime.now
