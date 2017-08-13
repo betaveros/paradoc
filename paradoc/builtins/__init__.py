@@ -7,6 +7,7 @@ import paradoc.base as base
 import sys, math, collections
 import string
 import time, datetime
+import random
 from paradoc.builtins.case import Case, CasedBuiltIn
 
 def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdObject:
@@ -701,4 +702,25 @@ def initialize_builtins(env: Environment) -> None:
     cput('Time_iso_weekday', ['Tv'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).isoweekday()       , x)])])
     cput('Now_weekday',      ['Nw'], [Case.void (lambda env:    [                          now()           .weekday()              ])])
     cput('Time_weekday',     ['Tw'], [Case.value(lambda env, x: [pd_deepmap_n2n(lambda e:  fromtimestamp(e).weekday()          , x)])])
+    # }}}
+    # Randomness {{{
+    cput('Random_float', ['Rf'], [Case.void(lambda env: [random.random()])])
+    cput('Random_gaussian', ['Rg'], [
+        Case.void(lambda env: [random.gauss(0, 1)])
+    ])
+    cput('Random_int', ['Ri'], [
+        Case.number(lambda env, n: [random.randrange(num.intify(n))])
+    ])
+    cput('Random_choice', ['Rc'], [
+        Case.seq(lambda env, seq: [random.choice(seq)])
+    ])
+    @put('Random_seed')
+    def random_seed(env: Environment) -> None:
+        e = env.pop()
+        if isinstance(e, (Char, int, float)):
+            random.seed(num.intify(e))
+        elif isinstance(e, str):
+            random.seed(e)
+        else:
+            raise AssertionError("Can't seed random with non-numeric non-string value " + repr(e))
     # }}}
