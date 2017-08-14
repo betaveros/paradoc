@@ -21,17 +21,24 @@ def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdO
 
 def initialize_builtins(env: Environment) -> None:
 
-    def put(*ss: str) -> Callable[[Callable[[Environment], None]], None]:
+    def put(*ss: str,
+            docs: Optional[str] = None,
+            stability: str = "unstable") -> Callable[[Callable[[Environment], None]], None]:
         name = ss[0]
         def inner_put(f: Callable[[Environment], None]) -> None:
             for s in ss:
-                env.put(s, BuiltIn(name, f), fail_if_overwrite=True)
+                env.put(s, BuiltIn(name, f, docs=docs), fail_if_overwrite=True)
         return inner_put
 
-    def cput(name: str, extra_names: List[str], cases: List[Case]) -> None:
-        builtin = CasedBuiltIn(name, cases)
+    def cput(name: str,
+            extra_names: List[str],
+            cases: List[Case],
+            docs: Optional[str] = None,
+            stability: str = "unstable") -> None:
+        builtin = CasedBuiltIn(name, cases, docs=docs)
         env.put(name, builtin)
         for xname in extra_names: env.put(xname, builtin, fail_if_overwrite=True)
+        # TODO: Where shall we put stability?
 
     # Default variables {{{
     env.put('N', '\n')
@@ -73,27 +80,61 @@ def initialize_builtins(env: Environment) -> None:
     # }}}
     # Universal functions: stack stuff, list stuff {{{
 
-    @put('Nop', ' ', '\t', '\n', '\r')
+    @put('Nop', ' ', '\t', '\n', '\r', docs="Do nothing.")
     def nop(env: Environment) -> None: pass
 
     # @put('Dup', ':')
     # def dup(env: Environment) -> None:
     #     a = env.pop()
     #     env.push(a, a)
-    cput('Dup', [':'], [Case.any(lambda env, x: [x, x])])
-    cput('Dup_pair', [':p', '¦'], [Case.any2(lambda env, x, y: [x, y, x, y])])
-    cput('Swap', ['\\'], [Case.any2(lambda env, a, b: [b, a])])
-    cput('Rotate', ['Rot', '@'], [Case.any3(lambda env, a, b, c: [b, a])])
-    cput('Pop', [';'], [Case.any(lambda env, x: [])])
-    cput('Pop_under', ['¸'], [Case.any2(lambda env, x, y: [y])])
-    cput('Repr', ['`'], [Case.any(lambda env, x: [pd_repr(x)])])
-    @put('[', 'Mark')
+    cput('Dup', [':'], [Case.any(lambda env, x: [x, x])],
+            docs="""Duplicate the top element of the stack.
+
+            ex: 1 2 3 : => 1 2 3 3""",
+            stability="stable")
+    cput('Dup_pair', [':p', '¦'], [Case.any2(lambda env, a, b: [a, b, a, b])],
+            docs="""Duplicate the top two elements of the stack: a b -> a b a b
+
+            ex: 1 2 3 :p => 1 2 3 2 3""",
+            stability="beta")
+    cput('Swap', ['\\'], [Case.any2(lambda env, a, b: [b, a])],
+            docs="""Swap the top two elements of the stack.
+
+            ex: 1 2 3\ => 1 3 2""",
+            stability="stable")
+    cput('Rotate', ['Rot', '@'], [Case.any3(lambda env, a, b, c: [b, c, a])],
+            docs="""Rotate the top three elements of the stack so that the 3rd
+            from the top is now on top: a b c -> b c a
+
+            ex: 1 2 3@ => 2 3 1""",
+            stability="stable")
+    cput('Pop', [';'], [Case.any(lambda env, x: [])],
+            docs="""Pop the top element of the stack.
+
+            ex: 1 2 3; => 1 2""",
+            stability="stable")
+    cput('Pop_under', ['¸'], [Case.any2(lambda env, x, y: [y])],
+            docs="""Pop the second from the top element of the stack.
+
+            ex: 1 2 3¸ => 1 3""",
+            stability="beta")
+    cput('Repr', ['`'], [Case.any(lambda env, x: [pd_repr(x)])],
+            docs="Push the string Paradoc representation of the top element.",
+            stability="beta")
+    @put('[', 'Mark', docs="Mark the stack.", stability="stable")
     def mark(env: Environment) -> None:
         env.mark_stack()
-    @put(']', 'Pack')
+    @put(']', 'Pack',
+            docs="Pack the elements above the last stack mark into a list.",
+            stability="stable")
     def pack(env: Environment) -> None:
         env.push(env.pop_until_stack_marker())
-    @put('¬', 'Pack_reverse', 'Pack_down')
+    @put('¬', 'Pack_reverse', 'Pack_down',
+            docs="""Pack the elements above the last stack mark into a list in
+            reverse order.
+
+            ex: [1 2 3¬ => [3 2 1]""",
+            stability="beta")
     def pack_reverse(env: Environment) -> None:
         env.push(env.pop_until_stack_marker()[::-1])
     @put(']_case', ']c')
@@ -121,11 +162,27 @@ def initialize_builtins(env: Environment) -> None:
             if target == condition:
                 env.push_or_eval(result)
                 break
-    cput('†', [], [Case.any(lambda env, x: [[x]])])
-    cput('‡', [], [Case.any2(lambda env, x, y: [[x, y]])])
+    cput('†', [], [Case.any(lambda env, x: [[x]])],
+            docs="""Pack the top element of the stack into a list by itself.
+
+            ex: 1 2 3† => 1 2 [3]""",
+            stability="beta")
+    cput('‡', [], [Case.any2(lambda env, x, y: [[x, y]])],
+            docs="""Pack the top two elements of the stack into a list.
+
+            ex: 1 2 3‡ => 1 [2 3]""",
+            stability="beta")
     # }}}
     # Not {{{
-    cput('Not', ['!'], [Case.any(lambda env, x: [int(not x)])])
+    cput('Not', ['!'], [Case.any(lambda env, x: [int(not x)])],
+            docs="""Logical NOT: 0 and empty lists/strings yield 1, everything else yields 0.
+
+            ex: 0! => 1
+            1! => 0
+            2! => 0
+            []! => 1
+            [0]! => 0""",
+            stability="stable")
     # }}}
     # "Arithmetic" inc Octothorpe {{{
 
@@ -134,50 +191,113 @@ def initialize_builtins(env: Environment) -> None:
         Case.list2_singleton(lambda env, a, b: [list(a) + list(b)]),
         Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)]),
         Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq)]),
-    ])
+    ],
+            docs="""Addition on numbers. Concatenation on lists and strings
+            (numbers coerce to single-element lists or to strings). Filter on
+            block and list (numbers coerce to ranges).""",
+            stability="stable")
+
     cput('Minus', ['-'], [
         Case.number2(lambda env, a, b: [num.pd_sub(a, b)]),
         Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(a, b)]),
         Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
-    ])
+    ],
+            docs="""Subtraction on numbers. Filter-not-in on lists and strings
+            (numbers coerce to single-element lists). Filter-not on block and
+            list (numbers coerce to ranges).""",
+            stability="stable")
+
     cput('Antiminus', ['¯'], [
         Case.number2(lambda env, a, b: [num.pd_sub(b, a)]),
+        Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(b, a)]),
         Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
-    ])
+    ],
+            docs="""Reversed subtraction.""",
+            stability="beta")
+
     cput('Mul', ['*'], [
         Case.number2(lambda env, a, b: [num.pd_mul(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_mul_seq(seq, n)]),
         Case.seq2(lambda env, a, b: [pd_cartesian_product_seq(a, b)]),
         Case.block_seq_range(lambda env, block, seq:
             pd_foreach_x_only_then_empty_list(env, block, seq)),
-    ])
+    ],
+            docs="""Multiplication on numbers. Repetition on sequences with
+            numbers. Cartesian product on two sequences. X-loop on blocks and
+            sequences (numbers coerce to ranges, so, if you don't use the
+            variable X, it's just repeating a block some number of times.)
+
+            ex: 3 {2*} 4* => 48
+            {X} 4* => 0 1 2 3""",
+            stability="stable")
+
     cput('Slash', ['/'], [
         Case.number2(lambda env, a, b: [num.pd_div(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_split_seq(seq, n, include_leftover=True)]),
         Case.seq2(lambda env, seq, tok: [pd_split_seq_by(seq, tok)]),
         Case.block_seq_range(lambda env, block, seq:
             pd_foreach_then_empty_list(env, block, seq)),
-    ])
+    ],
+            docs="""Float division on numbers. On a sequence and number, split
+            the sequence into chunks of size equal to the number, including
+            leftovers if any. On two sequences, split the first sequence around
+            occurrences of the second sequence. For-each on blocks and
+            sequences (numbers coerce to ranges).
+
+            ex:
+            [1 2 3 4]2/ => [[1 2][3 4]]
+            [1 2 3 4 5]2/ => [[1 2][3 4][5]]
+            "tweedledee""e"% => ["tw" "" "dl" "d" "" ""]
+            """,
+            stability="stable")
+
     cput('Intdiv', ['÷'], [
         Case.number2(lambda env, a, b: [num.pd_intdiv(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_split_seq(seq, n, include_leftover=False)]),
-    ])
+    ],
+            docs="""Integer division on numbers. On a sequence and number,
+            split the sequence into chunks of size equal to the number,
+            discarding leftovers.
+
+            ex: [1 2 3 4]2/ => [[1 2][3 4]]
+            [1 2 3 4 5]2/ => [[1 2][3 4]]
+            """,
+            stability="beta")
+
     cput('Percent', ['%'], [
         Case.number2(lambda env, a, b: [num.pd_mod(a, b)]),
         Case.number_seq(lambda env, n, seq: [seq[::num.intify(n)]]),
         Case.seq2(lambda env, seq, tok: [[s for s in pd_split_seq_by(seq, tok) if s]]),
         Case.block_seq_range(lambda env, block, seq: [pd_map(env, block, seq)]),
-    ])
+    ],
+            docs="""Modulus on numbers. On a sequence and number, slice
+            elements at indices equal to 0 mod the number, just like Python
+            s[::n] (negative numbers reverse the sequence). On two sequences,
+            split the first sequence around occurrences of the second sequence,
+            discarding empty tokens. Map on blocks and sequences (numbers
+            coerce to ranges).
+
+            ex: "tweedledee""e"% => ["tw" "dl" "d"]
+            """,
+            stability="stable")
+
     cput('Octothorpe', ['#'], [
         Case.number2(lambda env, a, b: [num.pd_pow(a, b)]),
         Case.block_seq_range(lambda env, block, seq:
             [second_or_error(pd_find_entry(env, block, seq),
                 "Entry not found in Octothorpe")]),
-    ])
+    ],
+            docs="""Power/exponentiation on numbers. Find on blocks and
+            sequences (numbers coerce to ranges).
+            """,
+            stability="stable")
     cput('Abs_diff', ['Ad', '±'], [
         Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
-    ])
-    cput('Inverse', ['´'], [Case.value_n2v(lambda e: 1/e)])
+    ],
+            docs="""Absolute difference.""",
+            stability="stable")
+    cput('Inverse', ['´'], [Case.value_n2v(lambda e: 1/e)],
+            docs="""Inverse (reciprocal) of numbers. Deeply vectorizes.""")
     # }}}
     # Conversions C, F, I, S {{{
     cput('To_char', ['C'], [

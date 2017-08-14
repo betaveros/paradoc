@@ -24,9 +24,11 @@ class Block:
 class BuiltIn(Block):
     def __init__(self,
             name: str,
-            func: Callable[['Environment'], None]) -> None:
+            func: Callable[['Environment'], None],
+            docs: Optional[str] = None) -> None:
         self.name = name
         self.func = func
+        self.docs = docs
 
     def __call__(self, env: 'Environment') -> None:
         self.func(env)
