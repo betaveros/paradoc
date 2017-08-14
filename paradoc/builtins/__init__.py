@@ -707,6 +707,9 @@ def initialize_builtins(env: Environment) -> None:
             [pd_map_iterable(env, block,
                 pd_subsequences(seq))]),
     ])
+    cput('Fibonacci', ['Fb'], [Case.number(
+            lambda env, n: [discrete.fibonacci(num.numerify(n))]
+    )])
     # }}}
     # Number theory (primes etc) {{{
     cput('Is_prime', ['Pp'], [

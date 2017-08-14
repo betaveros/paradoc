@@ -82,3 +82,11 @@ def binomial_coefficient(n: Union[int, float], k: Union[int, float]) -> Union[in
         return fs.binomial(n, k)
     else:
         return fs.binomial(float(n), k)
+
+def fibonacci(n: Union[int, float]) -> Union[int, float]:
+    try:
+        import sympy.functions.combinatorial.numbers as ns
+    except ModuleNotFoundError:
+        raise Exception("Install sympy to use number-theoretic functions!")
+
+    return ns.fibonacci(n)
