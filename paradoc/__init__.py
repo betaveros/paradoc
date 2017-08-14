@@ -571,12 +571,16 @@ def main() -> None:
             help='Source Paradoc file')
     parser.add_argument('-e', type=str, metavar='EXPR',
             help='Paradoc expression to execute')
+    parser.add_argument('--version', action='store_true')
     parser.add_argument('--list-builtins', action='store_true')
     parser.add_argument('--list-short-builtins', action='store_true')
     args = parser.parse_args()
 
     try:
-        if args.list_builtins:
+        if args.version:
+            from paradoc.__version__ import version
+            print("paradoc version " + version)
+        elif args.list_builtins:
             list_builtins(lambda _: True)
         elif args.list_short_builtins:
             list_builtins(lambda name: len(name) <= 2)
