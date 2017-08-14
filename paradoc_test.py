@@ -40,62 +40,30 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('0 1 10 +_keep_xloop'), [0,1,1,2,3,5,8,13,21,34,55,89])
 
     def test_numeric_literals(self):
-        self.assertEqual(pd_simple_eval('555'), [555])
-        self.assertEqual(pd_simple_eval('.5'), [0.5])
-        self.assertEqual(pd_simple_eval('0.5'), [0.5])
-        self.assertEqual(pd_simple_eval('.3125'), [0.3125])
-        self.assertEqual(pd_simple_eval('—5'), [-5])
-        self.assertEqual(pd_simple_eval('—.5'), [-0.5])
-        self.assertEqual(pd_simple_eval('—0.5'), [-0.5])
+        self.assertEqual(pd_simple_eval('555 .5 0.5 .3125 —5 —.5 —0.5'), [555, 0.5, 0.5, 0.3125, -5, -0.5, -0.5])
 
     def test_assignment(self):
-        self.assertEqual(pd_simple_eval('123.Test;Test Test+'), [246])
-        self.assertEqual(pd_simple_eval('123—Test Test Test+'), [246])
-        self.assertEqual(pd_simple_eval('129.**+'), [258])
-        self.assertEqual(pd_simple_eval('129—***+'), [258])
+        self.assertEqual(pd_simple_eval('123.Tst;Tst Tst+ 123—Test Test Test+ 129.**+ 129—///+'), [246,246,258,258])
 
     def test_arithmetic(self):
-        self.assertEqual(pd_simple_eval('2 3+7*'), [35])
-        self.assertEqual(pd_simple_eval('2017 95))%(('), [75])
-        self.assertEqual(pd_simple_eval('7 3/'), [7/3])
-        self.assertEqual(pd_simple_eval('7 3÷'), [7//3])
-        self.assertEqual(pd_simple_eval('7.0 2.0/'), [3.5])
-        self.assertEqual(pd_simple_eval('0.25 0.25+'), [0.5])
-        self.assertEqual(pd_simple_eval('7 3G'), [1])
-        self.assertEqual(pd_simple_eval('8 36G'), [4])
+        self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])
+        self.assertEqual(pd_simple_eval('7 3/ 7 3÷ 7.0 2.0/ 0.25 0.25+'), [7/3, 7//3, 3.5, 0.5])
+        self.assertEqual(pd_simple_eval('7 3G 8 36G'), [1,4])
         self.assertEqual(pd_simple_eval('16´'), [1/16])
 
     def test_arithmetic_trailers(self):
-        self.assertEqual(pd_simple_eval('2 3á'), [5])
-        self.assertEqual(pd_simple_eval('2 3à'), [-1])
-        self.assertEqual(pd_simple_eval('8é'), [256])
-        self.assertEqual(pd_simple_eval('42è'), [1764])
+        self.assertEqual(pd_simple_eval('2 3á 2 3à'), [5, -1])
+        self.assertEqual(pd_simple_eval('8é 42è'), [256,1764])
         self.assertEqual(pd_simple_eval('3í'), [1/3])
-        self.assertEqual(pd_simple_eval('3 7ó'), [21])
-        self.assertEqual(pd_simple_eval('3 7ò'), [3/7])
+        self.assertEqual(pd_simple_eval('3 7ó 3 7ò'), [21,3/7])
         self.assertEqual(pd_simple_eval('2017 13ú'), [2])
 
     def test_comparison(self):
-        self.assertEqual(pd_simple_eval('7 7='), [1])
-        self.assertEqual(pd_simple_eval('7 7<'), [0])
-        self.assertEqual(pd_simple_eval('7 7>'), [0])
-        self.assertEqual(pd_simple_eval('7 7<e'), [1])
-        self.assertEqual(pd_simple_eval('7 7>e'), [1])
-        self.assertEqual(pd_simple_eval('6 7='),  [0])
-        self.assertEqual(pd_simple_eval('6 7<'),  [1])
-        self.assertEqual(pd_simple_eval('6 7>'),  [0])
-        self.assertEqual(pd_simple_eval('6 7<e'), [1])
-        self.assertEqual(pd_simple_eval('6 7>e'), [0])
-        self.assertEqual(pd_simple_eval('8 7='),  [0])
-        self.assertEqual(pd_simple_eval('8 7<'),  [0])
-        self.assertEqual(pd_simple_eval('8 7>'),  [1])
-        self.assertEqual(pd_simple_eval('8 7<e'), [0])
-        self.assertEqual(pd_simple_eval('8 7>e'), [1])
-        self.assertEqual(pd_simple_eval('"abcd" "efgh" <'), [1])
-        self.assertEqual(pd_simple_eval('"abcd" "efgh" ='), [0])
-        self.assertEqual(pd_simple_eval('"abcd" "efgh" >'), [0])
-        self.assertEqual(pd_simple_eval('[0 1 2][0 1] >e'), [1])
-        self.assertEqual(pd_simple_eval('[0 0 2][0 1] >e'), [0])
+        self.assertEqual(pd_simple_eval('7 7=q <q >q <eq >e'), [1,0,0,1,1])
+        self.assertEqual(pd_simple_eval('6 7=q <q >q <eq >e'), [0,1,0,1,0])
+        self.assertEqual(pd_simple_eval('8 7=q <q >q <eq >e'), [0,0,1,0,1])
+        self.assertEqual(pd_simple_eval('"abcd" "efgh" <q =q >'), [1,0,0])
+        self.assertEqual(pd_simple_eval('[0 1 2][0 1] >e [0 0 2][0 1] >e'), [1,0])
 
     def test_comparison_approx(self):
         self.assertEqual(pd_simple_eval('9 9<a'), [1])
@@ -108,48 +76,21 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('8 8.01=a'), [0])
 
     def test_rounding(self):
-        self.assertEqual(pd_simple_eval('1.2I'), [1])
-        self.assertEqual(pd_simple_eval('1.2<i'), [1])
-        self.assertEqual(pd_simple_eval('1.2>i'), [2])
-        self.assertEqual(pd_simple_eval('1.2=i'), [1])
-        self.assertEqual(pd_simple_eval('3.5I'), [3])
-        self.assertEqual(pd_simple_eval('3.5<i'), [3])
-        self.assertEqual(pd_simple_eval('3.5>i'), [4])
-        self.assertEqual(pd_simple_eval('3.5=i'), [4])
-        self.assertEqual(pd_simple_eval('8.9I'), [8])
-        self.assertEqual(pd_simple_eval('8.9<i'), [8])
-        self.assertEqual(pd_simple_eval('8.9>i'), [9])
-        self.assertEqual(pd_simple_eval('8.9=i'), [9])
-        self.assertEqual(pd_simple_eval('3.5mI'), [-3])
-        self.assertEqual(pd_simple_eval('3.5m<i'), [-4])
-        self.assertEqual(pd_simple_eval('3.5m>i'), [-3])
-        self.assertEqual(pd_simple_eval('3.5m=i'), [-4])
+        self.assertEqual(pd_simple_eval('[1.2 3.5 8.9 3.5m]{Iq <iq >iq =i}e'), [1,1,2,1,3,3,4,4,8,8,9,9,-3,-4,-3,-4])
 
     def test_multiplication(self):
-        self.assertEqual(pd_simple_eval('"foo"3*'), ["foofoofoo"])
-        self.assertEqual(pd_simple_eval('3"foo"*'), ["foofoofoo"])
-        self.assertEqual(pd_simple_eval('[1 2]3*'), [[1,2,1,2,1,2]])
-        self.assertEqual(pd_simple_eval('3[1 2]*'), [[1,2,1,2,1,2]])
+        self.assertEqual(pd_simple_eval('"foo"3* 3"bar"*'), ["foofoofoo","barbarbar"])
+        self.assertEqual(pd_simple_eval('[1 2]3* 3[3 4]*'), [[1,2,1,2,1,2],[3,4,3,4,3,4]])
         self.assertEqual(pd_simple_eval('0{10*)}4*'), [1111])
 
     def test_constant_fractions(self):
-        self.assertEqual(pd_simple_eval('3½'), [1.5])
-        self.assertEqual(pd_simple_eval('7¾'), [5.25])
-        self.assertEqual(pd_simple_eval('9¼'), [2.25])
-        self.assertEqual(pd_simple_eval('11×'), [22])
-        self.assertEqual(pd_simple_eval('""½'), [""])
-        self.assertEqual(pd_simple_eval('"foobar"½'), ["foo"])
-        self.assertEqual(pd_simple_eval('"zfoobar"½'), ["zfo"])
+        self.assertEqual(pd_simple_eval('3½7¾9¼11×'), [1.5,5.25,2.25,22])
+        self.assertEqual(pd_simple_eval('["""foobar""zfoobar"]½e'), ["","foo","zfo"])
         self.assertEqual(pd_simple_eval('"foobar"×'), ["foobarfoobar"])
 
     def test_bits(self):
-        self.assertEqual(pd_simple_eval('2 4&'), [0])
-        self.assertEqual(pd_simple_eval('3 5&'), [1])
-        self.assertEqual(pd_simple_eval('2 4|'), [6])
-        self.assertEqual(pd_simple_eval('3 5|'), [7])
-        self.assertEqual(pd_simple_eval('12347 74321&'), [8209])
-        self.assertEqual(pd_simple_eval('12347 74321|'), [78459])
-        self.assertEqual(pd_simple_eval('12347 74321^'), [70250])
+        self.assertEqual(pd_simple_eval('2 4&3 5&2 4|3 5|'), [0,1,6,7])
+        self.assertEqual(pd_simple_eval('12347 74321&q|q^'), [8209,78459,70250])
 
     def test_unary_operators(self):
         self.assertEqual(pd_simple_eval('7('), [6])
@@ -159,41 +100,22 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('7³'), [343])
 
     def test_if(self):
-        self.assertEqual(pd_simple_eval('0 2 3?'), [3])
-        self.assertEqual(pd_simple_eval('1 2 3?'), [2])
-        self.assertEqual(pd_simple_eval('2 2 3?'), [2])
-        self.assertEqual(pd_simple_eval('100 0{2*}{5+}?'), [105])
-        self.assertEqual(pd_simple_eval('100 1{2*}{5+}?'), [200])
+        self.assertEqual(pd_simple_eval('0 2 3? 1 2 3? 2 2 3?'), [3,2,2])
+        self.assertEqual(pd_simple_eval('[0 1]{100X{2*}{5+}?}x'), [105,200])
 
     def test_single_branch_if(self):
-        self.assertEqual(pd_simple_eval('0{8}&'), [])
-        self.assertEqual(pd_simple_eval('1{8}&'), [8])
-        self.assertEqual(pd_simple_eval('0{8}|'), [8])
-        self.assertEqual(pd_simple_eval('1{8}|'), [])
-        self.assertEqual(pd_simple_eval('1 2[]{+}&'), [1,2])
-        self.assertEqual(pd_simple_eval('1 2[3 4]{+}&'), [3])
-        self.assertEqual(pd_simple_eval('1 2[]{-}|'), [-1])
-        self.assertEqual(pd_simple_eval('1 2[3 4]{-}|'), [1,2])
+        self.assertEqual(pd_simple_eval('0{6}&1{7}&0{8}|1{9}|'), [7,8])
+        self.assertEqual(pd_simple_eval('1 2[]{+}&1 2[3 4]{+}&1 2[]{-}|1 2[3 4]{-}|'), [1,2,3,-1,1,2])
 
     def test_single_branch_word_if(self):
-        self.assertEqual(pd_simple_eval('0{8}If'), [])
-        self.assertEqual(pd_simple_eval('1{8}If'), [8])
-        self.assertEqual(pd_simple_eval('0{8}Unless'), [8])
-        self.assertEqual(pd_simple_eval('1{8}Unless'), [])
-        self.assertEqual(pd_simple_eval('0 8 If'), [])
-        self.assertEqual(pd_simple_eval('1 8 If'), [8])
-        self.assertEqual(pd_simple_eval('0 8 Unless'), [8])
-        self.assertEqual(pd_simple_eval('1 8 Unless'), [])
+        self.assertEqual(pd_simple_eval('0{6}If 1{7}If 0{8}Unless 1{9}Unless'), [7,8])
+        self.assertEqual(pd_simple_eval('0 6 If 1 7 If 0 8 Unless 1 9 Unless'), [7,8])
 
     def test_indexing(self):
-        self.assertEqual(pd_simple_eval('[3 7 2 5]0='), [3])
-        self.assertEqual(pd_simple_eval('[3 7 2 5]1='), [7])
-        self.assertEqual(pd_simple_eval('[3 7 2 5]3='), [5])
-        self.assertEqual(pd_simple_eval('[3 7 2 5]1m='), [5])
+        self.assertEqual(pd_simple_eval('[3 7 2 5]0=q;1=q;3=q;1m='), [3,7,5,5])
 
     def test_slices(self):
-        self.assertEqual(pd_simple_eval('[3 7 2 5]1<'), [[3]])
-        self.assertEqual(pd_simple_eval('[3 7 2 5]1>'), [[7,2,5]])
+        self.assertEqual(pd_simple_eval('[3 7 2 5]1<q>'), [[3],[7,2,5]])
 
     def test_each(self):
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}/'), [9,10,12])
@@ -246,22 +168,14 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"foo" "bar"+'), ["foobar"])
 
     def test_min_max(self):
-        self.assertEqual(pd_simple_eval('2 3<m'), [2])
-        self.assertEqual(pd_simple_eval('2 3>m'), [3])
-        self.assertEqual(pd_simple_eval('5 4<m'), [4])
-        self.assertEqual(pd_simple_eval('5 4>m'), [5])
+        self.assertEqual(pd_simple_eval('2 3<m4 5>m9 8<m7 6>m'), [2,5,8,7])
 
     def test_min_max_of_list(self):
-        self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]>r'), [9])
-        self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]<r'), [2])
+        self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]>rq<r'), [9,2])
 
     def test_len(self):
-        self.assertEqual(pd_simple_eval('8mL'), [8])
-        self.assertEqual(pd_simple_eval('8L'), [8])
-        self.assertEqual(pd_simple_eval('0L'), [0])
-        self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]L'), [7])
-        self.assertEqual(pd_simple_eval('[7 2 5 9 3]L'), [5])
-        self.assertEqual(pd_simple_eval('[]L'), [0])
+        self.assertEqual(pd_simple_eval('[8m 8 0]Lm'), [[8,8,0]])
+        self.assertEqual(pd_simple_eval('[[7 2 5 9 3 5 8][7 2 5 9 3][]]Lm'), [[7,5,0]])
 
     def test_replicate(self):
         self.assertEqual(pd_simple_eval('3 4 Replicate'), [[3,3,3,3]])
@@ -283,11 +197,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('8,{:3>{K}&:}e'), [0,0,1,1,2,2,3,3,4,5,6,7])
 
     def test_abs_diff(self):
-        self.assertEqual(pd_simple_eval('3 4±'), [1])
-        self.assertEqual(pd_simple_eval('4 3±'), [1])
-        self.assertEqual(pd_simple_eval('—1 6±'), [7])
-        self.assertEqual(pd_simple_eval('—1 —9±'), [8])
-        self.assertEqual(pd_simple_eval('7 —9±'), [16])
+        self.assertEqual(pd_simple_eval('[[3 4][4 3][—1 6][—1 —9][7 —9]]{~±}e'), [1,1,7,8,16])
 
     def test_mapsum(self):
         self.assertEqual(pd_simple_eval('[3 4 5])š'), [15])
@@ -302,19 +212,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('98C'), [Char(98)])
 
     def test_negate(self):
-        self.assertEqual(pd_simple_eval('5M'), [-5])
-        self.assertEqual(pd_simple_eval('6MM'), [6])
-        self.assertEqual(pd_simple_eval('—7M'), [7])
-        self.assertEqual(pd_simple_eval('—8MM'), [-8])
+        self.assertEqual(pd_simple_eval('5M 6MM —7M —8MM'), [-5,6,7,-8])
 
     def test_signum(self):
-        self.assertEqual(pd_simple_eval('1U'), [1])
-        self.assertEqual(pd_simple_eval('2U'), [1])
-        self.assertEqual(pd_simple_eval('1000U'), [1])
-        self.assertEqual(pd_simple_eval('—989U'), [-1])
-        self.assertEqual(pd_simple_eval('727mU'), [-1])
-        self.assertEqual(pd_simple_eval('6986MMU'), [1])
-        self.assertEqual(pd_simple_eval('0U'), [0])
+        self.assertEqual(pd_simple_eval('[1 2 1000 —989 727m 6986MM 0]Um'), [[1,1,1,-1,-1,1,0]])
 
     def test_mold(self):
         self.assertEqual(pd_simple_eval('[5 6 7 8][[1 2][3 4]]M'), [[[5,6],[7,8]]])
@@ -333,39 +234,15 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[9 0 0 9 7 0 9 9 0 7]U'), [[9,0,7]])
 
     def test_number_predicates(self):
-        self.assertEqual(pd_simple_eval('1Â'), [1])
-        self.assertEqual(pd_simple_eval('0Â'), [0])
-        self.assertEqual(pd_simple_eval('1mÂ'), [0])
-        self.assertEqual(pd_simple_eval('8Ê'), [1])
-        self.assertEqual(pd_simple_eval('—7Ê'), [0])
-        self.assertEqual(pd_simple_eval('1Î'), [1])
-        self.assertEqual(pd_simple_eval('9Î'), [0])
-        self.assertEqual(pd_simple_eval('—7Î'), [0])
-        self.assertEqual(pd_simple_eval('—3Ô'), [1])
-        self.assertEqual(pd_simple_eval('5Ô'), [1])
-        self.assertEqual(pd_simple_eval('—8Ô'), [0])
-        self.assertEqual(pd_simple_eval('—3Û'), [1])
-        self.assertEqual(pd_simple_eval('5Û'), [0])
-        self.assertEqual(pd_simple_eval('0Û'), [0])
+        self.assertEqual(pd_simple_eval('1Â0Â1mÂ8Ê—7Ê1Î9Î—7Î—3Ô5Ô—8Ô—3Û5Û0Û'),
+                [1,0,0,1,0,1,0,0,1,1,0,1,0,0])
 
     def test_list_predicates(self):
-        self.assertEqual(pd_simple_eval('[1 2 3]Â'), [1])
-        self.assertEqual(pd_simple_eval('[1 0 3]Â'), [0])
-        self.assertEqual(pd_simple_eval('[0 0 0]Â'), [0])
-        self.assertEqual(pd_simple_eval('[1 2 3]Ê'), [1])
-        self.assertEqual(pd_simple_eval('[0 2 0]Ê'), [1])
-        self.assertEqual(pd_simple_eval('[0 0 0]Ê'), [0])
-        self.assertEqual(pd_simple_eval('[1 2 3]Î'), [0])
-        self.assertEqual(pd_simple_eval('[2 2 2]Î'), [1])
-        self.assertEqual(pd_simple_eval('[2 2 0]Î'), [0])
-        self.assertEqual(pd_simple_eval('[0 0 0]Î'), [1])
-        self.assertEqual(pd_simple_eval('[0 0 0]Ô'), [1])
-        self.assertEqual(pd_simple_eval('[0 2 0]Ô'), [0])
-        self.assertEqual(pd_simple_eval('[2 2 2]Ô'), [0])
-        self.assertEqual(pd_simple_eval('[0 0 0]Û'), [0])
-        self.assertEqual(pd_simple_eval('[0 2 0]Û'), [0])
-        self.assertEqual(pd_simple_eval('[3 2 0]Û'), [1])
-        self.assertEqual(pd_simple_eval('[3 7 1]Û'), [1])
+        self.assertEqual(pd_simple_eval('''
+                [1 2 3]Â[1 0 3]Â[0 0 0]Â[1 2 3]Ê[0 2 0]Ê[0 0 0]Ê
+                [1 2 3]Î[2 2 2]Î[2 2 0]Î[0 0 0]Î[0 0 0]Ô[0 2 0]Ô[2 2 2]Ô
+                [0 0 0]Û[0 2 0]Û[3 2 0]Û[3 7 1]Û'''),
+                [1,0,0,1,1,0,0,1,0,1,1,0,0,0,0,1,1])
 
     def test_mapped_list_predicates(self):
         self.assertEqual(pd_simple_eval('[3 2 0]{1+}Â'), [1])
@@ -390,18 +267,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('2 3 4 5 +d'), [5,9])
 
     def test_has(self):
-        self.assertEqual(pd_simple_eval('4 5 H'), [0])
-        self.assertEqual(pd_simple_eval('10 5 H'), [1])
-        self.assertEqual(pd_simple_eval('5000 5 H'), [4])
-        self.assertEqual(pd_simple_eval('6 4 H'), [0])
-        self.assertEqual(pd_simple_eval('28 4 H'), [1])
-        self.assertEqual(pd_simple_eval('224 4 H'), [2])
-        self.assertEqual(pd_simple_eval('[1 5 1 3] 1 H'), [2])
-        self.assertEqual(pd_simple_eval('[1 5 1 3] 2 H'), [0])
-        self.assertEqual(pd_simple_eval('[1 5 1 3] 3 H'), [1])
-        self.assertEqual(pd_simple_eval('"PARADOC" \'A H'), [2])
-        self.assertEqual(pd_simple_eval('"PARADOC" \'a H'), [0])
-        self.assertEqual(pd_simple_eval('"PARADOC" 67 H'), [1])
+        self.assertEqual(pd_simple_eval('[4 10 5000]5Hv'), [[0,1,4]])
+        self.assertEqual(pd_simple_eval('[6 28 224]4Hv'), [[0,1,2]])
+        self.assertEqual(pd_simple_eval('[1 2 3][1 5 1 3]Hav'), [[2,0,1]])
+        self.assertEqual(pd_simple_eval('[\'A \'a 67]"PARADOC"Hav'), [[2,0,1]])
 
     def test_ranges(self):
         self.assertEqual(pd_simple_eval('3,[0 1 2]='), [1])
@@ -412,20 +281,14 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('1 5…[1 2 3 4 5]='), [1])
 
     def test_flatten(self):
-        self.assertEqual(pd_simple_eval('["foo""bar""baz"]¨'), ["foobarbaz"])
-        self.assertEqual(pd_simple_eval("['P'a'r'a'd'o'c]¨"), ["Paradoc"])
-        self.assertEqual(pd_simple_eval("['P'a'r'a'd'o'c]…"), ["Paradoc"])
-        self.assertEqual(pd_simple_eval('[[2 4]6[0 1]]¨'), [[2,4,6,0,1]])
-        self.assertEqual(pd_simple_eval('[[[2 4]]6[[0 2]]]¨'), [[[2,4],6,[0,2]]])
-        self.assertEqual(pd_simple_eval('[[2 4]6[0 1]]…'), [[2,4,6,0,1]])
-        self.assertEqual(pd_simple_eval('[[[2 4]]6[[0 2]]]…'), [[2,4,6,0,2]])
+        self.assertEqual(pd_simple_eval('["foo""bar""baz"]¨q…'), ["foobarbaz","foobarbaz"])
+        self.assertEqual(pd_simple_eval("['P'a'r'a'd'o'c]¨q…"), ["Paradoc","Paradoc"])
+        self.assertEqual(pd_simple_eval('[[2 4]6[0 1]]¨q…'), [[2,4,6,0,1],[2,4,6,0,1]])
+        self.assertEqual(pd_simple_eval('[[[2 4]]6[[0 2]]]¨q…'), [[[2,4],6,[0,2]],[2,4,6,0,2]])
 
     def test_some_trig(self):
-        self.assertEqual(pd_simple_eval('0 Sn'), [0.0])
-        self.assertEqual(pd_simple_eval('0 Cs'), [1.0])
-        self.assertEqual(pd_simple_eval('0 Tn'), [0.0])
-        self.assertEqual(pd_simple_eval('Pi½ Sn'), [1.0])
-        self.assertEqual(pd_simple_eval('Pi Cs'), [-1.0])
+        self.assertEqual(pd_simple_eval('0 Snq Csq Tn'), [0.0,1.0,0.0])
+        self.assertEqual(pd_simple_eval('Pi½ Sn Pi Cs'), [1.0,-1.0])
         self.assertEqual(pd_simple_eval('[[0] Pi] Cs'), [[[1.0], -1.0]])
 
     def test_base(self):
@@ -436,10 +299,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"DeFaCeD" 16 B'), [233811181])
 
     def test_base_string(self):
-        self.assertEqual(pd_simple_eval('48762 16 Lb'), ['be7a'])
-        self.assertEqual(pd_simple_eval('48762 16 Ub'), ['BE7A'])
-        self.assertEqual(pd_simple_eval('233811181 16 Lb'), ['defaced'])
-        self.assertEqual(pd_simple_eval('233811181 16 Ub'), ['DEFACED'])
+        self.assertEqual(pd_simple_eval('48762 16 LbqUb'), ['be7a','BE7A'])
+        self.assertEqual(pd_simple_eval('233811181 16 LbqUb'), ['defaced', 'DEFACED'])
 
     def test_string_transformations(self):
         self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Uc'), ["HELLO :) 123 XD"])
@@ -447,16 +308,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Xc'), ["HeLlO :) 123 Xd"])
 
     def test_string_predicates(self):
-        self.assertEqual(pd_simple_eval("'1Ap"), [0])
-        self.assertEqual(pd_simple_eval("'bAp"), [1])
-        self.assertEqual(pd_simple_eval("'eUp"), [0])
-        self.assertEqual(pd_simple_eval("'TUp"), [1])
-        self.assertEqual(pd_simple_eval("'aLp"), [1])
-        self.assertEqual(pd_simple_eval("'VLp"), [0])
-        self.assertEqual(pd_simple_eval("'eWp"), [0])
-        self.assertEqual(pd_simple_eval("'RWp"), [0])
-        self.assertEqual(pd_simple_eval("' Wp"), [1])
-        self.assertEqual(pd_simple_eval('"Os C"Up'), [[1,0,0,1]])
+        self.assertEqual(pd_simple_eval('"B3 t@"ApqUpqLpqWp'), [[1,0,0,1,0],[1,0,0,0,0],[0,0,0,1,0],[0,0,1,0,0]])
 
     def test_split(self):
         self.assertEqual(pd_simple_eval('"assdfs""s"/'), [["a","","df",""]])
@@ -477,13 +329,9 @@ class TestParadoc(unittest.TestCase):
     def test_arithmetic_literals(self):
         self.assertEqual(pd_simple_eval('[1 27m 7]Uám'), [[31,3,37]])
         self.assertEqual(pd_simple_eval('[15 13]Bàm'), [[4,2]])
-        self.assertEqual(pd_simple_eval('Aé'), [1024])
-        self.assertEqual(pd_simple_eval('Bè'), [121])
-        self.assertEqual(pd_simple_eval('Gí'), [1/16])
-        self.assertEqual(pd_simple_eval('Hì'), [-17])
+        self.assertEqual(pd_simple_eval('AéBèGíHì'), [1024,121,1/16,-17])
         self.assertEqual(pd_simple_eval('[1 3 5]Uóm'), [[30,90,150]])
-        self.assertEqual(pd_simple_eval('200Aò'), [20.0])
-        self.assertEqual(pd_simple_eval('200Hú'), [13])
+        self.assertEqual(pd_simple_eval('200Aò200Hú'), [20.0, 13])
         self.assertEqual(pd_simple_eval('Aý'), [10000000000])
 
     def test_discrete_math(self):
