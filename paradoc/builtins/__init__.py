@@ -7,6 +7,7 @@ import paradoc.base as base
 import sys, math, collections
 import time, datetime
 import random
+import operator, functools
 from paradoc.builtins.case import Case, CasedBuiltIn
 from paradoc.builtins.lazy_vars import arithmetic_literal_trigger
 from paradoc.string import str_class, case_double
@@ -578,7 +579,7 @@ def initialize_builtins(env: Environment) -> None:
     @put('Print', 'P')
     def pd_print(env: Environment) -> None:
         a = env.pop()
-        print(env.pd_str(a))
+        env.print_output_record(env.pd_str(a))
 
     @put('Space_output', ' o')
     def pd_space_output(env: Environment) -> None:
@@ -805,5 +806,29 @@ def initialize_builtins(env: Environment) -> None:
             random.seed(e)
         else:
             raise AssertionError("Can't seed random with non-numeric non-string value " + repr(e))
+    # }}}
+    # Stack functions {{{
+    @put('Reverse_stack', 'Down_stack', 'Ds')
+    def reverse_stack(env: Environment) -> None:
+        env.push(*env.pop_until_stack_marker()[::-1])
+    @put('Length_stack', 'Ls')
+    def length_stack(env: Environment) -> None:
+        env.push(len(env.pop_until_stack_marker()))
+    @put('Sum_stack', 'Šs')
+    def sum_stack(env: Environment) -> None:
+        env.push(sum(env.pop_until_stack_marker()))
+    @put('Product_stack', 'Þs')
+    def product_stack(env: Environment) -> None:
+        # TODO: make this a deepmap or something?
+        env.push(functools.reduce(operator.mul, env.pop_until_stack_marker(), 1))
+    @put('Force_stack', 'Fs')
+    def force_stack(env: Environment) -> None:
+        env.maximize_length()
+    @put('Output_stack', 'Os')
+    def output_stack(env: Environment) -> None:
+        print(env.pd_str(env.pop_until_stack_marker()), end="")
+    @put('Print_stack', 'Ps')
+    def print_stack(env: Environment) -> None:
+        env.print_output_record(env.pd_str(env.pop_until_stack_marker()))
     # }}}
     env.lazy_var_triggers.append(arithmetic_literal_trigger)

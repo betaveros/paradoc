@@ -498,5 +498,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('12 Et'), [4])
         self.assertEqual(pd_simple_eval('2 21 Js'), [-1])
 
+    def test_stack_functions(self):
+        self.assertEqual(pd_simple_eval('6 6 6 Ls'), [3])
+        self.assertEqual(pd_simple_eval('6 6 6 Šs'), [18])
+        self.assertEqual(pd_simple_eval('6 6 6 Þs'), [216])
+        self.assertEqual(pd_simple_eval('2 4 6 0 1 Ds'), [1,0,6,4,2])
+
 if __name__ == '__main__':
     unittest.main()
