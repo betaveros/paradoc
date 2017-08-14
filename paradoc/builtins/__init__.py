@@ -25,9 +25,11 @@ def initialize_builtins(env: Environment) -> None:
             docs: Optional[str] = None,
             stability: str = "unstable") -> Callable[[Callable[[Environment], None]], None]:
         name = ss[0]
+        aliases = list(ss)
         def inner_put(f: Callable[[Environment], None]) -> None:
             for s in ss:
-                env.put(s, BuiltIn(name, f, docs=docs), fail_if_overwrite=True)
+                env.put(s, BuiltIn(name, f, aliases=aliases,
+                    docs=docs, stability=stability), fail_if_overwrite=True)
         return inner_put
 
     def cput(name: str,
@@ -35,52 +37,53 @@ def initialize_builtins(env: Environment) -> None:
             cases: List[Case],
             docs: Optional[str] = None,
             stability: str = "unstable") -> None:
-        builtin = CasedBuiltIn(name, cases, docs=docs)
-        env.put(name, builtin)
+        builtin = CasedBuiltIn(name, cases, aliases = [name] + extra_names,
+                docs=docs, stability=stability)
+        env.put(name, builtin, fail_if_overwrite=True)
         for xname in extra_names: env.put(xname, builtin, fail_if_overwrite=True)
-        # TODO: Where shall we put stability?
 
     # Default variables {{{
-    env.put('N', '\n')
-    env.put(u'T', 10)
-    env.put(u'E', 11)
-    env.put(u'Ñ', '')
-    env.put('Ee', math.e)
-    env.put('Ep', 1e-9)
-    env.put('Pi', math.pi)
+    env.put('N', '\n', docs="Output record separator", stability="stable")
+    env.put(u'T', 10, docs="Utility constant: ten", stability="stable")
+    env.put(u'E', 11, docs="Utility constant: eleven", stability="stable")
+    env.put(u'Ñ', '', docs="Output field separator", stability="stable")
+    env.put('Ee', math.e, stability="beta")
+    env.put('Ep', 1e-9, docs="Epsilon for approximate tests", stability="beta")
+    env.put('Pi', math.pi, stability="stable")
 
     golden_ratio = (1 + math.sqrt(5)) / 2
-    env.put('Ph',  golden_ratio)
-    env.put('Phi', golden_ratio)
+    env.put('Ph',  golden_ratio, docs="Golden ratio", stability="alpha")
+    env.put('Phi', golden_ratio, stability="alpha")
 
-    env.put('Da', str_class('0-9'))
-    env.put('Ua', str_class('A-Z'))
-    env.put('La', str_class('a-z'))
-    env.put('Aa', str_class('A-Za-z'))
+    env.put('Da', str_class('0-9'), docs="Digit alphabet", stability="alpha")
+    env.put('Ua', str_class('A-Z'), docs="Uppercase alphabet", stability="alpha")
+    env.put('La', str_class('a-z'), docs="Lowercase alphabet", stability="alpha")
+    env.put('Aa', str_class('A-Za-z'), docs="Alphabet", stability="alpha")
 
-    env.put('Å', ' ')
-    env.put('Åa', str_class('a-zA-Z'))
-    env.put('Åb', case_double('BCDFGHJKLMNPQRSTVWXZ'))
-    env.put('Åc', case_double('BCDFGHJKLMNPQRSTVWXYZ'))
-    env.put('Åd', str_class('9-0'))
-    env.put('Åf', str_class('A-Za-z0-9+/'))
-    env.put('Åh', str_class('0-9A-F'))
-    env.put('Åi', str_class('A-Za-z0-9_'))
-    env.put('Åj', str_class('a-zA-Z0-9_'))
-    env.put('Ål', str_class('z-a'))
-    env.put('Åm', '()<>[]{}')
-    env.put('Åp', str_class(' -~'))
-    env.put('Åq', case_double('QWERTYUIOP'))
-    env.put('Ås', case_double('ASDFGHJKL'))
-    env.put('Åu', str_class('Z-A'))
-    env.put('Åv', case_double('AEIOU'))
-    env.put('Åx', case_double('ZXCVBNM'))
-    env.put('Åy', case_double('AEIOUY'))
-    env.put('Åz', str_class('z-aZ-A'))
+    env.put('Å', ' ', docs="Utility constant: space", stability="alpha")
+    env.put('Åa', str_class('a-zA-Z'), stability="alpha")
+    env.put('Åb', case_double('BCDFGHJKLMNPQRSTVWXZ'), stability="alpha")
+    env.put('Åc', case_double('BCDFGHJKLMNPQRSTVWXYZ'), stability="alpha")
+    env.put('Åd', str_class('9-0'), stability="alpha")
+    env.put('Åf', str_class('A-Za-z0-9+/'), stability="alpha")
+    env.put('Åh', str_class('0-9A-F'), stability="alpha")
+    env.put('Åi', str_class('A-Za-z0-9_'), stability="alpha")
+    env.put('Åj', str_class('a-zA-Z0-9_'), stability="alpha")
+    env.put('Ål', str_class('z-a'), stability="alpha")
+    env.put('Åm', '()<>[]{}', stability="alpha")
+    env.put('Åp', str_class(' -~'), stability="alpha")
+    env.put('Åq', case_double('QWERTYUIOP'), stability="alpha")
+    env.put('Ås', case_double('ASDFGHJKL'), stability="alpha")
+    env.put('Åu', str_class('Z-A'), stability="alpha")
+    env.put('Åv', case_double('AEIOU'), stability="alpha")
+    env.put('Åx', case_double('ZXCVBNM'), stability="alpha")
+    env.put('Åy', case_double('AEIOUY'), stability="alpha")
+    env.put('Åz', str_class('z-aZ-A'), stability="alpha")
     # }}}
     # Universal functions: stack stuff, list stuff {{{
 
-    @put('Nop', ' ', '\t', '\n', '\r', docs="Do nothing.")
+    @put('Nop', ' ', '\t', '\n', '\r',
+            docs="Do nothing.", stability="stable")
     def nop(env: Environment) -> None: pass
 
     # @put('Dup', ':')
@@ -302,51 +305,63 @@ def initialize_builtins(env: Environment) -> None:
     # Conversions C, F, I, S {{{
     cput('To_char', ['C'], [
         Case.value(lambda env, a: [pd_to_char(a)]),
-    ])
+    ], docs="Convert to char", stability="beta")
     cput('To_float', ['F'], [
         Case.value(lambda env, a: [pd_to_float(a)]),
-    ])
+    ], docs="Convert to float", stability="beta")
     cput('To_int', ['I'], [
         Case.value(lambda env, a: [pd_to_int(a)]),
-    ])
+    ], docs="Convert to int", stability="beta")
     cput('To_string', ['S'], [
         Case.value(lambda env, a: [env.pd_str(a)]),
-    ])
+    ], docs="Convert to string", stability="beta")
     # }}}
     # Sort, $ {{{
     cput('Sort', [], [
         Case.str_(lambda env, s: [''.join(sorted(s))]),
         Case.list_(lambda env, x: [list(sorted(x))]),
-    ])
+    ], docs="Sort", stability="stable")
     cput('Dollar', ['$'], [
         Case.number(lambda env, n: [env.index_stack(int(n))]),
         Case.str_(lambda env, s: [''.join(sorted(s))]),
         Case.list_(lambda env, x: [list(sorted(x))]),
-    ])
+    ], docs="Sort or select from stack", stability="beta")
     # }}}
     # Range/enumerate/flatten; Comma, J {{{
     range_case = Case.number(lambda env, n: [range(num.intify(n))])
-    cput('Range', [], [range_case])
+    cput('Range', [], [range_case],
+            docs="Range (half-open from 0)", stability="beta")
     range_one_case = Case.number(lambda env, n: [range(1, num.intify(n) + 1)])
-    cput('Range_one', [], [range_one_case])
+    cput('Range_one', [], [range_one_case],
+            docs="Range, inclusive from 1", stability="beta")
 
     enumerate_case = Case.seq(lambda env, seq: [pd_enumerate(seq)])
-    cput('Enumerate', [], [enumerate_case])
+    cput('Enumerate', [], [enumerate_case],
+            docs="Zip with indices from 0", stability="beta")
     enumerate_one_case = Case.seq(lambda env, seq: [pd_enumerate(seq, start=1)])
-    cput('Enumerate_one', [], [enumerate_one_case])
+    cput('Enumerate_one', [], [enumerate_one_case],
+            docs="Zip with indices from 1", stability="beta")
     filter_indexes_case = Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq)])
-    cput('Filter_indexes', [], [filter_indexes_case])
+    cput('Filter_indexes', [], [filter_indexes_case],
+            docs="List indices at which block is true", stability="beta")
 
     cput('Range_enumerate_or_filter_indices', [','], [
         range_case,
         enumerate_case,
         filter_indexes_case,
-    ])
+    ],
+            docs="""Range on numbers. Enumerate (zip with indices from 0) on
+            sequences. On block and sequence, list indices at which block is
+            true.""", stability="beta")
+
     cput('Range_enumerate_one_or_reject_indices', ['J'], [
         range_one_case,
         enumerate_one_case,
         Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq, negate=True)]),
-    ])
+    ],
+            docs="""Range, inclusive from 1, on numbers. Enumerate from 1 (zip
+            with indices from 1) on sequences. On block and sequence, list
+            indices at which block is false.""", stability="beta")
 
     range_til_case = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi))])
     range_to_case  = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi) + 1)])
@@ -369,26 +384,38 @@ def initialize_builtins(env: Environment) -> None:
         Case.seq2_range(lambda env, a, b: [pd_seq_union(a, b)]),
         Case.condition_block(lambda env, cond, block:
             pd_if_then_empty_list(env, cond, block, negate=True)),
-    ])
+    ],
+            docs="""Binary OR on numbers. Union on sequences. One-branch unless
+            on blocks.""", stability="beta")
     cput('Ampersand', ['&'], [
         Case.number2(lambda env, a, b: [num.pd_and(a, b)]),
         Case.seq2_range(lambda env, a, b: [pd_seq_intersection(a, b)]),
         Case.condition_block(lambda env, cond, block:
             pd_if_then_empty_list(env, cond, block)),
-    ])
+    ],
+            docs="""Binary AND on numbers. Intersection on sequences.
+            One-branch if on blocks.""", stability="beta")
     cput('Exclusive_or', ['^'], [
         Case.number2(lambda env, a, b: [num.pd_xor(a, b)]),
         Case.seq2_range(lambda env, a, b: [pd_seq_symmetric_difference(a, b)]),
-    ])
+    ],
+            docs="""Binary XOR on numbers. Symmetric difference on sequences.
+            """, stability="beta")
     cput('If', [], [
         Case.any2(lambda env, cond, body:
             pd_if_then_empty_list(env, cond, body)),
-    ])
+    ],
+            docs="""Single-branch if.""", stability="alpha")
     cput('Ul', ['Unless'], [
         Case.any2(lambda env, cond, body:
             pd_if_then_empty_list(env, cond, body, negate=True)),
-    ])
-    @put('?')
+    ],
+            docs="""Single-branch unless.""", stability="alpha")
+    @put('?',
+            docs="""If-else.
+
+            ex: 1 "True!" "False" ? => "True!"
+            """, stability="beta")
     def pd_if(env: Environment) -> None:
         c, b, a = env.pop3()
         if pytruth_eval(env, a):
@@ -403,13 +430,22 @@ def initialize_builtins(env: Environment) -> None:
         Case.number2(lambda env, n, b: [base.to_base_digits(num.intify(b), num.intify(n))]),
         Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), lst)]),
         Case.str_number(lambda env, s, b: [int(s, num.intify(b))]),
-    ])
+    ],
+            docs="""Base. On two numbers, converts the first to a list of
+            digits in the radix of the second. On a list or a string and a
+            number, interprets the sequence as digits (numbers if a list, digit
+            characters if a string) in the radix of the number and converts to
+            a number.""", stability="beta")
     cput('Lower_base', ['Lb'], [
         Case.number2(lambda env, n, b: [base.to_base_digits_lower(num.intify(b), num.intify(n))]),
-    ])
+    ],
+            docs="""Converts the first number to a string of digits in the
+            radix of the second, using lowercase digits.""", stability="beta")
     cput('Upper_base', ['Ub'], [
         Case.number2(lambda env, n, b: [base.to_base_digits_upper(num.intify(b), num.intify(n))]),
-    ])
+    ],
+            docs="""Converts the first number to a string of digits in the
+            radix of the second, using uppercase digits.""", stability="beta")
     # }}}
     # Comparators <=> Max Min {{{
     cput('Equal', ['Eq'], [
@@ -423,7 +459,11 @@ def initialize_builtins(env: Environment) -> None:
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
         Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n))]),
         Case.block_seq_range(lambda env, block, seq: [pd_get_index(env, block, seq)]),
-    ])
+    ],
+            docs="""On two numbers, two strings, or two lists, compare for
+            equality. On a number and a sequence, index into the sequence. On a
+            block and a sequence (numbers coerce to ranges), find the index of
+            the first element satisfying the block.""", stability="beta")
     # A bunch of arithmetic operations between Union[int, float] and
     # Union[int, float] have type ignored below
     cput('Less_than', ['<'], [
@@ -431,120 +471,190 @@ def initialize_builtins(env: Environment) -> None:
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
-    ])
+    ],
+            docs="""On two numbers, two strings, or two lists, compare if the
+            first is less than the second. On a number and a sequence, slice
+            elements with index less than the number, as Python s[:n].""",
+            stability="beta")
     cput('Greater_than', ['>'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) > num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
-    ])
+    ],
+            docs="""On two numbers, two strings, or two lists, compare if the
+            first is greater than the second. On a number and a sequence, slice
+            elements with index greater than or equal to the number, as Python
+            s[n:].""",
+            stability="beta")
     cput('Leq', ['<e'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) <= num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a <= b)]),
         Case.list2(lambda env, a, b: [int(list(a) <= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)+1]]),
-    ])
+    ],
+            docs="""Less than or equal to.""",
+            stability="beta")
     cput('Geq', ['>e'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) >= num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a >= b)]),
         Case.list2(lambda env, a, b: [int(list(a) >= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]), # TODO: ?
-    ])
+    ],
+            docs="""Greater than or equal to.""",
+            stability="beta")
     cput('Less_than_approx', ['<a'], [
         Case.number2(lambda env, a, b:
             [int(num.numerify(a) - num.numerify(b) < env.get_epsilon())]), # type: ignore
-    ])
+    ],
+            docs="""Approximately less than; tolerance is given by Ep,
+            epsilon""",
+            stability="alpha")
     cput('Greater_than_approx', ['>a'], [
         Case.number2(lambda env, a, b:
             [int(num.numerify(b) - num.numerify(a) < env.get_epsilon())]), # type: ignore
-    ])
+    ],
+            docs="""Approximately greater than; tolerance is given by Ep,
+            epsilon""",
+            stability="alpha")
     cput('Equal_approx', ['=a'], [
         Case.number2(lambda env, a, b:
             [int(abs(num.numerify(a) - num.numerify(b)) < env.get_epsilon())]), # type: ignore
-    ])
+    ],
+            docs="""Approximately equal than; tolerance is given by Ep,
+            epsilon""",
+            stability="alpha")
     cput('Min', ['<m', 'Õ'], [
         Case.any2(lambda env, a, b: [min(a, b)]), # TODO
-    ])
+    ],
+            docs="""Minimum of two values""",
+            stability="beta")
     cput('Max', ['>m', 'Ã'], [
         Case.any2(lambda env, a, b: [max(a, b)]), # TODO
-    ])
+    ],
+            docs="""Maximum of two values""",
+            stability="beta")
     cput('Array_min', ['<r', 'Œ'], [
         Case.seq(lambda env, e: [min(pd_iterable(e))]),
-    ])
+    ],
+            docs="""Minimum of array""",
+            stability="alpha")
     cput('Array_max', ['>r', 'Æ'], [
         Case.seq(lambda env, e: [max(pd_iterable(e))]),
-    ])
+    ],
+            docs="""Maximum of array""",
+            stability="alpha")
     # }}}
     # «»‹› {{{
     cput('Double_left', ['«'], [
         Case.number(lambda env, a: [num.pd_add_const(a, -2)]),
         Case.seq(lambda env, a: [a[:-1]]),
-    ])
+    ],
+            docs="""Decrease by two, or init (all but last)""",
+            stability="alpha")
     cput('Double_right', ['»'], [
         Case.number(lambda env, a: [num.pd_add_const(a, 2)]),
         Case.seq(lambda env, a: [a[1:]]),
-    ])
+    ],
+            docs="""Increase by two, or tail (all but first)""",
+            stability="alpha")
     floor_case = Case.number(lambda env, a: [num.pd_floor(a)])
     first_case = Case.seq(lambda env, a: [pd_index(a, 0)])
-    cput('Floor',         ['<i'], [floor_case           ])
-    cput('First',         [    ], [            first_case])
-    cput('Floor_or_head', ['‹' ], [floor_case, first_case])
+    cput('Floor',         ['<i'], [floor_case           ],
+            docs="Round down to the nearest integer.", stability="beta")
+    cput('First',         [    ], [            first_case],
+            docs="""First of sequence""", stability="stable")
+    cput('Floor_or_head', ['‹' ], [floor_case, first_case],
+            docs="""Floor or first of sequence""", stability="alpha")
     ceil_case = Case.number(lambda env, a: [num.pd_ceil(a)])
     last_case = Case.seq(lambda env, a: [pd_index(a, -1)])
-    cput('Ceiling',         ['>i'], [ceil_case           ])
-    cput('Last',            [    ], [           last_case])
-    cput('Ceiling_or_last', ['›' ], [ceil_case, last_case])
+    cput('Ceiling',         ['>i'], [ceil_case           ],
+            docs="Round up to the nearest integer.", stability="beta")
+    cput('Last',            [    ], [           last_case],
+            docs="""Last of sequence""", stability="stable")
+    cput('Ceiling_or_last', ['›' ], [ceil_case, last_case],
+            docs="""Ceiling or last of sequence""", stability="alpha")
 
     round_case = Case.number(lambda env, a: [num.pd_round(a)])
     first_and_last_case = Case.seq(lambda env, a: [pd_index(a, 0), pd_index(a, -1)])
-    cput('Round',                   ['=i'], [round_case                     ])
+    cput('Round',                   ['=i'], [round_case                     ],
+            docs="""Round to the nearest integer; follows Python's rules.""",
+            stability="alpha")
     cput('First_and_last',          [    ], [            first_and_last_case])
     cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case])
     # }}}
     # Uncons, Unsnoc, Parens() {{{
     decr_case = Case.number(lambda env, a: [num.pd_add_const(a, -1)])
-    cput('Decr', [], [decr_case])
+    cput('Decr', [], [decr_case],
+            docs="Decrease by 1.", stability="beta")
     incr_case = Case.number(lambda env, a: [num.pd_add_const(a, 1)])
-    cput('Incr', [], [incr_case])
+    cput('Incr', [], [incr_case],
+            docs="Increase by 1.", stability="beta")
     uncons_case = Case.seq(lambda env, a: [a[1:], pd_index(a, 0)])
-    cput('Uncons', [], [uncons_case])
+    cput('Uncons', [], [uncons_case],
+            docs="""Split into tail and first.
+
+            ex: [1 2 3]Uncons => [2 3]1""", stability="beta")
     unsnoc_case = Case.seq(lambda env, a: [a[:-1], pd_index(a, -1)])
-    cput('Unsnoc', [], [unsnoc_case])
-    cput('(', [], [decr_case, unsnoc_case])
-    cput(')', [], [incr_case, uncons_case])
+    cput('Unsnoc', [], [unsnoc_case],
+            docs="""Split into init and last.
+
+            ex: [1 2 3]Uncons => [1 2]3""", stability="beta")
+    cput('(', [], [decr_case, unsnoc_case],
+            docs="Decr or Uncons.", stability="beta")
+    cput(')', [], [incr_case, uncons_case],
+            docs="Incr or Unsnoc.", stability="beta")
     # }}}
     # Sum, Product {{{
     cput('Sum', ['Š'], [
         Case.list_int_range(lambda env, x: [sum(x)]),
-    ])
+    ],
+            docs="Sum (coerces numbers to range).", stability="beta")
     cput('Product', ['Þ'], [
         Case.list_int_range(lambda env, x: [functools.reduce(operator.mul, x, 1)]),
-    ])
+    ],
+            docs="Product (coerces numbers to range!?).", stability="alpha")
     # }}}
     # M for Minus (negate) and Mold {{{
     negate_case = Case.number(lambda env, a: [num.pd_mul_div_const(a, -1, 1)])
     mold_case = Case.value_seq(lambda env, x, y: [pd_mold(x, y)])
-    cput('Negate', [], [negate_case])
-    cput('Mold', [], [mold_case])
-    cput('Negate_or_mold', ['M'], [negate_case, mold_case])
+    cput('Negate', [], [negate_case],
+            docs="Negate a number.", stability="beta")
+    cput('Mold', [], [mold_case],
+            docs="Mold a sequence like another.", stability="alpha")
+    cput('Negate_or_mold', ['M'], [negate_case, mold_case],
+            docs="Negate a number, or mold a sequence like another.",
+            stability="alpha")
     # }}}
     # U for Signum or Uniquify {{{
     signum_case = Case.number(lambda env, a: [num.pd_signum(a)])
     uniquify_case = Case.seq(lambda env, a: [pd_seq_uniquify(a)])
-    cput('Signum', [], [signum_case])
-    cput('Uniquify', [], [uniquify_case])
-    cput('Signum_or_uniquify', ['U'], [signum_case, uniquify_case])
+    cput('Signum', [], [signum_case],
+            docs="Signum of a number (-1, 0, 1) by sign.", stability="beta")
+    cput('Uniquify', [], [uniquify_case],
+            docs="""Uniquify a sequence: drop all but first occurrence of each
+            element""",
+            stability="alpha")
+    cput('Signum_or_uniquify', ['U'], [signum_case, uniquify_case],
+            docs="Signum or uniquify. Mnemonic: U for Unit",
+            stability="alpha")
     # }}}
     # Has as factor / count {{{
     cput('H', [], [
         Case.number2(lambda env, a, b: [num.pd_count_multiplicity_in(b, a)]),
         Case.seq_value(lambda env, s, x: [pd_count_in(env, x, s)]),
-    ])
+    ],
+            docs="""Count factor multiplicity or frequency. Mnemonic: Has,
+            because nonzero means the number has the factor or the sequence has
+            the element.""",
+            stability="alpha")
     # }}}
     # Down, Transpose, Zip {{{
     cput('Reverse', ['Down', 'D'], [
         Case.seq_range(lambda env, a: [a[::-1]]),
-    ])
+    ],
+            docs="""Reverse a sequence (coerces numbers to range).""",
+            stability="beta")
     cput('Transpose', ['Tt', '™'], [
         Case.seq(lambda env, a: [pd_transpose(a)]),
     ])
@@ -578,7 +688,10 @@ def initialize_builtins(env: Environment) -> None:
         Case.seq(lambda env, seq: [pd_group(seq)]),
         Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
         Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
-    ])
+    ],
+            docs="""GCD; group like elements of a sequence, possibly under a
+            mapping.""",
+            stability="beta")
     # }}}
     # Circumflexed vowels {{{
     even_case = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 0)])
@@ -660,18 +773,23 @@ def initialize_builtins(env: Environment) -> None:
     cput('Unique', [], unique_cases)
     cput('Â', [], [
         Case.number(lambda env, a: [int(num.numerify(a) > 0)])
-    ] + all_cases)
-    cput('Ê', [], [even_case] + any_cases)
+    ] + all_cases,
+            docs="Above zero or All", stability="beta")
+    cput('Ê', [], [even_case] + any_cases,
+            docs="Even or Any (Exists)", stability="beta")
     cput('Î', [], [
         Case.number(lambda env, a: [int(num.numerify(a) == 1)]),
-    ] + identical_cases)
-    cput('Ô', [], [odd_case] + not_any_cases)
+    ] + identical_cases,
+            docs="Identity (equals 1) or Identical", stability="beta")
+    cput('Ô', [], [odd_case] + not_any_cases,
+            docs="Odd or Not_any", stability="beta")
     cput('Û', [], [
         Case.number(lambda env, a: [int(num.numerify(a) < 0)]),
-    ] + unique_cases)
+    ] + unique_cases,
+            docs="Under zero or Unique (test)", stability="beta")
     # }}}
     # Tilde and Eval {{{
-    @put('~')
+    @put('~', docs="Complement, eval, expand", stability="beta")
     def tilde(env: Environment) -> None:
         a = env.pop()
         if isinstance(a, Block):
@@ -727,7 +845,7 @@ def initialize_builtins(env: Environment) -> None:
     @put('Abort', 'A')
     def abort(env: Environment) -> None:
         raise PdAbortException("Abort")
-    @put('Abort_with', 'Aw')
+    @put('Abort_with', 'Aw', docs="Abort with this exit code")
     def abort_with(env: Environment) -> None:
         e = env.pop()
         if isinstance(e, (int, float, Char)):
@@ -773,70 +891,87 @@ def initialize_builtins(env: Environment) -> None:
     # Len, abs {{{
     abs_case = Case.number(lambda env, n: [num.pd_abs(n)])
     len_case = Case.seq(lambda env, seq: [len(seq)])
-    cput('Len', [], [len_case])
-    cput('Abs', [], [abs_case])
-    cput('Abs_or_len', ['L'], [abs_case, len_case])
+    cput('Len', [], [len_case], stability="beta")
+    cput('Abs', [], [abs_case], stability="beta")
+    cput('Abs_or_len', ['L'], [abs_case, len_case], stability="beta")
     # }}}
     # Other numeric predicates {{{
-    cput('Positive',         ['+p'], [Case.value_n2v(lambda e: int(e >  0))])
-    cput('Negative',         ['-p'], [Case.value_n2v(lambda e: int(e <  0))])
-    cput('Positive_or_zero', ['+o'], [Case.value_n2v(lambda e: int(e >= 0))])
-    cput('Negative_or_zero', ['-o'], [Case.value_n2v(lambda e: int(e <= 0))])
+    cput('Positive',         ['+p'], [Case.value_n2v(lambda e: int(e >  0))], stability="beta")
+    cput('Negative',         ['-p'], [Case.value_n2v(lambda e: int(e <  0))], stability="beta")
+    cput('Positive_or_zero', ['+o'], [Case.value_n2v(lambda e: int(e >= 0))], stability="alpha")
+    cput('Negative_or_zero', ['-o'], [Case.value_n2v(lambda e: int(e <= 0))], stability="alpha")
     # }}}
     # Dumping Python's math {{{
-    cput('Sin',     ['Sn'], [Case.value_n2v(math.sin  )])
-    cput('Cos',     ['Cs'], [Case.value_n2v(math.cos  )])
-    cput('Tan',     ['Tn'], [Case.value_n2v(math.tan  )])
-    cput('Asin',    ['As'], [Case.value_n2v(math.asin )])
-    cput('Acos',    ['Ac'], [Case.value_n2v(math.acos )])
-    cput('Atan',    ['At'], [Case.value_n2v(math.atan )])
-    cput('Sec',     ['Sc'], [Case.value_n2v(lambda t: 1/math.cos(t))])
-    cput('Csc',     ['Cc'], [Case.value_n2v(lambda t: 1/math.sin(t))])
-    cput('Cot',     ['Ct'], [Case.value_n2v(lambda t: 1/math.tan(t))])
-    cput('Exp',     ['Ex'], [Case.value_n2v(math.exp  )])
-    cput('Log_e',   ['Ln'], [Case.value_n2v(math.log  )])
-    cput('Log_ten', ['Lt'], [Case.value_n2v(math.log10)])
-    cput('Log_two', ['Lg'], [Case.value_n2v(math.log2 )])
+    cput('Sin',     ['Sn'], [Case.value_n2v(math.sin  )], stability="beta")
+    cput('Cos',     ['Cs'], [Case.value_n2v(math.cos  )], stability="beta")
+    cput('Tan',     ['Tn'], [Case.value_n2v(math.tan  )], stability="beta")
+    cput('Asin',    ['As'], [Case.value_n2v(math.asin )], stability="beta")
+    cput('Acos',    ['Ac'], [Case.value_n2v(math.acos )], stability="beta")
+    cput('Atan',    ['At'], [Case.value_n2v(math.atan )], stability="beta")
+    cput('Sec',     ['Sc'], [Case.value_n2v(lambda t: 1/math.cos(t))], stability="alpha")
+    cput('Csc',     ['Cc'], [Case.value_n2v(lambda t: 1/math.sin(t))], stability="alpha")
+    cput('Cot',     ['Ct'], [Case.value_n2v(lambda t: 1/math.tan(t))], stability="alpha")
+    cput('Exp',     ['Ex'], [Case.value_n2v(math.exp  )], stability="beta")
+    cput('Log_e',   ['Ln'], [Case.value_n2v(math.log  )], stability="beta")
+    cput('Log_ten', ['Lt'], [Case.value_n2v(math.log10)], stability="alpha")
+    cput('Log_two', ['Lg'], [Case.value_n2v(math.log2 )], stability="alpha")
     # }}}
     # Letter-case-related functions {{{
-    cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower() , x)])])
-    cput('Uppercase', ['Uc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.upper() , x)])])
-    cput('Exchange_case',         ['Xc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.swapcase(), x)])])
+    cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower() , x)])], stability="beta")
+    cput('Uppercase', ['Uc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.upper() , x)])], stability="beta")
+    cput('Exchange_case', ['Xc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.swapcase(), x)])], stability="alpha")
 
-    cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isalpha()), x)])])
-    cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.islower()), x)])])
-    cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isupper()), x)])])
-    cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])])
+    cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isalpha()), x)])], stability="beta")
+    cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.islower()), x)])], stability="beta")
+    cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isupper()), x)])], stability="beta")
+    cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])], stability="alpha")
     # }}}
     # Replicate {{{
     cput('Replicate', ['ˆ'], [
         Case.any_number(lambda env, x, n: [pd_replicate(x, num.intify(n))]),
-    ])
+    ],
+            docs="""Make a list by repeating an element some number of
+            times.""",
+            stability="beta")
     cput('Signed_replicate', ['Sr'], [
         Case.any_any_number(lambda env, x, y, n: [
             pd_replicate(y, num.intify(n))
             if num.intify(n) >= 0 else
             pd_replicate(x, -num.intify(n))
         ]),
-    ])
+    ],
+            docs="""Make a list by repeating one of two elements some number of
+            times, the first one if negative and the second one if
+            positive.""",
+            stability="unstable")
     # }}}
     # Key_* functions, for big arrays {{{
     cput('Key_new', ['Kn'], [
         Case.list_list_singleton_value(lambda env, kvs, dims, filler: [pd_new_array(kvs, dims, filler)]),
-    ])
+    ],
+            docs="""Make an array given a starting list of key-value pairs,
+            dimensions, and filler.""",
+            stability="alpha")
     cput('Key_map', ['Km'], [
         Case.list_list_block(lambda env, arr, ks, func: [pd_array_keys_map(env, arr, ks, func)]),
-    ])
+    ],
+            docs="""Map over keys of an array.""",
+            stability="alpha")
     cput('Key_get', ['Kg'], [
         Case.list_list_singleton(lambda env, arr, k: [pd_array_key_get(arr, k)]),
-    ])
+    ],
+            docs="""Access value corresponding to a key in an array.""",
+            stability="alpha")
     # }}}
     # W for Window and W for Words {{{
     words_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
     window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
     cput('Window', [], [window_case])
     cput('Space_split', ['Words'], [words_case, window_case])
-    cput('W', [], [words_case, window_case])
+    cput('W', [], [words_case, window_case],
+            docs="""Words (split by spaces) or Window (sliding window of size
+            given by number.""",
+            stability="alpha")
     # }}}
     # Combinatorics {{{
     factorial_case = Case.number(
@@ -873,49 +1008,63 @@ def initialize_builtins(env: Environment) -> None:
     # Number theory (primes etc) {{{
     cput('Is_prime', ['Pp'], [
         Case.value_n2v(discrete.is_prime_as_int),
-    ])
+    ],
+            docs="""Test if this is prime.""",
+            stability="alpha")
     cput('Prev_prime', ['(p'], [
         Case.value_n2v(discrete.prev_prime),
-    ])
+    ],
+            docs="""Find the largest prime smaller than this.""",
+            stability="alpha")
     cput('Next_prime', [')p'], [
         Case.value_n2v(discrete.next_prime),
-    ])
+    ],
+            docs="""Find the smallest prime larger than this.""",
+            stability="alpha")
     cput('Factorize', ['Fc'], [
         Case.value_n2v(discrete.prime_factorization_wrapped),
-    ])
+    ],
+            docs="""Factorize as a list of pairs of primes and exponents""",
+            stability="alpha")
     cput('Factorize_flat', ['Ff'], [
         Case.value_n2v(discrete.prime_factorization_flat),
-    ])
+    ],
+            docs="""Factorize as a flat list of possibly repeating prime
+            factors""",
+            stability="alpha")
     cput('Totient', ['Et'], [
         Case.value_n2v(discrete.totient),
-    ])
+    ],
+            docs="Euler's totient function", stability="alpha")
     cput('Jacobi_symbol', ['Js'], [
         Case.number2(lambda env, m, n: [discrete.jacobi_symbol(num.numerify(m), num.numerify(n))]),
-    ])
+    ],
+            docs="""Jacobi symbol of two numbers""",
+            stability="unstable")
     # }}}
     # Time {{{
     cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])])
     now = datetime.datetime.now
     fromtimestamp = datetime.datetime.fromtimestamp
 
-    cput('Now_minute',       ['Nb'], [Case.void     (lambda _: [           now().minute             ])])
-    cput('Time_minute',      ['Tb'], [Case.value_n2v(lambda e:  fromtimestamp(e).minute              )])
-    cput('Now_day',          ['Nd'], [Case.void     (lambda _: [           now().day                ])])
-    cput('Time_day',         ['Td'], [Case.value_n2v(lambda e:  fromtimestamp(e).day                 )])
-    cput('Now_hour',         ['Nh'], [Case.void     (lambda _: [           now().hour               ])])
-    cput('Time_hour',        ['Th'], [Case.value_n2v(lambda e:  fromtimestamp(e).hour                )])
-    cput('Now_twelve_hour',  ['Ni'], [Case.void     (lambda _: [          (now().hour - 1) % 12 + 1 ])])
-    cput('Time_twelve_hour', ['Ti'], [Case.value_n2v(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1  )])
-    cput('Now_day_of_year',  ['Nj'], [Case.void     (lambda _: [           now().timetuple().tm_yday])]) # type: ignore
-    cput('Time_day_of_year', ['Tj'], [Case.value_n2v(lambda e:  fromtimestamp(e).timetuple().tm_yday )]) # type: ignore
-    cput('Now_month',        ['Nm'], [Case.void     (lambda _: [           now().month              ])])
-    cput('Time_month',       ['Tm'], [Case.value_n2v(lambda e:  fromtimestamp(e).month               )])
-    cput('Now_second',       ['Ns'], [Case.void     (lambda _: [           now().second             ])])
-    cput('Time_second',      ['Ts'], [Case.value_n2v(lambda e:  fromtimestamp(e).second              )])
-    cput('Now_iso_weekday',  ['Nv'], [Case.void     (lambda _: [           now().isoweekday()       ])])
-    cput('Time_iso_weekday', ['Tv'], [Case.value_n2v(lambda e:  fromtimestamp(e).isoweekday()        )])
-    cput('Now_weekday',      ['Nw'], [Case.void     (lambda _: [           now().weekday()          ])])
-    cput('Time_weekday',     ['Tw'], [Case.value_n2v(lambda e:  fromtimestamp(e).weekday()           )])
+    cput('Now_minute',       ['Nb'], [Case.void     (lambda _: [           now().minute             ])], docs="Get the current minute")
+    cput('Time_minute',      ['Tb'], [Case.value_n2v(lambda e:  fromtimestamp(e).minute              )], docs="Get the minute from a timestamp")
+    cput('Now_day',          ['Nd'], [Case.void     (lambda _: [           now().day                ])], docs="Get the current day")
+    cput('Time_day',         ['Td'], [Case.value_n2v(lambda e:  fromtimestamp(e).day                 )], docs="Get the day from a timestamp")
+    cput('Now_hour',         ['Nh'], [Case.void     (lambda _: [           now().hour               ])], docs="Get the current hour")
+    cput('Time_hour',        ['Th'], [Case.value_n2v(lambda e:  fromtimestamp(e).hour                )], docs="Get the hour from a timestamp")
+    cput('Now_twelve_hour',  ['Ni'], [Case.void     (lambda _: [          (now().hour - 1) % 12 + 1 ])], docs="Get the current hour, as a number from 1 to 12")
+    cput('Time_twelve_hour', ['Ti'], [Case.value_n2v(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1  )], docs="Get the hour, as a number from 1 to 12 from a timestamp")
+    cput('Now_day_of_year',  ['Nj'], [Case.void     (lambda _: [           now().timetuple().tm_yday])], docs="Get the current day of year") # type: ignore
+    cput('Time_day_of_year', ['Tj'], [Case.value_n2v(lambda e:  fromtimestamp(e).timetuple().tm_yday )], docs="Get the day of year from a timestamp") # type: ignore
+    cput('Now_month',        ['Nm'], [Case.void     (lambda _: [           now().month              ])], docs="Get the current month")
+    cput('Time_month',       ['Tm'], [Case.value_n2v(lambda e:  fromtimestamp(e).month               )], docs="Get the month from a timestamp")
+    cput('Now_second',       ['Ns'], [Case.void     (lambda _: [           now().second             ])], docs="Get the current second")
+    cput('Time_second',      ['Ts'], [Case.value_n2v(lambda e:  fromtimestamp(e).second              )], docs="Get the second from a timestamp")
+    cput('Now_iso_weekday',  ['Nv'], [Case.void     (lambda _: [           now().isoweekday()       ])], docs="Get the current ISO weekday (Monday is 1, Sunday is 7)")
+    cput('Time_iso_weekday', ['Tv'], [Case.value_n2v(lambda e:  fromtimestamp(e).isoweekday()        )], docs="Get the ISO weekday (Monday is 1, Sunday is 7) from a timestamp")
+    cput('Now_weekday',      ['Nw'], [Case.void     (lambda _: [           now().weekday()          ])], docs="Get the current weekday (Monday is 0, Sunday is 6)")
+    cput('Time_weekday',     ['Tw'], [Case.value_n2v(lambda e:  fromtimestamp(e).weekday()           )], docs="Get the weekday (Monday is 0, Sunday is 6) from a timestamp")
     # }}}
     # Randomness {{{
     cput('Random_float', ['Rf'], [Case.void(lambda env: [random.random()])])
@@ -964,12 +1113,12 @@ def initialize_builtins(env: Environment) -> None:
     # }}}
     # Bullet assignment {{{
     BULLET = '•'
-    @put('Assign_bullet', '·')
+    @put('Assign_bullet', '·', docs="Assign to the variable •")
     def assign_bullet(env: Environment) -> None:
         e = env.pop()
         env.push(e)
         env.put(BULLET, e)
-    @put('Assign_bullet_destructive', '–')
+    @put('Assign_bullet_destructive', '–', docs="Pop and assign to the variable •")
     def assign_bullet_destructive(env: Environment) -> None:
         e = env.pop()
         env.put(BULLET, e)

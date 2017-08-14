@@ -25,10 +25,14 @@ class BuiltIn(Block):
     def __init__(self,
             name: str,
             func: Callable[['Environment'], None],
-            docs: Optional[str] = None) -> None:
+            aliases: Optional[List[str]] = None,
+            docs: Optional[str] = None,
+            stability: str = "unknown") -> None:
         self.name = name
+        self.aliases = aliases or [name] # type: List[str]
         self.func = func
         self.docs = docs
+        self.stability = stability
 
     def __call__(self, env: 'Environment') -> None:
         self.func(env)
@@ -81,6 +85,8 @@ class Environment: # {{{
         self.input_trigger = input_trigger
         self.stack_trigger = stack_trigger
         self.vars = dict() # type: Dict[str, PdObject]
+        self.var_docs = dict() # type: Dict[str, str]
+        self.var_stability = dict() # type: Dict[str, str]
         self._stack   =   stack or [] # type: List[PdObject]
         self._x_stack = x_stack or [0, [], ''] # type: List[PdObject]
         self.STACK_TRIGGER_X = 2 # ???
@@ -142,7 +148,10 @@ class Environment: # {{{
         if ret is None: return other
         else: return ret
 
-    def put(self, token: str, val: PdObject, fail_if_overwrite: bool = False) -> None:
+    def put(self, token: str, val: PdObject,
+            docs: Optional[str] = None,
+            stability: Optional[str] = None,
+            fail_if_overwrite: bool = False) -> None:
         xi = x_index(token)
         if xi is not None:
             self.set_x(xi, val)
@@ -150,6 +159,10 @@ class Environment: # {{{
             if fail_if_overwrite and token in self.vars:
                 raise AssertionError('Failing on overwriting ' + repr(token))
             self.vars[token] = val
+            if docs is not None:
+                self.var_docs[token] = docs
+            if stability is not None:
+                self.var_stability[token] = stability
         else:
             self.vars_delegate.put(token, val)
 

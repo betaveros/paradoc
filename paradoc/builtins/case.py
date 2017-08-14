@@ -204,10 +204,18 @@ class Case:
         return Case(3, [just_list, just_list, just_block], func)
 
 class CasedBuiltIn(Block):
-    def __init__(self, name: str, cases: List[Case], docs: Optional[str] = None) -> None:
+    def __init__(self,
+            name: str,
+            cases: List[Case],
+            aliases: Optional[List[str]] = None,
+            docs: Optional[str] = None,
+            stability: str = "unknown") -> None:
         self.name = name
+        self.aliases = aliases or [name] # type: List[str]
         self.cases = cases
         self.docs = docs
+        self.stability = stability
+
     def __call__(self, env: 'Environment') -> None:
         collected_args = [] # type: List[PdObject]
         for case in self.cases:
