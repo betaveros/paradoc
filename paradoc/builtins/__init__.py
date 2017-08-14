@@ -177,6 +177,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Abs_diff', ['Ad', '±'], [
         Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
     ])
+    cput('Inverse', ['´'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: 1/e, x)])])
     # }}}
     # Conversions C, F, I, S {{{
     cput('To_char', ['C'], [

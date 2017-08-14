@@ -63,6 +63,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('0.25 0.25+'), [0.5])
         self.assertEqual(pd_simple_eval('7 3G'), [1])
         self.assertEqual(pd_simple_eval('8 36G'), [4])
+        self.assertEqual(pd_simple_eval('16´'), [1/16])
 
     def test_arithmetic_trailers(self):
         self.assertEqual(pd_simple_eval('2 3á'), [5])
