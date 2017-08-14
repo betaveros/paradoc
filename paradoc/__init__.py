@@ -51,23 +51,34 @@ def apply_pd_list_op(
     env.push(op(env, b, lst))
 
 # bool is whether the result is "reluctant"
+T = TypeVar('T')
+TrailerFunc = Callable[[Environment, T], Tuple[PdObject, bool]]
 
-BlockTrailer = Callable[[Environment, Block], Tuple[Block, bool]]
-def build_block_trailer_dict() -> Dict[str, BlockTrailer]: # {{{
-    ret = dict() # type: Dict[str, BlockTrailer]
-    def put(*names: str) -> Callable[[BlockTrailer], BlockTrailer]:
-        def inner(f: BlockTrailer) -> BlockTrailer:
-            for name in names:
-                if len(name) == 1:
-                    assert name not in ret
-                    ret[name] = f
-                if name != "_":
-                    assert ("_" + name) not in ret
-                    ret["_" + name] = f
-            return f
-        return inner
+class Trailer(Generic[T]):
+    def __init__(self, name: str, func: TrailerFunc[T]) -> None:
+        self.name = name
+        self.func = func
 
-    @put("_")
+    def __call__(self, env: Environment, obj: T) -> Tuple[PdObject, bool]:
+        return self.func(env, obj)
+
+TrailerPutter = Callable[[TrailerFunc[T]], Trailer[T]]
+
+def trailer_putter(d: Dict[str, Trailer[T]], names: Tuple[str, ...]) -> TrailerPutter:
+    def inner(f: TrailerFunc[T]) -> Trailer[T]:
+        t = Trailer(names[0], f)
+        for name in names:
+            assert name not in d
+            d[name] = t
+        return t
+    return inner
+
+def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
+    ret = dict() # type: Dict[str, Trailer[Block]]
+    def put(*names: str) -> TrailerPutter[Block]:
+        return trailer_putter(ret, names)
+
+    @put("reluctant", "") # will be called as a trailing _
     def make_reluctant(env: Environment, b: Block) -> Tuple[Block, bool]:
         return (b, True)
 
@@ -227,23 +238,12 @@ def build_block_trailer_dict() -> Dict[str, BlockTrailer]: # {{{
                         objects.pd_map)), False)
 
     return ret
-# }}}
 block_trailer_dict = build_block_trailer_dict()
-
-StringTrailer = Callable[[Environment, str], Tuple[PdObject, bool]]
-def build_string_trailer_dict() -> Dict[str, StringTrailer]: # {{{
-    ret = dict() # type: Dict[str, StringTrailer]
-    def put(*names: str) -> Callable[[StringTrailer], StringTrailer]:
-        def inner(f: StringTrailer) -> StringTrailer:
-            for name in names:
-                if len(name) == 1:
-                    assert name not in ret
-                    ret[name] = f
-                if name != "_":
-                    assert ("_" + name) not in ret
-                    ret["_" + name] = f
-            return f
-        return inner
+# }}}
+def build_string_trailer_dict() -> Dict[str, Trailer[str]]: # {{{
+    ret = dict() # type: Dict[str, Trailer[str]]
+    def put(*names: str) -> TrailerPutter[str]:
+        return trailer_putter(ret, names)
 
     @put("interpolate", "i")
     def interpolate_trailer(outer_env: Environment, s: str) -> Tuple[PdObject, bool]:
@@ -293,23 +293,12 @@ def build_string_trailer_dict() -> Dict[str, StringTrailer]: # {{{
         return (BuiltIn(objects.pd_repr(s) + "_debug", debug_s), False)
 
     return ret
-# }}}
 string_trailer_dict = build_string_trailer_dict()
-
-IntTrailer = Callable[[Environment, int], Tuple[PdObject, bool]]
-def build_int_trailer_dict() -> Dict[str, IntTrailer]: # {{{
-    ret = dict() # type: Dict[str, IntTrailer]
-    def put(*names: str) -> Callable[[IntTrailer], IntTrailer]:
-        def inner(f: IntTrailer) -> IntTrailer:
-            for name in names:
-                if len(name) == 1:
-                    assert name not in ret
-                    ret[name] = f
-                if name != "_":
-                    assert ("_" + name) not in ret
-                    ret["_" + name] = f
-            return f
-        return inner
+# }}}
+def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
+    ret = dict() # type: Dict[str, Trailer[int]]
+    def put(*names: str) -> TrailerPutter[int]:
+        return trailer_putter(ret, names)
 
     @put("minus", "m")
     def minus_trailer(outer_env: Environment, i: int) -> Tuple[int, bool]:
@@ -329,7 +318,7 @@ def build_int_trailer_dict() -> Dict[str, IntTrailer]: # {{{
             env.push(i)
             env.push(t)
         return (BuiltIn(str(i) + "_under", under_i), False)
-    @put("force", "_")
+    @put("force")
     def force_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
         def force_i(env: Environment) -> None:
             xs = env.pop_n(i)
@@ -381,23 +370,12 @@ def build_int_trailer_dict() -> Dict[str, IntTrailer]: # {{{
             return (ag_convert(agchar, i, str(i) + agchar), False)
 
     return ret
-# }}}
 int_trailer_dict = build_int_trailer_dict()
-
-FloatTrailer = Callable[[Environment, float], Tuple[PdObject, bool]]
-def build_float_trailer_dict() -> Dict[str, FloatTrailer]: # {{{
-    ret = dict() # type: Dict[str, FloatTrailer]
-    def put(*names: str) -> Callable[[FloatTrailer], FloatTrailer]:
-        def inner(f: FloatTrailer) -> FloatTrailer:
-            for name in names:
-                if len(name) == 1:
-                    assert name not in ret
-                    ret[name] = f
-                if name != "_":
-                    assert ("_" + name) not in ret
-                    ret["_" + name] = f
-            return f
-        return inner
+# }}}
+def build_float_trailer_dict() -> Dict[str, Trailer[float]]: # {{{
+    ret = dict() # type: Dict[str, Trailer[float]]
+    def put(*names: str) -> TrailerPutter[float]:
+        return trailer_putter(ret, names)
 
     @put("minus", "m")
     def minus_trailer(outer_env: Environment, f: float) -> Tuple[float, bool]:
@@ -411,12 +389,14 @@ def build_float_trailer_dict() -> Dict[str, FloatTrailer]: # {{{
         return (f * 1000, False)
 
     return ret
-# }}}
 float_trailer_dict = build_float_trailer_dict()
+# }}}
 
 def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tuple[PdObject, bool]:
     # print("act_on_trailer_token", token, b0)
     assert token
+
+    if token.startswith("_"): token = token[1:]
 
     if isinstance(b0, Block):
         b = b0 # type: Block

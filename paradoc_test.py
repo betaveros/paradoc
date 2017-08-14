@@ -125,10 +125,12 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}m'), [[9,10,12]])
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}_map'), [[9,10,12]])
         self.assertEqual(pd_simple_eval('[2 3 5](_map'), [[1,2,4]])
+        self.assertEqual(pd_simple_eval('[2 3 5](_%'), [[1,2,4]])
         self.assertEqual(pd_simple_eval('[2 3 5])m'), [[3,4,6]])
         self.assertEqual(pd_simple_eval('[2 3 5]{:}%'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]{:}m'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]:m'), [[2,2,3,3,5,5]])
+        self.assertEqual(pd_simple_eval('[2 3 5]:_%'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]{:}_map'), [[2,2,3,3,5,5]])
 
     def test_filter(self):
