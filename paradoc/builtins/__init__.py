@@ -140,7 +140,7 @@ def initialize_builtins(env: Environment) -> None:
             stability="beta")
     def pack_reverse(env: Environment) -> None:
         env.push(env.pop_until_stack_marker()[::-1])
-    @put(']_case', ']c')
+    @put(']_case', ']c', stability="beta")
     def stack_marker_case(env: Environment) -> None:
         case_list = env.pop_until_stack_marker()
         target = env.pop()
@@ -156,7 +156,7 @@ def initialize_builtins(env: Environment) -> None:
                     raise AssertionError('Empty case')
             else:
                 raise AssertionError('Non-list case')
-    @put(']_stream', ']s')
+    @put(']_stream', ']s', stability="alpha")
     def stack_marker_stream(env: Environment) -> None:
         case_list = env.pop_until_stack_marker()
         target = env.pop()
@@ -300,7 +300,8 @@ def initialize_builtins(env: Environment) -> None:
             docs="""Absolute difference.""",
             stability="stable")
     cput('Inverse', ['´'], [Case.value_n2v(lambda e: 1/e)],
-            docs="""Inverse (reciprocal) of numbers. Deeply vectorizes.""")
+            docs="""Inverse (reciprocal) of numbers. Deeply vectorizes.""",
+            stability="alpha")
     # }}}
     # Conversions C, F, I, S {{{
     cput('To_char', ['C'], [
@@ -365,18 +366,24 @@ def initialize_builtins(env: Environment) -> None:
 
     range_til_case = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi))])
     range_to_case  = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi) + 1)])
-    cput('Exclusive_range', ['Tl'], [range_til_case])
-    cput('Inclusive_range', ['To'], [range_to_case])
+    cput('Exclusive_range', ['Tl'], [range_til_case],
+            stability="beta")
+    cput('Inclusive_range', ['To'], [range_to_case],
+            stability="beta")
     flatten_once_case = Case.seq(lambda env, seq: [pd_flatten_once(seq)])
     flatten_case      = Case.seq(lambda env, seq: [pd_flatten(seq)])
-    cput('Flatten_once', [], [flatten_once_case])
-    cput('Flatten',      [], [flatten_case])
+    cput('Flatten_once', [], [flatten_once_case],
+            stability="beta")
+    cput('Flatten',      [], [flatten_case],
+            stability="beta")
     # Note: The dots are the opposite convention of Ruby, where .. is inclusive
     # and ... is exclusive. I don't particularly like that convention. The
     # three-dot range having one more element than the two-dot range makes
     # sense to me.
-    cput('Exclusive_range_or_flatten_once', ['¨'], [flatten_once_case, range_til_case])
-    cput('Inclusive_range_or_flatten',      ['…'], [flatten_case,      range_to_case])
+    cput('Exclusive_range_or_flatten_once', ['¨'], [flatten_once_case, range_til_case],
+            stability="beta")
+    cput('Inclusive_range_or_flatten',      ['…'], [flatten_case,      range_to_case],
+            stability="beta")
     # }}}
     # Binary operators &|^ {{{
     cput('Vertical_bar', ['|'], [
@@ -452,7 +459,8 @@ def initialize_builtins(env: Environment) -> None:
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
-    ])
+    ],
+            stability="beta")
     cput('Equal_sign', ['='], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
@@ -580,8 +588,10 @@ def initialize_builtins(env: Environment) -> None:
     cput('Round',                   ['=i'], [round_case                     ],
             docs="""Round to the nearest integer; follows Python's rules.""",
             stability="alpha")
-    cput('First_and_last',          [    ], [            first_and_last_case])
-    cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case])
+    cput('First_and_last',          [    ], [            first_and_last_case],
+            stability="alpha")
+    cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case],
+            stability="alpha")
     # }}}
     # Uncons, Unsnoc, Parens() {{{
     decr_case = Case.number(lambda env, a: [num.pd_add_const(a, -1)])
@@ -657,33 +667,41 @@ def initialize_builtins(env: Environment) -> None:
             stability="beta")
     cput('Transpose', ['Tt', '™'], [
         Case.seq(lambda env, a: [pd_transpose(a)]),
-    ])
+    ],
+            stability="alpha")
     cput('Zip', [], [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
-    ])
+    ],
+            stability="alpha")
     # }}}
     # Reduce/join {{{
     cput('Reduce', ['R'], [
         Case.seq2_singleton(lambda env, seq, joiner: [pd_join(env, seq, joiner)]),
         Case.block_seq_range(lambda env, block, seq: [pd_reduce(env, block, seq)]),
-    ])
+    ],
+            stability="beta")
     cput('Line_join', ['\nr', '\\nr'], [
         Case.seq_range(lambda env, seq: ['\n'.join(env.pd_str(e) for e in pd_iterable(seq))]),
-    ])
+    ],
+            stability="beta")
     cput('Space_join', [' r'], [
         Case.seq_range(lambda env, seq: [' '.join(env.pd_str(e) for e in pd_iterable(seq))]),
-    ])
+    ],
+            stability="beta")
     # }}}
     # G for Gcd or group, and friends {{{
     cput('Group', [], [
         Case.seq(lambda env, seq: [pd_group(seq)]),
-    ])
+    ],
+            stability="beta")
     cput('Group_by', [], [
         Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
-    ])
+    ],
+            stability="beta")
     cput('Gcd', [], [
         Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
-    ])
+    ],
+            stability="beta")
     cput('G', [], [
         Case.seq(lambda env, seq: [pd_group(seq)]),
         Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
@@ -696,8 +714,8 @@ def initialize_builtins(env: Environment) -> None:
     # Circumflexed vowels {{{
     even_case = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 0)])
     odd_case  = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 1)])
-    cput('Even', ['Ev'], [even_case])
-    cput('Odd',  ['Od'], [odd_case])
+    cput('Even', ['Ev'], [even_case], stability="alpha")
+    cput('Odd',  ['Od'], [odd_case],  stability="alpha")
     def all_fold_f(es: Optional[List[PdObject]]) -> Optional[bool]:
         if es is None:
             return True
@@ -765,12 +783,12 @@ def initialize_builtins(env: Environment) -> None:
         Case.block_seq_range(lambda env, block, seq:
             [int(pd_map_fold_into(env, block, seq, make_unique_fold_f()))]),
     ]
-    cput('All', ['For_all', 'Fa'], all_cases)
-    cput('Any', ['There_exists', 'Te'], any_cases)
-    cput('Not_all', ['Na'], not_all_cases)
-    cput('Not_any', ['Not_exists', 'Ne'], not_any_cases)
-    cput('Identical', [], identical_cases)
-    cput('Unique', [], unique_cases)
+    cput('All', ['For_all', 'Fa'], all_cases, stability="beta")
+    cput('Any', ['There_exists', 'Te'], any_cases, stability="beta")
+    cput('Not_all', ['Na'], not_all_cases, stability="beta")
+    cput('Not_any', ['Not_exists', 'Ne'], not_any_cases, stability="beta")
+    cput('Identical', [], identical_cases, stability="beta")
+    cput('Unique', [], unique_cases, stability="beta")
     cput('Â', [], [
         Case.number(lambda env, a: [int(num.numerify(a) > 0)])
     ] + all_cases,
@@ -803,7 +821,7 @@ def initialize_builtins(env: Environment) -> None:
         else:
             raise NotImplementedError
 
-    @put('Eval')
+    @put('Eval', stability="alpha")
     def pd_eval(env: Environment) -> None:
         a = env.pop()
         if isinstance(a, str):
@@ -812,7 +830,10 @@ def initialize_builtins(env: Environment) -> None:
             raise NotImplementedError
     # }}}
     # Input, output, and debugging {{{
-    @put('Read_input', 'V')
+    @put('Read_input', 'V',
+            docs="""Read something from standard input, as determined by the
+            current input trigger.""",
+            stability="alpha")
     def read_input(env: Environment) -> None:
         e = env.input_trigger()
         if e is None:
@@ -820,32 +841,48 @@ def initialize_builtins(env: Environment) -> None:
         else:
             env.push(e)
 
-    @put('Output', 'O')
+    @put('Output', 'O',
+            docs="""Output to standard output.""",
+            stability="beta")
     def pd_output(env: Environment) -> None:
         a = env.pop()
         print(env.pd_str(a), end="")
 
-    @put('Print', 'P')
+    @put('Print', 'P',
+            docs="""Output to standard output, followed by an output record
+            separator.""",
+            stability="beta")
     def pd_print(env: Environment) -> None:
         a = env.pop()
         env.print_output_record(env.pd_str(a))
 
-    @put('Space_output', ' o')
+    @put('Space_output', ' o',
+            docs="Output a space.", stability="beta")
     def pd_space_output(env: Environment) -> None:
         print(' ', end="")
-    @put('Newline_output', '\no', '\\no')
+    @put('Newline_output', '\no', '\\no',
+            docs="Output a newline.", stability="beta")
     def pd_newline_output(env: Environment) -> None:
         print()
 
-    @put('Debug', 'Dump')
+    @put('Debug', 'Dump',
+            docs="""Print debugging information about the environment and
+            stack.""",
+            stability="alpha")
     def dump(env: Environment) -> None:
         print('Dump:', env.debug_dump(), file=sys.stderr)
     # }}}
     # Abort, Break, Continue {{{
-    @put('Abort', 'A')
+    @put('Abort', 'A',
+            docs="""Abort the current program.""",
+            stability="beta")
     def abort(env: Environment) -> None:
         raise PdAbortException("Abort")
-    @put('Abort_with', 'Aw', docs="Abort with this exit code")
+
+    @put('Abort_with', 'Aw',
+            docs="""Abort the current program with the specified exit code or
+            message.""",
+            stability="beta")
     def abort_with(env: Environment) -> None:
         e = env.pop()
         if isinstance(e, (int, float, Char)):
@@ -854,10 +891,14 @@ def initialize_builtins(env: Environment) -> None:
             print("Abort: " + str(e), file=sys.stderr)
             raise PdAbortException(str(e), 1)
 
-    @put('Break', 'Quit_loop', 'Q')
+    @put('Break', 'Quit_loop', 'Q',
+            docs="""Break out of the current loop.""",
+            stability="beta")
     def break_(env: Environment) -> None:
         raise PdBreakException('Break')
-    @put('Continue', 'Keep_going', 'K')
+    @put('Continue', 'Keep_going', 'K',
+            docs="""Skip to the next iteration of the current loop.""",
+            stability="beta")
     def continue_(env: Environment) -> None:
         raise PdContinueException('Continue')
     # }}}
@@ -873,26 +914,29 @@ def initialize_builtins(env: Environment) -> None:
                 pd_foreach_x_only_then_empty_list(env, b, range(p))
             ),
         ]
-    cput('Halve', ['½'], pd_constant_fraction_cases(1, 2))
-    cput('Quarter', ['¼'], pd_constant_fraction_cases(1, 4))
-    cput('Three_quarters', ['¾'], pd_constant_fraction_cases(3, 4))
-    cput('Double', ['×'], pd_constant_fraction_cases(2, 1))
+    cput('Halve', ['½'], pd_constant_fraction_cases(1, 2), stability="beta")
+    cput('Quarter', ['¼'], pd_constant_fraction_cases(1, 4), stability="beta")
+    cput('Three_quarters', ['¾'], pd_constant_fraction_cases(3, 4), stability="beta")
+    cput('Double', ['×'], pd_constant_fraction_cases(2, 1), stability="beta")
 
     cput('Square', ['²'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
         Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s)]),
-    ])
+    ],
+            stability="beta")
     cput('Cube', ['³'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 3)]),
         Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s, s)]),
-    ])
-    cput('Power_of_ten', ['°'], [Case.number(lambda env, n: [10 ** num.numerify(n)])])
+    ],
+            stability="beta")
+    cput('Power_of_ten', ['°'], [Case.number(lambda env, n: [10 ** num.numerify(n)])],
+            stability="alpha")
     # }}}
     # Len, abs {{{
     abs_case = Case.number(lambda env, n: [num.pd_abs(n)])
     len_case = Case.seq(lambda env, seq: [len(seq)])
-    cput('Len', [], [len_case], stability="beta")
-    cput('Abs', [], [abs_case], stability="beta")
+    cput('Len', [], [len_case], stability="stable")
+    cput('Abs', [], [abs_case], stability="stable")
     cput('Abs_or_len', ['L'], [abs_case, len_case], stability="beta")
     # }}}
     # Other numeric predicates {{{
@@ -966,8 +1010,8 @@ def initialize_builtins(env: Environment) -> None:
     # W for Window and W for Words {{{
     words_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
     window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
-    cput('Window', [], [window_case])
-    cput('Space_split', ['Words'], [words_case, window_case])
+    cput('Window', [], [window_case], stability="alpha")
+    cput('Space_split', ['Words'], [words_case, window_case], stability="alpha")
     cput('W', [], [words_case, window_case],
             docs="""Words (split by spaces) or Window (sliding window of size
             given by number.""",
@@ -984,15 +1028,17 @@ def initialize_builtins(env: Environment) -> None:
             [pd_map_iterable(env, block,
                 map(list, itertools.permutations(pd_iterable(seq))))]),
     ]
-    cput('Permutations', [], permutation_cases)
-    cput('Factorial', [], [factorial_case])
+    cput('Permutations', [], permutation_cases, stability="beta")
+    cput('Factorial', [], [factorial_case], stability="beta")
     cput('Permutations_or_factorial', ['¡', '!p'],
-            [factorial_case] + permutation_cases)
+            [factorial_case] + permutation_cases,
+            stability="beta")
     binomial_coefficient_case = (
         Case.number2(lambda env, n, k: [discrete.binomial_coefficient(
             num.numerify(n), num.numerify(k))])
     )
-    cput('Binomial_coefficient', ['Bc'], [binomial_coefficient_case])
+    cput('Binomial_coefficient', ['Bc'], [binomial_coefficient_case],
+            stability="beta")
     # TODO: choose
     cput('Subsequences', ['¿'], [
         Case.number(lambda env, n: [2 ** num.numerify(n)]),
@@ -1000,10 +1046,12 @@ def initialize_builtins(env: Environment) -> None:
         Case.block_seq_range(lambda env, block, seq:
             [pd_map_iterable(env, block,
                 pd_subsequences(seq))]),
-    ])
+    ],
+            stability="beta")
     cput('Fibonacci', ['Fb'], [Case.number(
             lambda env, n: [discrete.fibonacci(num.numerify(n))]
-    )])
+    )],
+            stability="beta")
     # }}}
     # Number theory (primes etc) {{{
     cput('Is_prime', ['Pp'], [
@@ -1043,41 +1091,45 @@ def initialize_builtins(env: Environment) -> None:
             stability="unstable")
     # }}}
     # Time {{{
-    cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])])
+    cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])], stability="alpha")
     now = datetime.datetime.now
     fromtimestamp = datetime.datetime.fromtimestamp
 
-    cput('Now_minute',       ['Nb'], [Case.void     (lambda _: [           now().minute             ])], docs="Get the current minute")
-    cput('Time_minute',      ['Tb'], [Case.value_n2v(lambda e:  fromtimestamp(e).minute              )], docs="Get the minute from a timestamp")
-    cput('Now_day',          ['Nd'], [Case.void     (lambda _: [           now().day                ])], docs="Get the current day")
-    cput('Time_day',         ['Td'], [Case.value_n2v(lambda e:  fromtimestamp(e).day                 )], docs="Get the day from a timestamp")
-    cput('Now_hour',         ['Nh'], [Case.void     (lambda _: [           now().hour               ])], docs="Get the current hour")
-    cput('Time_hour',        ['Th'], [Case.value_n2v(lambda e:  fromtimestamp(e).hour                )], docs="Get the hour from a timestamp")
-    cput('Now_twelve_hour',  ['Ni'], [Case.void     (lambda _: [          (now().hour - 1) % 12 + 1 ])], docs="Get the current hour, as a number from 1 to 12")
-    cput('Time_twelve_hour', ['Ti'], [Case.value_n2v(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1  )], docs="Get the hour, as a number from 1 to 12 from a timestamp")
-    cput('Now_day_of_year',  ['Nj'], [Case.void     (lambda _: [           now().timetuple().tm_yday])], docs="Get the current day of year") # type: ignore
-    cput('Time_day_of_year', ['Tj'], [Case.value_n2v(lambda e:  fromtimestamp(e).timetuple().tm_yday )], docs="Get the day of year from a timestamp") # type: ignore
-    cput('Now_month',        ['Nm'], [Case.void     (lambda _: [           now().month              ])], docs="Get the current month")
-    cput('Time_month',       ['Tm'], [Case.value_n2v(lambda e:  fromtimestamp(e).month               )], docs="Get the month from a timestamp")
-    cput('Now_second',       ['Ns'], [Case.void     (lambda _: [           now().second             ])], docs="Get the current second")
-    cput('Time_second',      ['Ts'], [Case.value_n2v(lambda e:  fromtimestamp(e).second              )], docs="Get the second from a timestamp")
-    cput('Now_iso_weekday',  ['Nv'], [Case.void     (lambda _: [           now().isoweekday()       ])], docs="Get the current ISO weekday (Monday is 1, Sunday is 7)")
-    cput('Time_iso_weekday', ['Tv'], [Case.value_n2v(lambda e:  fromtimestamp(e).isoweekday()        )], docs="Get the ISO weekday (Monday is 1, Sunday is 7) from a timestamp")
-    cput('Now_weekday',      ['Nw'], [Case.void     (lambda _: [           now().weekday()          ])], docs="Get the current weekday (Monday is 0, Sunday is 6)")
-    cput('Time_weekday',     ['Tw'], [Case.value_n2v(lambda e:  fromtimestamp(e).weekday()           )], docs="Get the weekday (Monday is 0, Sunday is 6) from a timestamp")
+    cput('Now_minute',       ['Nb'], [Case.void     (lambda _: [           now().minute             ])], docs="Get the current minute", stability="alpha")
+    cput('Time_minute',      ['Tb'], [Case.value_n2v(lambda e:  fromtimestamp(e).minute              )], docs="Get the minute from a timestamp", stability="alpha")
+    cput('Now_day',          ['Nd'], [Case.void     (lambda _: [           now().day                ])], docs="Get the current day", stability="alpha")
+    cput('Time_day',         ['Td'], [Case.value_n2v(lambda e:  fromtimestamp(e).day                 )], docs="Get the day from a timestamp", stability="alpha")
+    cput('Now_hour',         ['Nh'], [Case.void     (lambda _: [           now().hour               ])], docs="Get the current hour", stability="alpha")
+    cput('Time_hour',        ['Th'], [Case.value_n2v(lambda e:  fromtimestamp(e).hour                )], docs="Get the hour from a timestamp", stability="alpha")
+    cput('Now_twelve_hour',  ['Ni'], [Case.void     (lambda _: [          (now().hour - 1) % 12 + 1 ])], docs="Get the current hour, as a number from 1 to 12", stability="alpha")
+    cput('Time_twelve_hour', ['Ti'], [Case.value_n2v(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1  )], docs="Get the hour, as a number from 1 to 12 from a timestamp", stability="alpha")
+    cput('Now_day_of_year',  ['Nj'], [Case.void     (lambda _: [           now().timetuple().tm_yday])], docs="Get the current day of year", stability="alpha") # type: ignore
+    cput('Time_day_of_year', ['Tj'], [Case.value_n2v(lambda e:  fromtimestamp(e).timetuple().tm_yday )], docs="Get the day of year from a timestamp", stability="alpha") # type: ignore
+    cput('Now_month',        ['Nm'], [Case.void     (lambda _: [           now().month              ])], docs="Get the current month", stability="alpha")
+    cput('Time_month',       ['Tm'], [Case.value_n2v(lambda e:  fromtimestamp(e).month               )], docs="Get the month from a timestamp", stability="alpha")
+    cput('Now_second',       ['Ns'], [Case.void     (lambda _: [           now().second             ])], docs="Get the current second", stability="alpha")
+    cput('Time_second',      ['Ts'], [Case.value_n2v(lambda e:  fromtimestamp(e).second              )], docs="Get the second from a timestamp", stability="alpha")
+    cput('Now_iso_weekday',  ['Nv'], [Case.void     (lambda _: [           now().isoweekday()       ])], docs="Get the current ISO weekday (Monday is 1, Sunday is 7)", stability="alpha")
+    cput('Time_iso_weekday', ['Tv'], [Case.value_n2v(lambda e:  fromtimestamp(e).isoweekday()        )], docs="Get the ISO weekday (Monday is 1, Sunday is 7) from a timestamp", stability="alpha")
+    cput('Now_weekday',      ['Nw'], [Case.void     (lambda _: [           now().weekday()          ])], docs="Get the current weekday (Monday is 0, Sunday is 6)", stability="alpha")
+    cput('Time_weekday',     ['Tw'], [Case.value_n2v(lambda e:  fromtimestamp(e).weekday()           )], docs="Get the weekday (Monday is 0, Sunday is 6) from a timestamp", stability="alpha")
     # }}}
     # Randomness {{{
-    cput('Random_float', ['Rf'], [Case.void(lambda env: [random.random()])])
+    cput('Random_float', ['Rf'], [Case.void(lambda env: [random.random()])],
+            stability="alpha")
     cput('Random_gaussian', ['Rg'], [
         Case.void(lambda env: [random.gauss(0, 1)])
-    ])
+    ],
+            stability="alpha")
     cput('Random_int', ['Ri'], [
         Case.number(lambda env, n: [random.randrange(num.intify(n))])
-    ])
+    ],
+            stability="alpha")
     cput('Random_choice', ['Rc'], [
         Case.seq(lambda env, seq: [random.choice(seq)])
-    ])
-    @put('Random_seed')
+    ],
+            stability="alpha")
+    @put('Random_seed', stability="alpha")
     def random_seed(env: Environment) -> None:
         e = env.pop()
         if isinstance(e, (Char, int, float)):
@@ -1088,37 +1140,46 @@ def initialize_builtins(env: Environment) -> None:
             raise AssertionError("Can't seed random with non-numeric non-string value " + repr(e))
     # }}}
     # Stack functions {{{
-    @put('Reverse_stack', 'Down_stack', 'Ds')
+    @put('Reverse_stack', 'Down_stack', 'Ds',
+            stability="beta")
     def reverse_stack(env: Environment) -> None:
         env.push(*env.pop_until_stack_marker()[::-1])
-    @put('Length_stack', 'Ls')
+    @put('Length_stack', 'Ls',
+            stability="beta")
     def length_stack(env: Environment) -> None:
         env.push(len(env.pop_until_stack_marker()))
-    @put('Sum_stack', 'Šs')
+    @put('Sum_stack', 'Šs',
+            stability="beta")
     def sum_stack(env: Environment) -> None:
         env.push(sum(env.pop_until_stack_marker()))
-    @put('Product_stack', 'Þs')
+    @put('Product_stack', 'Þs',
+            stability="beta")
     def product_stack(env: Environment) -> None:
         # TODO: make this a deepmap or something?
         env.push(functools.reduce(operator.mul, env.pop_until_stack_marker(), 1))
-    @put('Force_stack', 'Fs')
+    @put('Force_stack', 'Fs',
+            stability="alpha")
     def force_stack(env: Environment) -> None:
         env.maximize_length()
-    @put('Output_stack', 'Os')
+    @put('Output_stack', 'Os',
+            stability="beta")
     def output_stack(env: Environment) -> None:
         print(env.pd_str(env.pop_until_stack_marker()), end="")
-    @put('Print_stack', 'Ps')
+    @put('Print_stack', 'Ps',
+            stability="beta")
     def print_stack(env: Environment) -> None:
         env.print_output_record(env.pd_str(env.pop_until_stack_marker()))
     # }}}
     # Bullet assignment {{{
     BULLET = '•'
-    @put('Assign_bullet', '·', docs="Assign to the variable •")
+    @put('Assign_bullet', '·', docs="Assign to the variable •",
+            stability="alpha")
     def assign_bullet(env: Environment) -> None:
         e = env.pop()
         env.push(e)
         env.put(BULLET, e)
-    @put('Assign_bullet_destructive', '–', docs="Pop and assign to the variable •")
+    @put('Assign_bullet_destructive', '–', docs="Pop and assign to the variable •",
+            stability="alpha")
     def assign_bullet_destructive(env: Environment) -> None:
         e = env.pop()
         env.put(BULLET, e)

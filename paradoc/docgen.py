@@ -39,6 +39,20 @@ p.stable { color: #0a0; }
 <body>
 <div class="wrap">
 <h1>Paradoc Built-Ins</h1>
+<p>Crude definitions on stability: Stable means you can almost certainly expect
+this built-in to be in Paradoc pretty much as-is, but we reserve the
+possibility of adding/changing behavior in cases the built-in previously did
+not cover, in ways that might technically not be backwards-compatible.</p>
+<p>Beta means you can probably expect this built-in to be in Paradoc as-is, but
+should also be prepared for it to be renamed or have its behavior changed. Or,
+there may be known bugs/design issues/TODOs in its implementation, or it may
+not have been tested as thoroughly as a stable built-in.</p>
+<p>Alpha means this built-in is likely to be in Paradoc, but its name or some
+aspects of its behavior are decidedly not final.</p>
+<p>For unstable built-ins, all bets are off...</p>
+<p>Of course, until we hit version 1.0 (hahahaha), no built-ins should be
+considered absolutely fixed.</p>
+</p>
 {{#vars}}
 <h2 id="{{id}}">{{{formatted_name}}}</h2>
 <p class="stability {{stability}}">Stability: {{stability}}</p>
@@ -125,12 +139,15 @@ def document(env: Environment) -> None:
         else:
             value_data = {}
 
+        stability_index = ['unstable', 'alpha', 'beta', 'stable'].index(stability)
         data.append({
             'id': mangle_to_id(name),
             'formatted_name': format_name(name),
             'stability': stability,
+            'stability_index': stability_index,
             'docs': render_docs(docs),
             'value_data': value_data,
             'alias_note': render_alias_note(aliases)
         })
     print(pystache.render(template, {'vars': data}))
+    # print(pystache.render(template, {'vars': sorted(data, key=lambda d: -d['stability_index'])}))
