@@ -182,7 +182,7 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
         elif token == "š" or token == "_mapsum":
             return (BuiltIn(b.code_repr() + "_mapsum",
                     lambda env: apply_pd_list_op(env, b, objects.pd_mapsum)), False)
-        elif token == "ß" or token == "_bindmap":
+        elif token in ["v", "_vectorize", "_bindmap"]:
             e = outer_env.pop()
             def bind_b(env: Environment) -> None:
                 env.push(e)
