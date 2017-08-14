@@ -252,8 +252,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('5 4>m'), [5])
 
     def test_min_max_of_list(self):
-        self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]>l'), [9])
-        self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]<l'), [2])
+        self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]>r'), [9])
+        self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]<r'), [2])
 
     def test_len(self):
         self.assertEqual(pd_simple_eval('8mL'), [8])

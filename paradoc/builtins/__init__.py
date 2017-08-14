@@ -348,10 +348,10 @@ def initialize_builtins(env: Environment) -> None:
     cput('Max', ['>m', 'Ã'], [
         Case.any2(lambda env, a, b: [max(a, b)]), # TODO
     ])
-    cput('List_min', ['<l', 'Œ'], [
+    cput('Array_min', ['<r', 'Œ'], [
         Case.seq(lambda env, e: [min(pd_iterable(e))]),
     ])
-    cput('List_max', ['>l', 'Æ'], [
+    cput('Array_max', ['>r', 'Æ'], [
         Case.seq(lambda env, e: [max(pd_iterable(e))]),
     ])
     # }}}
