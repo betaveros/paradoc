@@ -842,4 +842,16 @@ def initialize_builtins(env: Environment) -> None:
     def print_stack(env: Environment) -> None:
         env.print_output_record(env.pd_str(env.pop_until_stack_marker()))
     # }}}
+    # Bullet assignment {{{
+    BULLET = '•'
+    @put('Assign_bullet', '·')
+    def assign_bullet(env: Environment) -> None:
+        e = env.pop()
+        env.push(e)
+        env.put(BULLET, e)
+    @put('Assign_bullet_destructive', '–')
+    def assign_bullet_destructive(env: Environment) -> None:
+        e = env.pop()
+        env.put(BULLET, e)
+    # }}}
     env.lazy_var_triggers.append(arithmetic_literal_trigger)
