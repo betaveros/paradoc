@@ -137,7 +137,7 @@ def initialize_builtins(env: Environment) -> None:
     ])
     cput('Minus', ['-'], [
         Case.number2(lambda env, a, b: [num.pd_sub(a, b)]),
-        # TODO: filter not in
+        Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(a, b)]),
         Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
     ])
     cput('Antiminus', ['¯'], [

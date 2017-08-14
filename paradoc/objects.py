@@ -989,6 +989,15 @@ def pd_seq_union(a: PdSeq, b: PdSeq) -> PdSeq:
         else:
             acc.append(element)
     return pd_build_like(a, acc)
+def pd_seq_difference(a: PdSeq, b: PdSeq) -> PdSeq:
+    set_b = collections.Counter(pd_iterable(b))
+    acc = [] # type: List[PdObject]
+    for element in pd_iterable(a):
+        if element in set_b and set_b[element]:
+            set_b[element] -= 1
+        else:
+            acc.append(element)
+    return pd_build_like(a, acc)
 def pd_seq_symmetric_difference(a: PdSeq, b: PdSeq) -> PdSeq:
     set_a = collections.Counter(pd_iterable(a))
     set_b = collections.Counter(pd_iterable(b))
