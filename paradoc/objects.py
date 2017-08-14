@@ -701,6 +701,20 @@ def pd_subsequences(seq: PdSeq) -> Iterable[PdSeq]:
 
 def pd_subsequences_list(seq: PdSeq) -> List[PdSeq]:
     return list(pd_subsequences(seq))
+
+def pd_transpose(matrix: PdSeq) -> List[list]:
+    res = [] # type: List[list]
+    for row0 in pd_iterable(matrix):
+        if isinstance(row0, (str, list, range)):
+            row = pd_iterable(row0)
+        else:
+            row = [row0]
+        for i, e in enumerate(row):
+            if len(res) <= i:
+                res.append([e])
+            else:
+                res[i].append(e)
+    return res
 # }}}
 # pd_find_entry et al. (wow code duplication much) {{{
 def pd_find_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optional[int], Optional[PdObject]]:

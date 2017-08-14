@@ -420,9 +420,12 @@ def initialize_builtins(env: Environment) -> None:
         Case.seq_value(lambda env, s, x: [pd_count_in(env, x, s)]),
     ])
     # }}}
-    # Down and Zip {{{
+    # Down, Transpose, Zip {{{
     cput('Reverse', ['Down', 'D'], [
         Case.seq_range(lambda env, a: [a[::-1]]),
+    ])
+    cput('Transpose', ['Tt', '™'], [
+        Case.seq(lambda env, a: [pd_transpose(a)]),
     ])
     cput('Zip', [], [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),

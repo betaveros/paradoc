@@ -504,5 +504,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('6 6 6 Þs'), [216])
         self.assertEqual(pd_simple_eval('2 4 6 0 1 Ds'), [1,0,6,4,2])
 
+    def test_transpose(self):
+        self.assertEqual(pd_simple_eval('[[1 2][3 4]]Transpose'), [[[1,3],[2,4]]])
+
 if __name__ == '__main__':
     unittest.main()
