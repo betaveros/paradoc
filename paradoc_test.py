@@ -356,5 +356,9 @@ class TestParadoc(unittest.TestCase):
     def test_transpose(self):
         self.assertEqual(pd_simple_eval('[[1 2][3 4]]Transpose'), [[[1,3],[2,4]]])
 
+    def test_string_trailers(self):
+        self.assertEqual(pd_simple_eval('1 2 3"% % %"i'), ["1 2 3"])
+        self.assertEqual(pd_simple_eval('1 2 3"%2d + %2d = %02d"f'), [" 1 +  2 = 03"])
+
 if __name__ == '__main__':
     unittest.main()

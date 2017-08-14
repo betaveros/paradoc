@@ -51,138 +51,172 @@ def apply_pd_list_op(
     env.push(op(env, b, lst))
 
 # bool is whether the result is "reluctant"
-def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tuple[PdObject, bool]:
-    # print("act_on_trailer_token", token, b0)
-    assert token
 
-    if isinstance(b0, Block):
-        b = b0 # type: Block
+BlockTrailer = Callable[[Environment, Block], Tuple[Block, bool]]
+def build_block_trailer_dict() -> Dict[str, BlockTrailer]: # {{{
+    ret = dict() # type: Dict[str, BlockTrailer]
+    def put(*names: str) -> Callable[[BlockTrailer], BlockTrailer]:
+        def inner(f: BlockTrailer) -> BlockTrailer:
+            for name in names:
+                if len(name) == 1:
+                    assert name not in ret
+                    ret[name] = f
+                if name != "_":
+                    assert ("_" + name) not in ret
+                    ret["_" + name] = f
+            return f
+        return inner
 
-        if token == "_":
-            return (b, True)
+    @put("_")
+    def make_reluctant(env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (b, True)
 
-        elif token == "a" or token == "_anti":
-            def anti_b(env: Environment) -> None:
-                e2, e1 = env.pop2()
-                env.push(e2, e1)
-                b(env)
-            return (BuiltIn(b.code_repr() + "_anti", anti_b), True)
+    @put("anti", "a")
+    def anti_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def anti_b(env: Environment) -> None:
+            e2, e1 = env.pop2()
+            env.push(e2, e1)
+            b(env)
+        return (BuiltIn(b.code_repr() + "_anti", anti_b), True)
 
-        elif token == "b" or token == "_bind":
-            e = outer_env.pop()
-            def bind_b(env: Environment) -> None:
-                env.push(e)
-                b(env)
-            return (BuiltIn(b.code_repr() + "_bind", bind_b), True)
+    @put("bind", "b")
+    def bind_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        e = outer_env.pop()
+        def bind_b(env: Environment) -> None:
+            env.push(e)
+            b(env)
+        return (BuiltIn(b.code_repr() + "_bind", bind_b), True)
 
-        elif token == "d" or token == "_double":
-            def double_b(env: Environment) -> None:
-                shadow = env.bracketed_shadow()
-                b(shadow)
-                b(env)
-                env.push_env(shadow)
-            return (BuiltIn(b.code_repr() + "_double", double_b), False)
+    @put("double", "d")
+    def double_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def double_b(env: Environment) -> None:
+            shadow = env.bracketed_shadow()
+            b(shadow)
+            b(env)
+            env.push_env(shadow)
+        return (BuiltIn(b.code_repr() + "_double", double_b), False)
 
-        elif token == "e" or token == "_each":
-            def each_b(env: Environment) -> None:
-                lst = objects.pd_to_list_range(env.pop())
-                objects.pd_foreach(env, b, lst)
-            return (BuiltIn(b.code_repr() + "_each", each_b), False)
+    @put("each", "e")
+    def each_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def each_b(env: Environment) -> None:
+            lst = objects.pd_to_list_range(env.pop())
+            objects.pd_foreach(env, b, lst)
+        return (BuiltIn(b.code_repr() + "_each", each_b), False)
 
-        elif token == "f" or token == "_filter" or token == "_select":
-            return (BuiltIn(b.code_repr() + "_filter",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_filter)), False)
+    @put("filter", "select", "f")
+    def filter_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_filter",
+                lambda env: apply_pd_list_op(env, b, objects.pd_filter)), False)
 
-        elif token == "g" or token == "_get":
-            return (BuiltIn(b.code_repr() + "_get",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_get)), False)
+    @put("get", "g")
+    def get_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_get",
+                lambda env: apply_pd_list_op(env, b, objects.pd_get)), False)
 
-        elif token == "h" or token == "_high":
-            return (BuiltIn(b.code_repr() + "_high",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_get_index_last)), False)
+    @put("high", "h")
+    def high_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_high",
+                lambda env: apply_pd_list_op(env, b, objects.pd_get_index_last)), False)
 
-        elif token == "i" or token == "_index":
-            return (BuiltIn(b.code_repr() + "_index",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_get_index)), False)
+    @put("index", "i")
+    def index_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_index",
+                lambda env: apply_pd_list_op(env, b, objects.pd_get_index)), False)
 
-        elif token == "k" or token == "_keep":
-            def keep_b(env: Environment) -> None:
-                shadow = env.keep_shadow()
-                b(shadow)
-                env.push_env(shadow)
-            return (BuiltIn(b.code_repr() + "_keep", keep_b), False)
+    @put("keep", "k")
+    def keep_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def keep_b(env: Environment) -> None:
+            shadow = env.keep_shadow()
+            b(shadow)
+            env.push_env(shadow)
+        return (BuiltIn(b.code_repr() + "_keep", keep_b), False)
 
-        elif token == "l" or token == "_last":
-            return (BuiltIn(b.code_repr() + "_last",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_get_last)), False)
+    @put("last", "l")
+    def last_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_last",
+                lambda env: apply_pd_list_op(env, b, objects.pd_get_last)), False)
 
-        elif token == "m" or token == "_map":
-            return (BuiltIn(b.code_repr() + "_map",
-                    lambda env: apply_pd_list_op(env, b, objects.pd_map)), False)
+    @put("map", "m")
+    def map_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_map",
+                lambda env: apply_pd_list_op(env, b, objects.pd_map)), False)
 
-        elif token == "o" or token == "_onemap":
+    @put("onemap", "o")
+    def onemap_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             return (BuiltIn(b.code_repr() + "_onemap",
                     lambda env: apply_pd_list_op(env, b, objects.pd_map, coerce_start=1)), False)
 
-        elif token == "r" or token == "_reduce" or token == "_fold":
+    @put("reduce", "fold", "r")
+    def reduce_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             return (BuiltIn(b.code_repr() + "_reduce",
                     lambda env: apply_pd_list_op(env, b, objects.pd_reduce)), False)
 
-        elif token == "q" or token == "_keepunder":
+    @put("keepunder", "q")
+    def keepunder_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             def keepunder_b(env: Environment) -> None:
                 shadow = env.keep_shadow()
                 b(shadow)
                 env.push_keep_shadow_env_under(shadow)
             return (BuiltIn(b.code_repr() + "_keepunder", keepunder_b), False)
 
-        elif token == "u" or token == "_under":
+    @put("under", "u")
+    def under_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             def under_b(env: Environment) -> None:
                 t = env.pop()
                 b(env)
                 env.push(t)
             return (BuiltIn(b.code_repr() + "_under", under_b), False)
 
-        elif token == "x" or token == "_xloop":
+    @put("xloop", "x")
+    def xloop_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             def xloop_b(env: Environment) -> None:
                 lst = objects.pd_to_list_range(env.pop())
                 objects.pd_foreach_x_only(env, b, lst)
             return (BuiltIn(b.code_repr() + "_xloop", xloop_b), False)
 
-        elif token == "z" or token == "_zip":
+    @put("zip", "z")
+    def zip_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             def zip_b(env: Environment) -> None:
                 lst_b = objects.pd_to_list_range(env.pop())
                 lst_a = objects.pd_to_list_range(env.pop())
                 env.push(objects.pd_zip(env, b, lst_a, lst_b))
             return (BuiltIn(b.code_repr() + "_zip", zip_b), False)
 
-        elif token == "â" or token == "_all":
+    @put("all", "â")
+    def all_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             def all_b(env: Environment) -> None:
                 lst = objects.pd_to_list_range(env.pop())
                 env.push(int(all(
                     objects.pd_map(env, b, lst))))
             return (BuiltIn(b.code_repr() + "_all", all_b), False)
 
-        elif token == "ê" or token == "_exists":
+    @put("exists", "ê")
+    def exists_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             def exists_b(env: Environment) -> None:
                 lst = objects.pd_to_list_range(env.pop())
                 env.push(int(any(
                     objects.pd_map(env, b, lst))))
-            return (BuiltIn(b.code_repr() + "_exists", all_b), False)
+            return (BuiltIn(b.code_repr() + "_exists", exists_b), False)
 
-        elif token == "ä" or token == "_autozip":
+    @put("autozip", "ä")
+    def autozip_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             def autozip_b(env: Environment) -> None:
                 lst_a = objects.pd_to_list_range(env.pop())
                 env.push(objects.pd_zip(env, b, lst_a, lst_a[1:]))
             return (BuiltIn(b.code_repr() + "_autozip", autozip_b), False)
-        elif token == "ë" or token == "_enumap":
+    @put("enumap", "ë")
+    def enumap_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             def enumap_b(env: Environment) -> None:
                 lst_a = objects.pd_to_list_range(env.pop())
                 env.push(objects.pd_zip(env, b, range(len(lst_a)), lst_a))
             return (BuiltIn(b.code_repr() + "_enumap", enumap_b), False)
-        elif token == "š" or token == "_mapsum":
+    @put("mapsum", "š")
+    def mapsum_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             return (BuiltIn(b.code_repr() + "_mapsum",
                     lambda env: apply_pd_list_op(env, b, objects.pd_mapsum)), False)
-        elif token in ["v", "_vectorize", "_bindmap"]:
+
+    @put("vectorize", "bindmap", "v")
+    def vectorize_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
             e = outer_env.pop()
             def bind_b(env: Environment) -> None:
                 env.push(e)
@@ -192,113 +226,226 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
                         BuiltIn(b.code_repr() + "_bind", bind_b),
                         objects.pd_map)), False)
 
-        raise NotImplementedError("unknown trailer token " + token + " on blocklike " + b.code_repr())
+    return ret
+# }}}
+block_trailer_dict = build_block_trailer_dict()
+
+StringTrailer = Callable[[Environment, str], Tuple[PdObject, bool]]
+def build_string_trailer_dict() -> Dict[str, StringTrailer]: # {{{
+    ret = dict() # type: Dict[str, StringTrailer]
+    def put(*names: str) -> Callable[[StringTrailer], StringTrailer]:
+        def inner(f: StringTrailer) -> StringTrailer:
+            for name in names:
+                if len(name) == 1:
+                    assert name not in ret
+                    ret[name] = f
+                if name != "_":
+                    assert ("_" + name) not in ret
+                    ret["_" + name] = f
+            return f
+        return inner
+
+    @put("interpolate", "i")
+    def interpolate_trailer(outer_env: Environment, s: str) -> Tuple[PdObject, bool]:
+        def interpolate_s(env: Environment) -> None:
+            env.push(simple_interpolate(env, s, '%'))
+        return (BuiltIn(objects.pd_repr(s) + "_interpolate", interpolate_s), False)
+
+    @put("interoutput", "o")
+    def interoutput_trailer(outer_env: Environment, s: str) -> Tuple[PdObject, bool]:
+        def interoutput_s(env: Environment) -> None:
+            print(simple_interpolate(env, s, '%'), end="")
+        return (BuiltIn(objects.pd_repr(s) + "_interoutput", interoutput_s), False)
+
+    @put("interprint", "p")
+    def interprint_trailer(outer_env: Environment, s: str) -> Tuple[PdObject, bool]:
+        def interprint_s(env: Environment) -> None:
+            env.print_output_record(simple_interpolate(env, s, '%'))
+        return (BuiltIn(objects.pd_repr(s) + "_interprint", interprint_s), False)
+
+    @put("format", "f")
+    def format_trailer(outer_env: Environment, s: str) -> Tuple[PdObject, bool]:
+        format_count = s.count('%') - 2 * s.count('%%')
+        if format_count == 0:
+            s = "%" + s
+            format_count = 1
+        def format_s(env: Environment) -> None:
+            format_args = env.pop_n(format_count)
+            try:
+                format_res = s % tuple(format_args)
+            except TypeError:
+                # TODO: this is super hacky and awful, but useful, and I
+                # guess there's no real way to correctly type-coerce into
+                # format strings short of writing our own format parser...
+                try:
+                    format_res = s % tuple(
+                            map(num.intify, format_args)) # type: ignore
+                except TypeError:
+                    raise Exception('Could not format string ' + repr(s) +
+                            ' with arguments ' + repr(format_args))
+            env.push(format_res)
+        return (BuiltIn(objects.pd_repr(s) + "_format", format_s), False)
+
+    @put("debug")
+    def debug_trailer(outer_env: Environment, s: str) -> Tuple[PdObject, bool]:
+        def debug_s(env: Environment) -> None:
+            print(s, 'dump:', env.debug_dump(), file=sys.stderr)
+        return (BuiltIn(objects.pd_repr(s) + "_debug", debug_s), False)
+
+    return ret
+# }}}
+string_trailer_dict = build_string_trailer_dict()
+
+IntTrailer = Callable[[Environment, int], Tuple[PdObject, bool]]
+def build_int_trailer_dict() -> Dict[str, IntTrailer]: # {{{
+    ret = dict() # type: Dict[str, IntTrailer]
+    def put(*names: str) -> Callable[[IntTrailer], IntTrailer]:
+        def inner(f: IntTrailer) -> IntTrailer:
+            for name in names:
+                if len(name) == 1:
+                    assert name not in ret
+                    ret[name] = f
+                if name != "_":
+                    assert ("_" + name) not in ret
+                    ret["_" + name] = f
+            return f
+        return inner
+
+    @put("minus", "m")
+    def minus_trailer(outer_env: Environment, i: int) -> Tuple[int, bool]:
+        return (-i, False)
+    @put("hundred", "h")
+    def hundred_trailer(outer_env: Environment, i: int) -> Tuple[int, bool]:
+        return (i * 100, False)
+
+    @put("thousand", "k")
+    def thousand_trailer(outer_env: Environment, i: int) -> Tuple[int, bool]:
+        return (i * 1000, False)
+
+    @put("under", "u")
+    def under_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def under_i(env: Environment) -> None:
+            t = env.pop()
+            env.push(i)
+            env.push(t)
+        return (BuiltIn(str(i) + "_under", under_i), False)
+    @put("force", "_")
+    def force_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def force_i(env: Environment) -> None:
+            xs = env.pop_n(i)
+            env.push(*xs)
+        return (BuiltIn(str(i) + "_force", force_i), False)
+
+    @put("array", "a")
+    def array_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def array_i(env: Environment) -> None:
+            env.push(env.pop_n(i))
+        return (BuiltIn(str(i) + "_array", array_i), False)
+
+    @put("zip", "z")
+    def zip_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def zip_i(env: Environment) -> None:
+            env.push(objects.pd_zip_as_list(*env.pop_n(i)))
+        return (BuiltIn(str(i) + "_zip", zip_i), False)
+
+    @put("bits", "b")
+    def bits_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        i_bits = base.to_base_digits_at_least_two(2, i)
+        def bits_i(env: Environment) -> None:
+            env.push(*i_bits)
+        return (BuiltIn(str(i) + "_bits", bits_i), False)
+
+    @put("power", "p")
+    def power_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def power_i(env: Environment) -> None:
+            v = env.pop()
+            if isinstance(v, Block):
+                raise Exception('Cannot take power of block')
+            else:
+                env.push(objects.pd_deepmap_n2v(lambda e: e ** i, v))
+        return (BuiltIn(str(i) + "_power", power_i), False)
+
+    @put("root", "r")
+    def root_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def root_i(env: Environment) -> None:
+            v = env.pop()
+            if isinstance(v, Block):
+                raise Exception('Cannot take root of block')
+            else:
+                env.push(objects.pd_deepmap_n2v(lambda e: e ** (1/i), v))
+        return (BuiltIn(str(i) + "_root", root_i), False)
+
+    for agchar in 'áéíóúàèìòùý':
+        @put(agchar)
+        def ag_trailer(outer_env: Environment, i: int, agchar: str = agchar) -> Tuple[PdObject, bool]:
+            return (ag_convert(agchar, i, str(i) + agchar), False)
+
+    return ret
+# }}}
+int_trailer_dict = build_int_trailer_dict()
+
+FloatTrailer = Callable[[Environment, float], Tuple[PdObject, bool]]
+def build_float_trailer_dict() -> Dict[str, FloatTrailer]: # {{{
+    ret = dict() # type: Dict[str, FloatTrailer]
+    def put(*names: str) -> Callable[[FloatTrailer], FloatTrailer]:
+        def inner(f: FloatTrailer) -> FloatTrailer:
+            for name in names:
+                if len(name) == 1:
+                    assert name not in ret
+                    ret[name] = f
+                if name != "_":
+                    assert ("_" + name) not in ret
+                    ret["_" + name] = f
+            return f
+        return inner
+
+    @put("minus", "m")
+    def minus_trailer(outer_env: Environment, f: float) -> Tuple[float, bool]:
+        return (-f, False)
+    @put("hundred", "h")
+    def hundred_trailer(outer_env: Environment, f: float) -> Tuple[float, bool]:
+        return (f * 100, False)
+
+    @put("thousand", "k")
+    def thousand_trailer(outer_env: Environment, f: float) -> Tuple[float, bool]:
+        return (f * 1000, False)
+
+    return ret
+# }}}
+float_trailer_dict = build_float_trailer_dict()
+
+def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tuple[PdObject, bool]:
+    # print("act_on_trailer_token", token, b0)
+    assert token
+
+    if isinstance(b0, Block):
+        b = b0 # type: Block
+        try:
+            return block_trailer_dict[token](outer_env, b)
+        except KeyError:
+            raise NotImplementedError("unknown trailer token " + token + " on blocklike " + b.code_repr())
     elif isinstance(b0, str):
         s = b0 # type: str
-        if token == "i" or token == "_interpolate":
-            def interpolate_s(env: Environment) -> None:
-                env.push(simple_interpolate(env, s, '%'))
-            return (BuiltIn(objects.pd_repr(s) + "_interpolate", interpolate_s), False)
-        elif token == "o" or token == "_interoutput":
-            def interoutput_s(env: Environment) -> None:
-                print(simple_interpolate(env, s, '%'), end="")
-            return (BuiltIn(objects.pd_repr(s) + "_interoutput", interoutput_s), False)
-        elif token == "n" or token == "_interprint":
-            def interprint_s(env: Environment) -> None:
-                env.print_output_record(simple_interpolate(env, s, '%'))
-            return (BuiltIn(objects.pd_repr(s) + "_interprint", interprint_s), False)
-        elif token == "f" or token == "_format":
-            format_count = s.count('%') - 2 * s.count('%%')
-            if format_count == 0:
-                s = "%" + s
-                format_count = 1
-            def format_s(env: Environment) -> None:
-                format_args = env.pop_n(format_count)
-                try:
-                    format_res = s % tuple(format_args)
-                except TypeError:
-                    # TODO: this is super hacky and awful, but useful, and I
-                    # guess there's no real way to correctly type-coerce into
-                    # format strings short of writing our own format parser...
-                    try:
-                        format_res = s % tuple(
-                                map(num.intify, format_args)) # type: ignore
-                    except TypeError:
-                        raise Exception('Could not format string ' + repr(s) +
-                                ' with arguments ' + repr(format_args))
-                env.push(format_res)
-            return (BuiltIn(objects.pd_repr(s) + "_format", format_s), False)
-        elif token == "_debug":
-            def debug_s(env: Environment) -> None:
-                print(s, 'dump:',  env.debug_dump(), file=sys.stderr)
-            return (BuiltIn(objects.pd_repr(s) + "_debug", debug_s), False)
+        try:
+            return string_trailer_dict[token](outer_env, s)
+        except KeyError:
+            raise NotImplementedError("unknown trailer token " + token + " on string " + repr(s))
 
-        raise NotImplementedError("unknown trailer token " + token + " on string")
     elif isinstance(b0, int):
         i = b0 # type: int
-        if token == "m" or token == "_minus":
-            return (-i, False)
-        elif token == "h" or token == "_hundred":
-            return (i * 100, False)
-        elif token == "k" or token == "_thousand":
-            return (i * 1000, False)
-        elif token == "u" or token == "_under":
-            def under_i(env: Environment) -> None:
-                t = env.pop()
-                env.push(i)
-                env.push(t)
-            return (BuiltIn(str(i) + "_under", under_i), False)
-        elif token == "_force":
-            def force_i(env: Environment) -> None:
-                xs = env.pop_n(i)
-                env.push(*xs)
-            return (BuiltIn(str(i) + "_force", force_i), False)
-        elif token == "a" or token == "_array":
-            def array_i(env: Environment) -> None:
-                env.push(env.pop_n(i))
-            return (BuiltIn(str(i) + "_array", array_i), False)
-        elif token == "z" or token == "_zip":
-            def zip_i(env: Environment) -> None:
-                env.push(objects.pd_zip_as_list(*env.pop_n(i)))
-            return (BuiltIn(str(i) + "_zip", zip_i), False)
-        elif token == "b" or token == "_bits":
-            i_bits = base.to_base_digits_at_least_two(2, i)
-            def bits_i(env: Environment) -> None:
-                env.push(*i_bits)
-            return (BuiltIn(str(i) + "_bits", bits_i), False)
-        elif token == "p" or token == "_power":
-            def power_i(env: Environment) -> None:
-                v = env.pop()
-                if isinstance(v, Block):
-                    raise Exception('Cannot take power of block')
-                else:
-                    env.push(objects.pd_deepmap_n2v(lambda e: e ** i, v))
-            return (BuiltIn(str(i) + "_power", power_i), False)
-        elif token == "r" or token == "_root":
-            def root_i(env: Environment) -> None:
-                v = env.pop()
-                if isinstance(v, Block):
-                    raise Exception('Cannot take root of block')
-                else:
-                    env.push(objects.pd_deepmap_n2v(lambda e: e ** (1/i), v))
-            return (BuiltIn(str(i) + "_root", root_i), False)
-        elif token in 'áéíóúàèìòùý':
-            # TODO: Should some of these be reluctant?
-            return (ag_convert(token, i, str(i) + token), False)
+        try:
+            return int_trailer_dict[token](outer_env, i)
+        except KeyError:
+            raise NotImplementedError("unknown trailer token " + token + " on int " + repr(i))
 
-        raise NotImplementedError("unknown trailer token " + token + " on integer")
     elif isinstance(b0, float):
         f = b0 # type: float
-        if token == "m" or token == "_minus":
-            return (-f, False)
-        elif token == "h" or token == "_hundred":
-            return (f * 100, False)
-        elif token == "k" or token == "_thousand":
-            return (f * 1000, False)
+        try:
+            return float_trailer_dict[token](outer_env, f)
+        except KeyError:
+            raise NotImplementedError("unknown trailer token " + token + " on float " + repr(f))
 
-        raise NotImplementedError("unknown trailer token " + token + " on float")
-
-    raise NotImplementedError("unknown trailer token " + token + " on unknown thing")
+    raise NotImplementedError("unknown trailer token " + token + " on unknown thing " + repr(b0))
 
 BodyExecutor = Callable[[Environment, Block], None]
 
@@ -609,3 +756,5 @@ def main() -> None:
         sys.exit(e.code)
 
 if __name__ == "__main__": main()
+
+# vim:set fdm=marker:
