@@ -43,7 +43,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('555 .5 0.5 .3125 —5 —.5 —0.5'), [555, 0.5, 0.5, 0.3125, -5, -0.5, -0.5])
 
     def test_assignment(self):
-        self.assertEqual(pd_simple_eval('123.Tst;Tst Tst+ 123—Test Test Test+ 129.**+ 129—///+'), [246,246,258,258])
+        self.assertEqual(pd_simple_eval('123.Tst;Tst Tst+ 123—Test Test Test+ 129.**+ 129—///+', use_cache=False), [246,246,258,258])
 
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])

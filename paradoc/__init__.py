@@ -529,8 +529,13 @@ def initialized_environment() -> Environment:
     initialize_builtins(env)
     return env
 
-def pd_simple_eval(code: str) -> List[PdObject]:
-    env = initialized_environment()
+simple_eval_env_cache = initialized_environment()
+def pd_simple_eval(code: str, use_cache: bool = True) -> List[PdObject]:
+    if use_cache:
+        env = simple_eval_env_cache
+        env._stack = []
+    else:
+        env = initialized_environment()
     env.evaluate(code)
     return env._stack
 
