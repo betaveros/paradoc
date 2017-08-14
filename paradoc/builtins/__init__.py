@@ -5,11 +5,11 @@ from paradoc.objects import *
 import paradoc.num as num
 import paradoc.base as base
 import sys, math, collections
-import string
 import time, datetime
 import random
 from paradoc.builtins.case import Case, CasedBuiltIn
 from paradoc.builtins.lazy_vars import arithmetic_literal_trigger
+from paradoc.string import str_class, case_double
 import paradoc.discrete as discrete
 
 def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdObject:
@@ -34,22 +34,41 @@ def initialize_builtins(env: Environment) -> None:
 
     # Default variables {{{
     env.put('N', '\n')
-    env.put(u'Ì', -1)
-    env.put(u'Í', 1)
     env.put(u'T', 10)
     env.put(u'E', 11)
     env.put(u'Ñ', '')
-    env.put(u'–', ' ')
     env.put('Ee', math.e)
     env.put('Ep', 1e-9)
     env.put('Pi', math.pi)
+
     golden_ratio = (1 + math.sqrt(5)) / 2
     env.put('Ph',  golden_ratio)
     env.put('Phi', golden_ratio)
 
-    env.put('Ua', string.ascii_uppercase)
-    env.put('La', string.ascii_lowercase)
-    env.put('Aa', string.ascii_letters)
+    env.put('Da', str_class('0-9'))
+    env.put('Ua', str_class('A-Z'))
+    env.put('La', str_class('a-z'))
+    env.put('Aa', str_class('A-Za-z'))
+
+    env.put('Å', ' ')
+    env.put('Åa', str_class('a-zA-Z'))
+    env.put('Åb', case_double('BCDFGHJKLMNPQRSTVWXZ'))
+    env.put('Åc', case_double('BCDFGHJKLMNPQRSTVWXYZ'))
+    env.put('Åd', str_class('9-0'))
+    env.put('Åf', str_class('A-Za-z0-9+/'))
+    env.put('Åh', str_class('0-9A-F'))
+    env.put('Åi', str_class('A-Za-z0-9_'))
+    env.put('Åj', str_class('a-zA-Z0-9_'))
+    env.put('Ål', str_class('z-a'))
+    env.put('Åm', '()<>[]{}')
+    env.put('Åp', str_class(' -~'))
+    env.put('Åq', case_double('QWERTYUIOP'))
+    env.put('Ås', case_double('ASDFGHJKL'))
+    env.put('Åu', str_class('Z-A'))
+    env.put('Åv', case_double('AEIOU'))
+    env.put('Åx', case_double('ZXCVBNM'))
+    env.put('Åy', case_double('AEIOUY'))
+    env.put('Åz', str_class('z-aZ-A'))
     # }}}
     # Universal functions: stack stuff, list stuff {{{
 
