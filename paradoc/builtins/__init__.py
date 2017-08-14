@@ -512,6 +512,11 @@ def initialize_builtins(env: Environment) -> None:
         Case.block_seq_range(lambda env, block, seq:
             [int(pd_map_fold_into(env, block, seq, any_fold_f))]),
     ]
+    not_all_cases = [
+        Case.seq(lambda env, a: [int(not all(pd_iterable(a)))]),
+        Case.block_seq_range(lambda env, block, seq:
+            [int(not pd_map_fold_into(env, block, seq, all_fold_f))]),
+    ]
     not_any_cases = [
         Case.seq(lambda env, a: [int(not any(pd_iterable(a)))]),
         Case.block_seq_range(lambda env, block, seq:
@@ -527,8 +532,10 @@ def initialize_builtins(env: Environment) -> None:
         Case.block_seq_range(lambda env, block, seq:
             [int(pd_map_fold_into(env, block, seq, make_unique_fold_f()))]),
     ]
-    cput('All', [], all_cases)
-    cput('Any', [], any_cases)
+    cput('All', ['For_all', 'Fa'], all_cases)
+    cput('Any', ['There_exists', 'Te'], any_cases)
+    cput('Not_all', ['Na'], not_all_cases)
+    cput('Not_any', ['Not_exists', 'Ne'], not_any_cases)
     cput('Identical', [], identical_cases)
     cput('Unique', [], unique_cases)
     cput('Â', [], [
