@@ -174,6 +174,16 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('1 2[]{-}|'), [-1])
         self.assertEqual(pd_simple_eval('1 2[3 4]{-}|'), [1,2])
 
+    def test_single_branch_word_if(self):
+        self.assertEqual(pd_simple_eval('0{8}If'), [])
+        self.assertEqual(pd_simple_eval('1{8}If'), [8])
+        self.assertEqual(pd_simple_eval('0{8}Unless'), [8])
+        self.assertEqual(pd_simple_eval('1{8}Unless'), [])
+        self.assertEqual(pd_simple_eval('0 8 If'), [])
+        self.assertEqual(pd_simple_eval('1 8 If'), [8])
+        self.assertEqual(pd_simple_eval('0 8 Unless'), [8])
+        self.assertEqual(pd_simple_eval('1 8 Unless'), [])
+
     def test_indexing(self):
         self.assertEqual(pd_simple_eval('[3 7 2 5]0='), [3])
         self.assertEqual(pd_simple_eval('[3 7 2 5]1='), [7])

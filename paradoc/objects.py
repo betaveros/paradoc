@@ -1014,8 +1014,9 @@ def pd_seq_is_unique(a: PdSeq) -> bool:
             s.add(element)
     return True
 
-def pd_if_then_empty_list(env: Environment, condition: PdObject, body: Block, negate: bool = False) -> List[PdObject]:
-    if pytruth_eval(env, condition) ^ negate: body(env)
+def pd_if_then_empty_list(env: Environment, condition: PdObject, body: PdObject, negate: bool = False) -> List[PdObject]:
+    if pytruth_eval(env, condition) ^ negate:
+        env.push_or_eval(body)
     return []
 # }}}
 

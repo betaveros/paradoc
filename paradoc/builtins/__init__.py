@@ -258,7 +258,15 @@ def initialize_builtins(env: Environment) -> None:
         Case.number2(lambda env, a, b: [num.pd_xor(a, b)]),
         Case.seq2_range(lambda env, a, b: [pd_seq_symmetric_difference(a, b)]),
     ])
-    @put('?', 'If')
+    cput('If', [], [
+        Case.any2(lambda env, cond, body:
+            pd_if_then_empty_list(env, cond, body)),
+    ])
+    cput('Ul', ['Unless'], [
+        Case.any2(lambda env, cond, body:
+            pd_if_then_empty_list(env, cond, body, negate=True)),
+    ])
+    @put('?')
     def pd_if(env: Environment) -> None:
         c, b, a = env.pop3()
         if pytruth_eval(env, a):
