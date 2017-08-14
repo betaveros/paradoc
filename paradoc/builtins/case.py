@@ -127,6 +127,9 @@ class Case:
     def value(func: Callable[[Environment, PdValue], List[PdObject]]) -> 'Case':
         return Case(1, [just_value], func)
     @staticmethod
+    def value_n2v(func: Callable[[Union[int, float]], PdValue]) -> 'Case':
+        return Case(1, [just_value], lambda env, a: [pd_deepmap_n2v(func, a)])
+    @staticmethod
     def block(func: Callable[[Environment, Block], List[PdObject]]) -> 'Case':
         return Case(1, [just_block], func)
     @staticmethod
