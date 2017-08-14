@@ -485,6 +485,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('60 Fc'), [[[2,2],[3,1],[5,1]]])
         self.assertEqual(pd_simple_eval('60 Ff'), [[2,2,3,5]])
         self.assertEqual(pd_simple_eval('11 Fb'), [89])
+        self.assertEqual(pd_simple_eval('12 Et'), [4])
+        self.assertEqual(pd_simple_eval('2 21 Js'), [-1])
 
 if __name__ == '__main__':
     unittest.main()

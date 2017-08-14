@@ -51,6 +51,20 @@ def prime_factorization_wrapped(n: Union[int, float]) -> List[List[int]]:
 def prime_factorization_flat(n: Union[int, float]) -> List[int]:
     return [x for (x, e) in prime_factorization(int(n)) for _ in range(e)]
 
+def totient(n: Union[int, float]) -> int:
+    try:
+        import sympy.ntheory.factor_ as f_
+    except ModuleNotFoundError:
+        raise Exception("Install sympy to use number-theoretic functions!")
+    return f_.totient(int(n))
+
+def jacobi_symbol(m: Union[int, float], n: Union[int, float]) -> int:
+    try:
+        import sympy.ntheory.residue_ntheory as rn
+    except ModuleNotFoundError:
+        raise Exception("Install sympy to use number-theoretic functions!")
+    return rn.jacobi_symbol(int(m), int(n))
+
 @overload
 def factorial(n: int) -> int: ...
 @overload
@@ -88,5 +102,4 @@ def fibonacci(n: Union[int, float]) -> Union[int, float]:
         import sympy.functions.combinatorial.numbers as ns
     except ModuleNotFoundError:
         raise Exception("Install sympy to use number-theoretic functions!")
-
     return ns.fibonacci(n)

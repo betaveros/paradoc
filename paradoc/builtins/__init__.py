@@ -746,6 +746,12 @@ def initialize_builtins(env: Environment) -> None:
     cput('Factorize_flat', ['Ff'], [
         Case.value(lambda env, x: [pd_deepmap_n2v(discrete.prime_factorization_flat, x)]),
     ])
+    cput('Totient', ['Et'], [
+        Case.value(lambda env, x: [pd_deepmap_n2v(discrete.totient, x)]),
+    ])
+    cput('Jacobi_symbol', ['Js'], [
+        Case.number2(lambda env, m, n: [discrete.jacobi_symbol(num.numerify(m), num.numerify(n))]),
+    ])
     # }}}
     # Time {{{
     cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])])
