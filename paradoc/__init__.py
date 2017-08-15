@@ -650,29 +650,29 @@ class CodeBlock(Block):
 def basic_evaluator(env: Environment, code: str) -> None:
     CodeBlock(list(lex_code(code)))(env)
 
-def initialized_environment() -> Environment:
+def initialized_environment(sandboxed: bool) -> Environment:
     env = Environment(basic_evaluator,
             stack_trigger = lambda: env.input_trigger())
-    initialize_builtins(env)
+    initialize_builtins(env, sandboxed)
     return env
 
-simple_eval_env_cache = initialized_environment()
+simple_eval_env_cache = initialized_environment(sandboxed=True)
 def pd_simple_eval(code: str, use_cache: bool = True) -> List[PdObject]:
     if use_cache:
         env = simple_eval_env_cache
         env._stack = []
     else:
-        env = initialized_environment()
+        env = initialized_environment(sandboxed=True)
     env.evaluate(code)
     return env._stack
 
-def main_with_code(code: str) -> None:
-    env = initialized_environment()
+def main_with_code(code: str, sandboxed: bool) -> None:
+    env = initialized_environment(sandboxed)
     env.evaluate(code)
     print(env.pd_str(env._stack))
 
-def paradoc_repl() -> None:
-    env = initialized_environment()
+def paradoc_repl(sandboxed: bool) -> None:
+    env = initialized_environment(sandboxed)
     while True:
         try:
             code = input("prdc> ")
@@ -687,7 +687,7 @@ def paradoc_repl() -> None:
             print(e, file=sys.stderr)
 
 def list_builtins(name_filter: Callable[[str], bool]) -> None:
-    env = initialized_environment()
+    env = initialized_environment(sandboxed=True)
     for name, obj in sorted(env.vars.items()):
         if name_filter(name):
             print(name, repr(obj))
@@ -707,6 +707,7 @@ def main() -> None:
     parser.add_argument('--version', action='store_true')
     parser.add_argument('--list-builtins', action='store_true')
     parser.add_argument('--list-short-builtins', action='store_true')
+    parser.add_argument('--sandboxed', default=False, action='store_true')
     args = parser.parse_args()
 
     try:
@@ -719,19 +720,19 @@ def main() -> None:
             list_builtins(lambda name: len(name) <= 2)
         elif args.docs:
             from paradoc.docgen import document
-            document(initialized_environment())
+            document(initialized_environment(sandboxed=True))
         elif args.e is not None:
-            main_with_code(args.e)
+            main_with_code(args.e, sandboxed=args.sandboxed)
         elif args.prog_file is not None:
             if args.prog_file.endswith('.cp1252.prdc'):
                 import codecs
                 with codecs.open(args.prog_file, 'r', 'cp1252') as cp1252_prog_file:
-                    main_with_code(cp1252_prog_file.read())
+                    main_with_code(cp1252_prog_file.read(), sandboxed=args.sandboxed)
             else:
                 with open(args.prog_file, 'r') as prog_file:
-                    main_with_code(prog_file.read())
+                    main_with_code(prog_file.read(), sandboxed=args.sandboxed)
         else:
-            paradoc_repl()
+            paradoc_repl(sandboxed=args.sandboxed)
     except PdAbortException as e:
         sys.exit(e.code)
 

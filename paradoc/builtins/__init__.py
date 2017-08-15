@@ -19,7 +19,7 @@ def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdO
         raise AssertionError(error_msg)
     return t2
 
-def initialize_builtins(env: Environment) -> None:
+def initialize_builtins(env: Environment, sandboxed: bool) -> None:
 
     def put(*ss: str,
             docs: Optional[str] = None,
@@ -971,7 +971,7 @@ def initialize_builtins(env: Environment) -> None:
     cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])], stability="alpha")
     # }}}
     # Replicate {{{
-    cput('Replicate', ['ˆ'], [
+    cput('Replicate', ['ˆ', 'Rp'], [
         Case.any_number(lambda env, x, n: [pd_replicate(x, num.intify(n))]),
     ],
             docs="""Make a list by repeating an element some number of
@@ -1183,5 +1183,62 @@ def initialize_builtins(env: Environment) -> None:
     def assign_bullet_destructive(env: Environment) -> None:
         e = env.pop()
         env.put(BULLET, e)
+    # }}}
+    # unsafe metacomputing {{{
+    @put('Sleep', 'Sl', docs="Sleep for some number of seconds.",
+            stability="alpha")
+    def sleep(env: Environment) -> None:
+        e = env.pop()
+        assert isinstance(e, (Char, int, float))
+        time.sleep(num.numerify(e))
+
+    if sandboxed:
+        @put('Python', 'Py',
+                docs="""Evaluate arbitrary Python code. Push the result if
+                non-None.
+
+                Disabled in sandbox mode.""",
+                stability="alpha")
+        def python_eval_disabled(env: Environment) -> None:
+            raise Exception('Python eval disabled in sandbox mode')
+
+        @put('Shell', 'Sh',
+                docs="""Evaluate shell code. If given a string, executes it
+                through the shell; if given a list, executes the first element
+                as the executable with the following elements of the list as
+                arguments. Pushes the stdout of the subprocess.
+
+                Disabled in sandbox mode.""",
+                stability="alpha")
+        def shell_eval_disabled(env: Environment) -> None:
+            raise Exception('Shell eval disabled in sandbox mode')
+    else:
+
+        @put('Python', 'Py',
+                docs="""Evaluate arbitrary Python code. Push the result if
+                non-None. Unsafe!""",
+                stability="alpha")
+        def python_eval(env: Environment) -> None:
+            e = env.pop()
+            res = eval(env.pd_str(e))
+            if res is not None:
+                env.push(res)
+
+        @put('Shell', 'Sh',
+                docs="""Evaluate arbitrary shell code. Push the result if
+                non-None. Unsafe!""",
+                stability="alpha")
+        def shell_eval(env: Environment) -> None:
+            import subprocess
+            e = env.pop()
+            if isinstance(e, list):
+                proc = subprocess.Popen([env.pd_str(x) for x in e],
+                        stdout=subprocess.PIPE)
+            elif isinstance(e, str):
+                proc = subprocess.Popen(e, shell=True, stdout=subprocess.PIPE)
+            else:
+                raise Exception("Cannot evaluate non-list non-str as Shell")
+            env.push(proc.communicate()[0])
+
     # }}}
     env.lazy_var_triggers.append(arithmetic_literal_trigger)
