@@ -3,12 +3,20 @@ from paradoc.objects import Environment
 from paradoc.trailer import Trailer
 import string
 
-name_template = """<a href="#{{id}}"><code>{{#chars}}{{#sp}}<code class="char">{{/sp}}{{text}}{{#sp}}</code>{{/sp}}{{/chars}}</code></a>"""
+name_template = """<a href="#{{id}}"><code>
+{%- for char in chars -%}
+    {%- if char.sp -%}
+        <code class="char">{{ char.text }}</code>
+    {%- else -%}
+        {{ char.text }}
+    {%- endif -%}
+{%- endfor -%}
+</code></a>"""
 
 docs_template = """
-{{#pars}}
-<{{tag}} class="{{cls}}">{{text}}</{{tag}}>
-{{/pars}}
+{% for par in pars %}
+<{{ par.tag }} class="{{ par.cls }}">{{ par.text }}</{{ par.tag }}>
+{% endfor %}
 """
 
 template = """
@@ -60,32 +68,44 @@ absolutely fixed.</p>
 unstable.</strong></p>
 <h2>Table of Contents</h2>
 <ul>
-{{#trailer_families}}
-<li><a href="#{{id}}">{{name}} Trailers</a></li>
-{{/trailer_families}}
+{% for family in trailer_families %}
+<li><a href="#{{ family.id }}">{{ family.name }} Trailers</a></li>
+{% endfor %}
 <li><a href="#GV">Built-Ins</a></li>
 </ul>
 
-{{#trailer_families}}
-<h2 id="{{id}}">{{name}} Trailers</h2>
-{{#family}}
-<h3 id="{{id}}">{{{formatted_name}}}</h3>
-<p class="stability {{stability}}">Stability: {{stability}}</p>
-{{{alias_note}}}
-{{{docs}}}
-{{/family}}
-{{/trailer_families}}
+{% for family in trailer_families %}
+<h2 id="{{ family.id }}">{{ family.name }} Trailers</h2>
+{% for trailer in family.trailers %}
+<h3 id="{{ trailer.name|tid(family.name) }}">{{ trailer.name|t(family.name) }}</h3>
+<p class="stability {{ trailer.stability }}">Stability: {{ trailer.stability }}</p>
+{% if trailer.aliases %}
+<p class="aliases">Aliases:
+{% for alias in trailer.aliases -%}
+{{ alias|t(family.name) }}{%- if not loop.last -%}, {% endif -%}
+{%- endfor %}
+</p>
+{% endif %}
+{{ trailer.docs }}
+{% endfor %}
+{% endfor %}
 
 <h2 id="GV">Built-Ins</h2>
-{{#vars}}
-<h3 id="{{id}}">{{{formatted_name}}}</h3>
-<p class="stability {{stability}}">Stability: {{stability}}</p>
-{{{alias_note}}}
-{{{docs}}}
-{{#value_data}}
-<p class="const">{{type}} constant with value <code>{{value}}</code></p>
-{{/value_data}}
-{{/vars}}
+{% for var in vars %}
+<h3 id="{{ var.name|bid }}">{{ var.name|b }}</h3>
+<p class="stability {{ var.stability }}">Stability: {{ var.stability }}</p>
+{% if var.aliases %}
+<p class="aliases">Aliases:
+{% for alias in var.aliases -%}
+{{ alias|b }}{%- if not loop.last -%}, {% endif -%}
+{%- endfor %}
+</p>
+{% endif %}
+{{ var.docs }}
+{% if var.value %}
+<p class="const">{{ var.type }} constant with value <code>{{ var.value }}</code></p>
+{% endif %}
+{% endfor %}
 </div>
 </body>
 </html>
@@ -108,10 +128,16 @@ def mangle_to_id(id_prefix: str, name: str) -> str:
 
 def document(env: Environment,
         trailer_families: List[Tuple[str, Dict[str, Trailer]]]) -> None:
-    import pystache
+    import jinja2
+    from jinja2 import Markup
 
-    def format_name(id_prefix: str, name: str) -> str:
-        chars = []
+    jenv = jinja2.Environment(autoescape=True)
+
+    name_jt = jenv.from_string(name_template)
+
+    def link_name(id_prefix: str, name: str, is_trailer: bool) -> Markup:
+        chars = [] # type: List[dict]
+        if is_trailer: chars.append({'text': '_'})
         for c in name:
             if c == "\r":
                 chars.append({'sp': True, 'text': 'RETURN'})
@@ -123,8 +149,32 @@ def document(env: Environment,
                 chars.append({'sp': True, 'text': 'TAB'})
             else:
                 chars.append({'text': c})
-        return pystache.render(name_template,
-                {'id': mangle_to_id(id_prefix, name), 'chars': chars})
+
+        return Markup(name_jt.render({
+            'id': mangle_to_id(id_prefix, name), 'chars': chars
+        }))
+
+    def link_builtin(name: str) -> Markup:
+        return link_name('V', name, False)
+    def link_trailer(name: str, family: str) -> Markup:
+        return link_name(family[0], name, True)
+
+    def mangle_builtin_id(name: str) -> str:
+        return mangle_to_id('V', name)
+    def mangle_trailer_id(name: str, family: str) -> str:
+        return mangle_to_id(family[0], name)
+
+    jenv.filters['b'] = link_builtin
+    jenv.filters['t'] = link_trailer
+    jenv.filters['bt'] = lambda name: link_trailer(name, 'Block')
+    jenv.filters['st'] = lambda name: link_trailer(name, 'String')
+    jenv.filters['it'] = lambda name: link_trailer(name, 'Int')
+    jenv.filters['ft'] = lambda name: link_trailer(name, 'Float')
+    jenv.filters['bid'] = mangle_builtin_id
+    jenv.filters['tid'] = mangle_trailer_id
+
+    docs_jt = jenv.from_string(docs_template)
+    main_jt = jenv.from_string(template)
 
     def render_docs(docs: str) -> str:
         docpars = docs.split('\n\n')
@@ -138,16 +188,12 @@ def document(env: Environment,
                 lines = text[3:].splitlines()
                 cls = 'exs' if len(lines) > 1 else 'ex'
                 text = '\n'.join(s.strip() for s in lines)
+            else:
+                text = Markup(jenv.from_string(text).render())
             render_pars.append({'tag': tag, 'cls': cls, 'text': text})
-        return pystache.render(docs_template, {'pars': render_pars})
-
-    def render_alias_note(id_prefix: str, aliases: List[str]) -> str:
-        if aliases:
-            return ('<p class="aliases">Aliases: ' +
-                    ", ".join(format_name(id_prefix, alias) for alias in aliases) +
-                    '</p>')
-        else:
-            return ''
+        return Markup(docs_jt.render({
+            'pars': render_pars
+        }))
 
     data = []
     for name, obj in sorted(env.vars.items()):
@@ -155,47 +201,42 @@ def document(env: Environment,
         docs = getattr(obj, 'docs', None) or env.var_docs.get(name) or ''
         stability = getattr(obj, 'stability', None) or env.var_stability.get(name) or 'unknown'
 
-        if isinstance(obj, int):
-            value_data = { 'type': 'Integer', 'value': obj }
-        elif isinstance(obj, float):
-            value_data = { 'type': 'Float', 'value': obj }
-        elif isinstance(obj, str):
-            value_data = { 'type': 'String', 'value': repr(obj) }
-        else:
-            value_data = {}
-
         stability_index = ['unstable', 'alpha', 'beta', 'stable'].index(stability)
-        data.append({
-            'id': mangle_to_id('V', name),
-            'formatted_name': format_name('V', name),
+        datum = {
+            'name': name,
             'stability': stability,
             'stability_index': stability_index,
             'docs': render_docs(docs),
-            'value_data': value_data,
-            'alias_note': render_alias_note('V', aliases)
-        })
+            'aliases': aliases,
+        }
+
+        if isinstance(obj, int):
+            datum['type'] = 'Integer'; datum['value'] = obj
+        elif isinstance(obj, float):
+            datum['type'] = 'Float'; datum['value'] = obj
+        elif isinstance(obj, str):
+            datum['type'] = 'String'; datum['value'] = repr(obj)
+
+        data.append(datum)
 
     trailer_data = []
     for family_name, trailer_list in trailer_families:
         family_data = []
-        fc = family_name[0]
-        for name0, trailer in sorted(trailer_list.items()):
-            aliases = ['_' + alias for alias in trailer.aliases if alias != name0]
-            name = '_' + name0
+        for name, trailer in sorted(trailer_list.items()):
+            aliases = [alias for alias in trailer.aliases if alias != name]
             family_data.append({
-                'id': mangle_to_id(fc, name),
-                'formatted_name': format_name(fc, name),
+                'name': name,
                 'stability': trailer.stability,
                 'docs': render_docs(trailer.docs or ''),
-                'alias_note': render_alias_note(fc, aliases),
+                'aliases': aliases,
             })
         trailer_data.append({
             'name': family_name,
-            'id': 'G' + fc,
-            'family': family_data,
+            'id': 'G' + family_name,
+            'trailers': family_data,
         })
 
-    print(pystache.render(template, {
+    print(main_jt.render({
         'vars': data,
         'trailer_families': trailer_data
     }))

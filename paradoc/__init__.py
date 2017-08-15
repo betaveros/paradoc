@@ -120,7 +120,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
     @put("each", "e",
             docs="""Apply this block to each element of a list (coerces numbers
-            to ranges).""",
+            to ranges). Compare {{ 'xloop'|bt }}.
+            """,
             stability="beta")
     def each_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def each_b(env: Environment) -> None:
@@ -164,6 +165,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
     @put("keep", "k",
             docs="""Execute this block in a preservation-shadow, so that any
             elements it pops aren't actually popped from the stack.
+
+            Compare {{ 'keepunder'|bt }}.
 
             ex:
             10 Uk => 10 1
@@ -216,6 +219,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             elements it pops aren't actually popped from the stack. Then push
             its results underneath elements it thinks were popped.
 
+            Compare {{ 'keep'|bt }}.
+
             ex:
             10 Uq => 1 10
             5 6 +q => 11 5 6""",
@@ -249,9 +254,9 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             (coerces numbers to ranges), pushing that top element before each
             application; collect the results into a new list.
 
-            Basically a bind followed by a map; you can imagine it as
-            vectorizing an operator if the top element of the stack is a scalar
-            and the one beneath it is a sequence.
+            Basically a {{ 'bind'|bt }} followed by a {{ 'map'|bt }};
+            you can imagine it as vectorizing an operator if the top element of
+            the stack is a scalar and the one beneath it is a sequence.
 
             ex: [1 2 3] 100+v => [101 102 103]""",
             stability="alpha")
@@ -267,8 +272,10 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
     @put("xloop", "x",
             docs="""Execute this block once for each element of a list (coerces
-            numbers to ranges). The element is not pushed onto the stack, but
-            is put into the X-stack and can be accessed through X.""",
+            numbers to ranges). Unlike {{ 'each'|bt }}, the element is not
+            pushed onto the stack, but is put into the X-stack and can be
+            accessed through X.
+            """,
             stability="beta")
 
     def xloop_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:

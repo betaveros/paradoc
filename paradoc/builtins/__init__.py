@@ -79,6 +79,13 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     env.put('Åx', case_double('ZXCVBNM'), stability="alpha")
     env.put('Åy', case_double('AEIOUY'), stability="alpha")
     env.put('Åz', str_class('z-aZ-A'), stability="alpha")
+
+    BULLET = '•'
+
+    env.put(BULLET, 0,
+            docs="""A utility variable assigned to by {{ 'Assign_bullet'|b }}
+            and {{ 'Assign_bullet_destructive'|b }}. Initialized to 0.""",
+            stability="alpha")
     # }}}
     # Universal functions: stack stuff, list stuff {{{
 
@@ -168,10 +175,14 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('†', [], [Case.any(lambda env, x: [[x]])],
             docs="""Pack the top element of the stack into a list by itself.
 
+            ASCII alternative: 1_array; see {{ 'array'|it }}.
+
             ex: 1 2 3† => 1 2 [3]""",
             stability="beta")
     cput('‡', [], [Case.any2(lambda env, x, y: [[x, y]])],
             docs="""Pack the top two elements of the stack into a list.
+
+            ASCII alternative: 2_array; see {{ 'array'|it }}.
 
             ex: 1 2 3‡ => 1 [2 3]""",
             stability="beta")
@@ -207,7 +218,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     ],
             docs="""Subtraction on numbers. Filter-not-in on lists and strings
             (numbers coerce to single-element lists). Filter-not on block and
-            list (numbers coerce to ranges).""",
+            list (numbers coerce to ranges). See also {{ 'Antiminus'|b }}.""",
             stability="stable")
 
     cput('Antiminus', ['¯'], [
@@ -215,7 +226,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
         Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(b, a)]),
         Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
     ],
-            docs="""Reversed subtraction.""",
+            docs="""Reversed subtraction. Compare {{ 'Minus'|b }}.""",
             stability="beta")
 
     cput('Mul', ['*'], [
@@ -229,6 +240,8 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             numbers. Cartesian product on two sequences. X-loop on blocks and
             sequences (numbers coerce to ranges, so, if you don't use the
             variable X, it's just repeating a block some number of times.)
+
+            See also {{ 'xloop'|bt }}.
 
             ex: 3 {2*} 4* => 48
             {X} 4* => 0 1 2 3""",
@@ -246,6 +259,8 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             leftovers if any. On two sequences, split the first sequence around
             occurrences of the second sequence. For-each on blocks and
             sequences (numbers coerce to ranges).
+
+            See also {{ 'Intdiv'|b }}.
 
             ex:
             [1 2 3 4]2/ => [[1 2][3 4]]
@@ -353,7 +368,10 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     ],
             docs="""Range on numbers. Enumerate (zip with indices from 0) on
             sequences. On block and sequence, list indices at which block is
-            true.""", stability="beta")
+            true.
+
+            Compare {{ 'Range_enumerate_one_or_reject_indices'|b }}.
+            """, stability="beta")
 
     cput('Range_enumerate_one_or_reject_indices', ['J'], [
         range_one_case,
@@ -362,7 +380,10 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     ],
             docs="""Range, inclusive from 1, on numbers. Enumerate from 1 (zip
             with indices from 1) on sequences. On block and sequence, list
-            indices at which block is false.""", stability="beta")
+            indices at which block is false.
+
+            Compare {{ 'Range_enumerate_or_reject_indices'|b }}.
+            """, stability="beta")
 
     range_til_case = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi))])
     range_to_case  = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi) + 1)])
@@ -572,8 +593,9 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             docs="Round down to the nearest integer.", stability="beta")
     cput('First',         [    ], [            first_case],
             docs="""First of sequence""", stability="stable")
-    cput('Floor_or_head', ['‹' ], [floor_case, first_case],
-            docs="""Floor or first of sequence""", stability="alpha")
+    cput('Floor_or_first', ['‹' ], [floor_case, first_case],
+            docs="""{{ 'Floor'|b }} or {{ 'First'|b }} of sequence""",
+            stability="alpha")
     ceil_case = Case.number(lambda env, a: [num.pd_ceil(a)])
     last_case = Case.seq(lambda env, a: [pd_index(a, -1)])
     cput('Ceiling',         ['>i'], [ceil_case           ],
@@ -581,7 +603,8 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Last',            [    ], [           last_case],
             docs="""Last of sequence""", stability="stable")
     cput('Ceiling_or_last', ['›' ], [ceil_case, last_case],
-            docs="""Ceiling or last of sequence""", stability="alpha")
+            docs="""{{ 'Ceiling'|b }} or {{ 'Last'|b }} of sequence""",
+            stability="alpha")
 
     round_case = Case.number(lambda env, a: [num.pd_round(a)])
     first_and_last_case = Case.seq(lambda env, a: [pd_index(a, 0), pd_index(a, -1)])
@@ -633,7 +656,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Mold', [], [mold_case],
             docs="Mold a sequence like another.", stability="alpha")
     cput('Negate_or_mold', ['M'], [negate_case, mold_case],
-            docs="Negate a number, or mold a sequence like another.",
+            docs="{{ 'Negate'|b }} a number, or {{ 'Mold'|b }} a sequence like another.",
             stability="alpha")
     # }}}
     # U for Signum or Uniquify {{{
@@ -935,9 +958,15 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     # Len, abs {{{
     abs_case = Case.number(lambda env, n: [num.pd_abs(n)])
     len_case = Case.seq(lambda env, seq: [len(seq)])
-    cput('Len', [], [len_case], stability="stable")
-    cput('Abs', [], [abs_case], stability="stable")
-    cput('Abs_or_len', ['L'], [abs_case, len_case], stability="beta")
+    cput('Len', [], [len_case],
+            docs="""Length of a sequence.""",
+            stability="stable")
+    cput('Abs', [], [abs_case],
+            docs="""Absolute value of a number.""",
+            stability="stable")
+    cput('Abs_or_len', ['L'], [abs_case, len_case],
+            docs="""{{ 'Abs'|b }} on numbers; {{ 'Len'|b }} on sequences.""",
+            stability="beta")
     # }}}
     # Other numeric predicates {{{
     cput('Positive',         ['+p'], [Case.value_n2v(lambda e: int(e >  0))], stability="beta")
@@ -1171,7 +1200,6 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
         env.print_output_record(env.pd_str(env.pop_until_stack_marker()))
     # }}}
     # Bullet assignment {{{
-    BULLET = '•'
     @put('Assign_bullet', '·', docs="Assign to the variable •",
             stability="alpha")
     def assign_bullet(env: Environment) -> None:
