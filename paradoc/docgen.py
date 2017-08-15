@@ -1,5 +1,6 @@
-from typing import List
+from typing import *
 from paradoc.objects import Environment
+from paradoc.trailer import Trailer
 import string
 
 name_template = """<a href="#{{id}}"><code>{{#chars}}{{#sp}}<code class="char">{{/sp}}{{text}}{{#sp}}</code>{{/sp}}{{/chars}}</code></a>"""
@@ -14,13 +15,14 @@ template = """
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Paradoc Built-Ins</title>
+<title>Paradoc Trailers and Built-Ins</title>
 <style>
 body { font-family: sans-serif; margin: 0; background-color: #eee; }
 .wrap { background-color: #fff; margin-left: auto; margin-right: auto; padding: 1em; max-width: 48em; }
-h2 { font-family: monospace; border-top: 1px dashed black; padding-top: 0.5em; }
-h2 a { text-decoration: none; }
-h2 code.char { font-size: 75%; border: 1px dotted black; background: #ccc; }
+h2 { padding-top: 0.5em; border-top: 3px double black; }
+h3 { font-family: monospace; border-top: 1px dashed black; padding-top: 0.5em; }
+h3 a { text-decoration: none; }
+h3 code.char { font-size: 75%; border: 1px dotted black; background: #ccc; }
 pre.ex, pre.exs { border: 1px solid #ac9; background-color: #eeffcc; padding: 0.2em; }
 pre.ex::before, pre.exs::before { font-size: 75%; font-family: sans-serif; }
 pre.ex::before { content: "Example: "; }
@@ -38,7 +40,7 @@ p.stable { color: #0a0; }
 </head>
 <body>
 <div class="wrap">
-<h1>Paradoc Built-Ins</h1>
+<h1>Paradoc Trailers and Built-Ins</h1>
 <p>Crude definitions on stability: Stable means you can almost certainly expect
 this built-in to be in Paradoc pretty much as-is, but we reserve the
 possibility of adding/changing behavior in cases the built-in previously did
@@ -53,8 +55,27 @@ aspects of its behavior are decidedly not final.</p>
 <p>Of course, until we hit version 1.0 (hahahaha), no built-ins should be
 considered absolutely fixed.</p>
 </p>
+<p><strong>NOTE: The ids of elements on this page should be considered
+unstable.</strong></p>
+<h2>Table of Contents</h2>
+<ul>
+{{#trailer_families}}
+<li><a href="#{{id}}">{{name}} Trailers</a></li>
+{{/trailer_families}}
+<li><a href="#GV">Built-Ins</a></li>
+</ul>
+
+{{#trailer_families}}
+<h2 id="{{id}}">{{name}} Trailers</h2>
+{{#family}}
+<h3 id="{{id}}">{{{formatted_name}}}</h3>
+{{{alias_note}}}
+{{/family}}
+{{/trailer_families}}
+
+<h2 id="GV">Built-Ins</h2>
 {{#vars}}
-<h2 id="{{id}}">{{{formatted_name}}}</h2>
+<h3 id="{{id}}">{{{formatted_name}}}</h3>
 <p class="stability {{stability}}">Stability: {{stability}}</p>
 {{{alias_note}}}
 {{{docs}}}
@@ -69,8 +90,8 @@ considered absolutely fixed.</p>
 
 
 safe_id_chars = string.ascii_letters + string.digits
-def mangle_to_id(name: str) -> str:
-    acc = [] # type: List[str]
+def mangle_to_id(id_prefix: str, name: str) -> str:
+    acc = [id_prefix, '_'] # type: List[str]
     for c in name:
         if c in safe_id_chars:
             acc.append(c)
@@ -82,10 +103,11 @@ def mangle_to_id(name: str) -> str:
     if ret.endswith('_'): ret = ret[:-1]
     return ret
 
-def document(env: Environment) -> None:
+def document(env: Environment,
+        trailer_families: List[Tuple[str, Dict[str, Trailer]]]) -> None:
     import pystache
 
-    def format_name(name: str) -> str:
+    def format_name(id_prefix: str, name: str) -> str:
         chars = []
         for c in name:
             if c == "\r":
@@ -99,7 +121,7 @@ def document(env: Environment) -> None:
             else:
                 chars.append({'text': c})
         return pystache.render(name_template,
-                {'id': mangle_to_id(name), 'chars': chars})
+                {'id': mangle_to_id(id_prefix, name), 'chars': chars})
 
     def render_docs(docs: str) -> str:
         docpars = docs.split('\n\n')
@@ -116,10 +138,10 @@ def document(env: Environment) -> None:
             render_pars.append({'tag': tag, 'cls': cls, 'text': text})
         return pystache.render(docs_template, {'pars': render_pars})
 
-    def render_alias_note(aliases: List[str]) -> str:
+    def render_alias_note(id_prefix: str, aliases: List[str]) -> str:
         if aliases:
             return ('<p class="aliases">Aliases: ' +
-                    ", ".join(format_name(alias) for alias in aliases) +
+                    ", ".join(format_name(id_prefix, alias) for alias in aliases) +
                     '</p>')
         else:
             return ''
@@ -141,13 +163,35 @@ def document(env: Environment) -> None:
 
         stability_index = ['unstable', 'alpha', 'beta', 'stable'].index(stability)
         data.append({
-            'id': mangle_to_id(name),
-            'formatted_name': format_name(name),
+            'id': mangle_to_id('V', name),
+            'formatted_name': format_name('V', name),
             'stability': stability,
             'stability_index': stability_index,
             'docs': render_docs(docs),
             'value_data': value_data,
-            'alias_note': render_alias_note(aliases)
+            'alias_note': render_alias_note('V', aliases)
         })
-    print(pystache.render(template, {'vars': data}))
+
+    trailer_data = []
+    for family_name, trailer_list in trailer_families:
+        family_data = []
+        fc = family_name[0]
+        for name0, trailer in sorted(trailer_list.items()):
+            aliases = ['_' + alias for alias in trailer.aliases if alias != name0]
+            name = '_' + name0
+            family_data.append({
+                'id': mangle_to_id(fc, name),
+                'formatted_name': format_name(fc, name),
+                'alias_note': render_alias_note(fc, aliases),
+            })
+        trailer_data.append({
+            'name': family_name,
+            'id': 'G' + fc,
+            'family': family_data,
+        })
+
+    print(pystache.render(template, {
+        'vars': data,
+        'trailer_families': trailer_data
+    }))
     # print(pystache.render(template, {'vars': sorted(data, key=lambda d: -d['stability_index'])}))

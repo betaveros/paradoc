@@ -18,6 +18,7 @@ from paradoc.objects import Block, BuiltIn, PdObject, Environment, PdSeq, PdEmpt
 import paradoc.objects as objects
 import paradoc.base as base
 import paradoc.input_triggers as input_triggers
+from paradoc.trailer import TrailerFunc, Trailer
 from paradoc.builtins import initialize_builtins
 from paradoc.builtins.acutegrave import ag_convert
 import sys
@@ -50,23 +51,13 @@ def apply_pd_list_op(
     lst = objects.pd_to_list_range(env.pop(), coerce_start)
     env.push(op(env, b, lst))
 
-# bool is whether the result is "reluctant"
 T = TypeVar('T')
-TrailerFunc = Callable[[Environment, T], Tuple[PdObject, bool]]
-
-class Trailer(Generic[T]):
-    def __init__(self, name: str, func: TrailerFunc[T]) -> None:
-        self.name = name
-        self.func = func
-
-    def __call__(self, env: Environment, obj: T) -> Tuple[PdObject, bool]:
-        return self.func(env, obj)
 
 TrailerPutter = Callable[[TrailerFunc[T]], Trailer[T]]
 
 def trailer_putter(d: Dict[str, Trailer[T]], names: Tuple[str, ...]) -> TrailerPutter:
     def inner(f: TrailerFunc[T]) -> Trailer[T]:
-        t = Trailer(names[0], f)
+        t = Trailer(names[0], f, aliases=list(names))
         for name in names:
             assert name not in d
             d[name] = t
@@ -720,7 +711,12 @@ def main() -> None:
             list_builtins(lambda name: len(name) <= 2)
         elif args.docs:
             from paradoc.docgen import document
-            document(initialized_environment(sandboxed=True))
+            document(initialized_environment(sandboxed=True), [
+                ('Block', block_trailer_dict),
+                ('String', string_trailer_dict),
+                ('Int', int_trailer_dict),
+                ('Float', float_trailer_dict),
+            ])
         elif args.e is not None:
             main_with_code(args.e, sandboxed=args.sandboxed)
         elif args.prog_file is not None:
