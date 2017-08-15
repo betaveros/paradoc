@@ -11,11 +11,12 @@ def str_class(s: str) -> str:
     ret = [] # type: List[str]
     while i < n:
         if i + 2 < n and s[i+1] == '-':
-            lo = ord(s[i])
-            hi = ord(s[i+2])
-            if lo > hi: lo, hi = hi, lo
-            for mo in range(lo, hi + 1):
-                ret.append(chr(mo))
+            start = ord(s[i])
+            end = ord(s[i+2])
+            if start <= end:
+                ret.extend(chr(c) for c in range(start, end + 1))
+            else:
+                ret.extend(chr(c) for c in range(start, end - 1, -1))
             i += 3
         else:
             ret.append(s[i])
