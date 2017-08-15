@@ -5,6 +5,40 @@ import paradoc.num as num
 from paradoc.objects import PdObject
 from paradoc.builtins.case import Case, CasedBuiltIn
 
+note = """
+
+NOTE: This trailer also works on capital letters, interpreted as
+base-36 constants (A = 10 until Z = 35). This is not a syntax special
+case; essentially you can imagine there's a family of built-ins with
+the right names."""
+
+def ag_document(c: str) -> str:
+
+    if c == 'á':
+        return "Add this constant. Deeply vectorizes." + note
+    elif c == 'à':
+        return "Subtract this constant. Deeply vectorizes." + note
+    elif c == 'é':
+        return "Takes 2 to the power of this constant." + note
+    elif c == 'è':
+        return "Squares this constant." + note
+    elif c == 'í':
+        return "Inverts this constant." + note
+    elif c == 'ì':
+        return "Negates this constant." + note
+    elif c == 'ó':
+        return "Multiply by this constant. Deeply vectorizes." + note
+    elif c == 'ò':
+        return "Divide by this constant. Deeply vectorizes." + note
+    elif c == 'ú':
+        return "Mod by this constant. Deeply vectorizes." + note
+    elif c == 'ù':
+        return "Not implemented yet." + note
+    elif c == 'ý':
+        return "Takes 10 to the power of this constant." + note
+
+    raise NotImplementedError
+
 def ag_convert(c: str, n: int, varname: str) -> PdObject:
     if c == 'á':
         return CasedBuiltIn(varname, [

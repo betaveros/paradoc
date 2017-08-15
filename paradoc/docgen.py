@@ -42,18 +42,19 @@ p.stable { color: #0a0; }
 <div class="wrap">
 <h1>Paradoc Trailers and Built-Ins</h1>
 <p>Crude definitions on stability: Stable means you can almost certainly expect
-this built-in to be in Paradoc pretty much as-is, but we reserve the
-possibility of adding/changing behavior in cases the built-in previously did
-not cover, in ways that might technically not be backwards-compatible.</p>
-<p>Beta means you can probably expect this built-in to be in Paradoc as-is, but
-should also be prepared for it to be renamed or have its behavior changed. Or,
-there may be known bugs/design issues/TODOs in its implementation, or it may
-not have been tested as thoroughly as a stable built-in.</p>
-<p>Alpha means this built-in is likely to be in Paradoc, but its name or some
-aspects of its behavior are decidedly not final.</p>
-<p>For unstable built-ins, all bets are off...</p>
-<p>Of course, until we hit version 1.0 (hahahaha), no built-ins should be
-considered absolutely fixed.</p>
+this feature to be in Paradoc pretty much as-is, but we reserve the possibility
+of adding/changing behavior in cases it previously did not cover, in ways that
+might technically not be backwards-compatible.</p>
+<p>Beta means you can probably expect this to be in Paradoc as-is, but should
+also be prepared for it to be renamed or have its behavior changed. Or, there
+may be known bugs/design issues/TODOs in its implementation, or it may not have
+been tested as thoroughly as a stable feature.</p>
+<p>Alpha means this is likely to be in Paradoc, but its name or some aspects of
+its behavior are decidedly not final. It may be replaced with something only
+spiritually similar.</p>
+<p>For unstable features, all bets are off...</p>
+<p>Of course, until we hit version 1.0 (hahahaha), nothing should be considered
+absolutely fixed.</p>
 </p>
 <p><strong>NOTE: The ids of elements on this page should be considered
 unstable.</strong></p>
@@ -69,7 +70,9 @@ unstable.</strong></p>
 <h2 id="{{id}}">{{name}} Trailers</h2>
 {{#family}}
 <h3 id="{{id}}">{{{formatted_name}}}</h3>
+<p class="stability {{stability}}">Stability: {{stability}}</p>
 {{{alias_note}}}
+{{{docs}}}
 {{/family}}
 {{/trailer_families}}
 
@@ -182,6 +185,8 @@ def document(env: Environment,
             family_data.append({
                 'id': mangle_to_id(fc, name),
                 'formatted_name': format_name(fc, name),
+                'stability': trailer.stability,
+                'docs': render_docs(trailer.docs or ''),
                 'alias_note': render_alias_note(fc, aliases),
             })
         trailer_data.append({
