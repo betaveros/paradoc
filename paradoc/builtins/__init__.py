@@ -1148,6 +1148,8 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Time_iso_weekday', ['Tv'], [Case.value_n2v(lambda e:  fromtimestamp(e).isoweekday()        )], docs="Get the ISO weekday (Monday is 1, Sunday is 7) from a timestamp", stability="alpha")
     cput('Now_weekday',      ['Nw'], [Case.void     (lambda _: [           now().weekday()          ])], docs="Get the current weekday (Monday is 0, Sunday is 6)", stability="alpha")
     cput('Time_weekday',     ['Tw'], [Case.value_n2v(lambda e:  fromtimestamp(e).weekday()           )], docs="Get the weekday (Monday is 0, Sunday is 6) from a timestamp", stability="alpha")
+    cput('Now_year',         ['Ny'], [Case.void     (lambda _: [           now().year               ])], docs="Get the current year", stability="alpha")
+    cput('Time_year',        ['Ty'], [Case.value_n2v(lambda e:  fromtimestamp(e).year                )], docs="Get the year from a timestamp", stability="alpha")
     # }}}
     # Randomness {{{
     cput('Random_float', ['Rf'], [Case.void(lambda env: [random.random()])],
