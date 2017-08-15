@@ -275,6 +275,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             numbers to ranges). Unlike {{ 'each'|bt }}, the element is not
             pushed onto the stack, but is put into the X-stack and can be
             accessed through X.
+
+            See also {{ '*'|b }}.
             """,
             stability="beta")
 

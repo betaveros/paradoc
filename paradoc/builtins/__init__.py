@@ -244,7 +244,8 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             See also {{ 'xloop'|bt }}.
 
             ex: 3 {2*} 4* => 48
-            {X} 4* => 0 1 2 3""",
+            {X} 4* => 0 1 2 3
+            [2 3 5 7] {2X#} * => 4 8 32 128""",
             stability="stable")
 
     cput('Slash', ['/'], [
