@@ -200,7 +200,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     # }}}
     # "Arithmetic" inc Octothorpe {{{
 
-    cput('Plus', ['+'], [
+    cput('Plus_or_filter', ['+'], [
         Case.number2(lambda env, a, b: [num.pd_add(a, b)]),
         Case.list2_singleton(lambda env, a, b: [list(a) + list(b)]),
         Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)]),
@@ -211,7 +211,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             block and list (numbers coerce to ranges).""",
             stability="stable")
 
-    cput('Minus', ['-'], [
+    cput('Minus_or_reject', ['-'], [
         Case.number2(lambda env, a, b: [num.pd_sub(a, b)]),
         Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(a, b)]),
         Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
@@ -229,7 +229,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             docs="""Reversed subtraction. Compare {{ 'Minus'|b }}.""",
             stability="beta")
 
-    cput('Mul', ['*'], [
+    cput('Mul_or_xloop', ['*'], [
         Case.number2(lambda env, a, b: [num.pd_mul(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_mul_seq(seq, n)]),
         Case.seq2(lambda env, a, b: [pd_cartesian_product_seq(a, b)]),
@@ -248,7 +248,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             [2 3 5 7] {2X#} * => 4 8 32 128""",
             stability="stable")
 
-    cput('Slash', ['/'], [
+    cput('Div_or_split_or_each', ['/'], [
         Case.number2(lambda env, a, b: [num.pd_div(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_split_seq(seq, n, include_leftover=True)]),
         Case.seq2(lambda env, seq, tok: [pd_split_seq_by(seq, tok)]),
@@ -270,7 +270,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             """,
             stability="stable")
 
-    cput('Intdiv', ['÷'], [
+    cput('Intdiv_or_split_discard', ['÷'], [
         Case.number2(lambda env, a, b: [num.pd_intdiv(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_split_seq(seq, n, include_leftover=False)]),
     ],
@@ -283,7 +283,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             """,
             stability="beta")
 
-    cput('Percent', ['%'], [
+    cput('Mod_or_slice_mod_or_split_nonempty_or_map', ['%'], [
         Case.number2(lambda env, a, b: [num.pd_mod(a, b)]),
         Case.number_seq(lambda env, n, seq: [seq[::num.intify(n)]]),
         Case.seq2(lambda env, seq, tok: [[s for s in pd_split_seq_by(seq, tok) if s]]),
@@ -300,7 +300,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             """,
             stability="stable")
 
-    cput('Octothorpe', ['#'], [
+    cput('Power_or_find', ['#'], [
         Case.number2(lambda env, a, b: [num.pd_pow(a, b)]),
         Case.block_seq_range(lambda env, block, seq:
             [second_or_error(pd_find_entry(env, block, seq),
@@ -338,7 +338,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
         Case.str_(lambda env, s: [''.join(sorted(s))]),
         Case.list_(lambda env, x: [list(sorted(x))]),
     ], docs="Sort", stability="stable")
-    cput('Dollar', ['$'], [
+    cput('Sort_or_stack_select', ['$'], [
         Case.number(lambda env, n: [env.index_stack(int(n))]),
         Case.str_(lambda env, s: [''.join(sorted(s))]),
         Case.list_(lambda env, x: [list(sorted(x))]),
@@ -408,7 +408,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             stability="beta")
     # }}}
     # Binary operators &|^ {{{
-    cput('Vertical_bar', ['|'], [
+    cput('Bin_or_or_union_or_unless', ['|'], [
         Case.number2(lambda env, a, b: [num.pd_or(a, b)]),
         Case.seq2_range(lambda env, a, b: [pd_seq_union(a, b)]),
         Case.condition_block(lambda env, cond, block:
@@ -416,7 +416,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     ],
             docs="""Binary OR on numbers. Union on sequences. One-branch unless
             on blocks.""", stability="beta")
-    cput('Ampersand', ['&'], [
+    cput('Bin_and_or_intersection_or_if', ['&'], [
         Case.number2(lambda env, a, b: [num.pd_and(a, b)]),
         Case.seq2_range(lambda env, a, b: [pd_seq_intersection(a, b)]),
         Case.condition_block(lambda env, cond, block:
@@ -424,7 +424,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     ],
             docs="""Binary AND on numbers. Intersection on sequences.
             One-branch if on blocks.""", stability="beta")
-    cput('Exclusive_or', ['^'], [
+    cput('Exclusive_or_or_symmetric_difference', ['^'], [
         Case.number2(lambda env, a, b: [num.pd_xor(a, b)]),
         Case.seq2_range(lambda env, a, b: [pd_seq_symmetric_difference(a, b)]),
     ],
@@ -435,12 +435,12 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             pd_if_then_empty_list(env, cond, body)),
     ],
             docs="""Single-branch if.""", stability="alpha")
-    cput('Ul', ['Unless'], [
+    cput('Unless', ['Ul'], [
         Case.any2(lambda env, cond, body:
             pd_if_then_empty_list(env, cond, body, negate=True)),
     ],
             docs="""Single-branch unless.""", stability="alpha")
-    @put('?',
+    @put('If_else', '?',
             docs="""If-else.
 
             ex: 1 "True!" "False" ? => "True!"
@@ -483,7 +483,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
     ],
             stability="beta")
-    cput('Equal_sign', ['='], [
+    cput('Equal_or_index', ['='], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
@@ -496,7 +496,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             the first element satisfying the block.""", stability="beta")
     # A bunch of arithmetic operations between Union[int, float] and
     # Union[int, float] have type ignored below
-    cput('Less_than', ['<'], [
+    cput('Lt_or_slice', ['<'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) < num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
@@ -506,7 +506,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             first is less than the second. On a number and a sequence, slice
             elements with index less than the number, as Python s[:n].""",
             stability="beta")
-    cput('Greater_than', ['>'], [
+    cput('Gt_or_slice', ['>'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) > num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
@@ -517,7 +517,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             elements with index greater than or equal to the number, as Python
             s[n:].""",
             stability="beta")
-    cput('Leq', ['<e'], [
+    cput('Leq_or_slice', ['<e'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) <= num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a <= b)]),
         Case.list2(lambda env, a, b: [int(list(a) <= list(b))]),
@@ -525,7 +525,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     ],
             docs="""Less than or equal to.""",
             stability="beta")
-    cput('Geq', ['>e'], [
+    cput('Geq_or_slice', ['>e'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) >= num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a >= b)]),
         Case.list2(lambda env, a, b: [int(list(a) >= list(b))]),
@@ -533,21 +533,21 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     ],
             docs="""Greater than or equal to.""",
             stability="beta")
-    cput('Less_than_approx', ['<a'], [
+    cput('Lt_approx', ['<a'], [
         Case.number2(lambda env, a, b:
             [int(num.numerify(a) - num.numerify(b) < env.get_epsilon())]), # type: ignore
     ],
             docs="""Approximately less than; tolerance is given by Ep,
             epsilon""",
             stability="alpha")
-    cput('Greater_than_approx', ['>a'], [
+    cput('Gt_approx', ['>a'], [
         Case.number2(lambda env, a, b:
             [int(num.numerify(b) - num.numerify(a) < env.get_epsilon())]), # type: ignore
     ],
             docs="""Approximately greater than; tolerance is given by Ep,
             epsilon""",
             stability="alpha")
-    cput('Equal_approx', ['=a'], [
+    cput('Eq_approx', ['=a'], [
         Case.number2(lambda env, a, b:
             [int(abs(num.numerify(a) - num.numerify(b)) < env.get_epsilon())]), # type: ignore
     ],
@@ -575,55 +575,20 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             docs="""Maximum of array""",
             stability="alpha")
     # }}}
-    # «»‹› {{{
-    cput('Double_left', ['«'], [
-        Case.number(lambda env, a: [num.pd_add_const(a, -2)]),
-        Case.seq(lambda env, a: [a[:-1]]),
-    ],
-            docs="""Decrease by two, or init (all but last)""",
-            stability="alpha")
-    cput('Double_right', ['»'], [
-        Case.number(lambda env, a: [num.pd_add_const(a, 2)]),
-        Case.seq(lambda env, a: [a[1:]]),
-    ],
-            docs="""Increase by two, or tail (all but first)""",
-            stability="alpha")
-    floor_case = Case.number(lambda env, a: [num.pd_floor(a)])
-    first_case = Case.seq(lambda env, a: [pd_index(a, 0)])
-    cput('Floor',         ['<i'], [floor_case           ],
-            docs="Round down to the nearest integer.", stability="beta")
-    cput('First',         [    ], [            first_case],
-            docs="""First of sequence""", stability="stable")
-    cput('Floor_or_first', ['‹' ], [floor_case, first_case],
-            docs="""{{ 'Floor'|b }} or {{ 'First'|b }} of sequence""",
-            stability="alpha")
-    ceil_case = Case.number(lambda env, a: [num.pd_ceil(a)])
-    last_case = Case.seq(lambda env, a: [pd_index(a, -1)])
-    cput('Ceiling',         ['>i'], [ceil_case           ],
-            docs="Round up to the nearest integer.", stability="beta")
-    cput('Last',            [    ], [           last_case],
-            docs="""Last of sequence""", stability="stable")
-    cput('Ceiling_or_last', ['›' ], [ceil_case, last_case],
-            docs="""{{ 'Ceiling'|b }} or {{ 'Last'|b }} of sequence""",
-            stability="alpha")
+    # Incr/Decr/First/Last/Uncons/Unsnoc/Parens: «»‹›() {{{
+    def case_add_const(i: int):
+        return Case.number(lambda env, a: [num.pd_add_const(a, i)])
 
-    round_case = Case.number(lambda env, a: [num.pd_round(a)])
-    first_and_last_case = Case.seq(lambda env, a: [pd_index(a, 0), pd_index(a, -1)])
-    cput('Round',                   ['=i'], [round_case                     ],
-            docs="""Round to the nearest integer; follows Python's rules.""",
-            stability="alpha")
-    cput('First_and_last',          [    ], [            first_and_last_case],
-            stability="alpha")
-    cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case],
-            stability="alpha")
-    # }}}
-    # Uncons, Unsnoc, Parens() {{{
-    decr_case = Case.number(lambda env, a: [num.pd_add_const(a, -1)])
-    cput('Decr', [], [decr_case],
-            docs="Decrease by 1.", stability="beta")
-    incr_case = Case.number(lambda env, a: [num.pd_add_const(a, 1)])
-    cput('Incr', [], [incr_case],
-            docs="Increase by 1.", stability="beta")
+    decr_case  = case_add_const(-1)
+    incr_case  = case_add_const(1)
+    decr2_case = case_add_const(-2)
+    incr2_case = case_add_const(2)
+
+    cput('Decr',     [], [decr_case ], docs="Decrease by 1.", stability="beta")
+    cput('Incr',     [], [incr_case ], docs="Increase by 1.", stability="beta")
+    cput('Decr_two', [], [decr2_case], docs="Decrease by 2.", stability="beta")
+    cput('Incr_two', [], [incr2_case], docs="Increase by 2.", stability="beta")
+
     uncons_case = Case.seq(lambda env, a: [a[1:], pd_index(a, 0)])
     cput('Uncons', [], [uncons_case],
             docs="""Split into tail and first.
@@ -634,10 +599,50 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             docs="""Split into init and last.
 
             ex: [1 2 3]Uncons => [1 2]3""", stability="beta")
-    cput('(', [], [decr_case, unsnoc_case],
+    cput('Decr_or_uncons', ['('], [decr_case, unsnoc_case],
             docs="Decr or Uncons.", stability="beta")
-    cput(')', [], [incr_case, uncons_case],
+    cput('Incr_or_unsnoc', [')'], [incr_case, uncons_case],
             docs="Incr or Unsnoc.", stability="beta")
+
+    first_case = Case.seq(lambda env, a: [pd_index(a,  0)])
+    last_case  = Case.seq(lambda env, a: [pd_index(a, -1)])
+    butlast_case  = Case.seq(lambda env, a: [a[:-1]])
+    butfirst_case = Case.seq(lambda env, a: [a[1: ]])
+    first_and_last_case = Case.seq(lambda env, a: [pd_index(a, 0), pd_index(a, -1)])
+
+    cput('First',    [], [first_case], docs="First of sequence", stability="stable")
+    cput('Last',     [], [last_case],  docs="Last of sequence",  stability="stable")
+    cput('Butlast',  [], [butlast_case],  docs="All but last of sequence",  stability="beta")
+    cput('Butfirst', [], [butfirst_case], docs="All but first of sequence", stability="beta")
+    cput('First_and_last', [], [first_and_last_case], docs="First and last of sequence",
+            stability="alpha")
+
+    floor_case = Case.number(lambda env, a: [num.pd_floor(a)])
+    ceil_case  = Case.number(lambda env, a: [num.pd_ceil(a)])
+    round_case = Case.number(lambda env, a: [num.pd_round(a)])
+
+    cput('Floor',   ['<i'], [floor_case], docs="Round down to the nearest integer.", stability="beta")
+    cput('Ceiling', ['>i'], [ceil_case ], docs="Round up to the nearest integer.",   stability="beta")
+    cput('Round',   ['=i'], [round_case], docs="Round to the nearest integer; follows Python's rules.",
+            stability="alpha")
+
+    cput('Floor_or_first', ['‹'], [floor_case, first_case],
+            docs="""{{ 'Floor'|b }} or {{ 'First'|b }} of sequence""",
+            stability="alpha")
+    cput('Ceiling_or_last', ['›'], [ceil_case, last_case],
+            docs="""{{ 'Ceiling'|b }} or {{ 'Last'|b }} of sequence""",
+            stability="alpha")
+
+    cput('Decr_two_or_but_last',  ['«'], [decr2_case, butlast_case],
+            docs="""Decrease by two, or all but last""",
+            stability="alpha")
+
+    cput('Incr_two_or_but_first', ['»'], [incr2_case, butfirst_case],
+            docs="""Increase by two, or all but first (tail)""",
+            stability="alpha")
+
+    cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case],
+            stability="alpha")
     # }}}
     # Sum, Product {{{
     cput('Sum', ['Š'], [
@@ -674,7 +679,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             stability="alpha")
     # }}}
     # Has as factor / count {{{
-    cput('H', [], [
+    cput('Has_factor_count', ['H'], [
         Case.number2(lambda env, a, b: [num.pd_count_multiplicity_in(b, a)]),
         Case.seq_value(lambda env, s, x: [pd_count_in(env, x, s)]),
     ],
@@ -726,7 +731,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
         Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
     ],
             stability="beta")
-    cput('G', [], [
+    cput('Group_maybe_by', ['G'], [
         Case.seq(lambda env, seq: [pd_group(seq)]),
         Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
         Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
@@ -813,25 +818,25 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Not_any', ['Not_exists', 'Ne'], not_any_cases, stability="beta")
     cput('Identical', [], identical_cases, stability="beta")
     cput('Unique', [], unique_cases, stability="beta")
-    cput('Â', [], [
+    cput('Above_zero_or_all', ['Â'], [
         Case.number(lambda env, a: [int(num.numerify(a) > 0)])
     ] + all_cases,
             docs="Above zero or All", stability="beta")
-    cput('Ê', [], [even_case] + any_cases,
+    cput('Even_or_any', ['Ê'], [even_case] + any_cases,
             docs="Even or Any (Exists)", stability="beta")
-    cput('Î', [], [
+    cput('Equals_one_or_identical', ['Î'], [
         Case.number(lambda env, a: [int(num.numerify(a) == 1)]),
     ] + identical_cases,
             docs="Identity (equals 1) or Identical", stability="beta")
-    cput('Ô', [], [odd_case] + not_any_cases,
+    cput('Odd_or_not_any', ['Ô'], [odd_case] + not_any_cases,
             docs="Odd or Not_any", stability="beta")
-    cput('Û', [], [
+    cput('Under_zero_or_is_unique', ['Û'], [
         Case.number(lambda env, a: [int(num.numerify(a) < 0)]),
     ] + unique_cases,
             docs="Under zero or Unique (test)", stability="beta")
     # }}}
     # Tilde and Eval {{{
-    @put('~', docs="Complement, eval, expand", stability="beta")
+    @put('Compl_or_eval_or_expand', '~', docs="Complement, eval, expand", stability="beta")
     def tilde(env: Environment) -> None:
         a = env.pop()
         if isinstance(a, Block):
@@ -1042,7 +1047,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
     cput('Window', [], [window_case], stability="alpha")
     cput('Space_split', ['Words'], [words_case, window_case], stability="alpha")
-    cput('W', [], [words_case, window_case],
+    cput('Window_or_words', ['W'], [words_case, window_case],
             docs="""Words (split by spaces) or Window (sliding window of size
             given by number.""",
             stability="alpha")
