@@ -730,6 +730,24 @@ def pd_transpose(matrix: PdSeq) -> List[list]:
             else:
                 res[i].append(e)
     return res
+
+def pd_transpose_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
+    res = [] # type: List[list]
+    for ri, row0 in py_enumerate(matrix):
+        if isinstance(row0, (str, list, range)):
+            row = pd_iterable(row0)
+        else:
+            row = [row0]
+        for i, e in enumerate(row):
+            if len(res) <= i:
+                res.append([filler] * ri + [e])
+            else:
+                res[i].append(e)
+        i += 1
+        while i < len(res):
+            res[i].append(filler)
+            i += 1
+    return res
 # }}}
 # pd_find_entry et al. (wow code duplication much) {{{
 def pd_find_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optional[int], Optional[PdObject]]:

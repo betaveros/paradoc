@@ -357,6 +357,14 @@ class TestParadoc(unittest.TestCase):
 
     def test_transpose(self):
         self.assertEqual(pd_simple_eval('[[1 2][3 4]]Transpose'), [[[1,3],[2,4]]])
+        self.assertEqual(pd_simple_eval('[[1 2][3 4 5]]Transpose'), [[[1,3],[2,4],[5]]])
+        self.assertEqual(pd_simple_eval('[[1 2][3 4]]0Tf'), [[[1,3],[2,4]]])
+        self.assertEqual(pd_simple_eval('[[1 2][3 4 5]]0Tf'), [[[1,3],[2,4],[0,5]]])
+
+    def test_fill(self):
+        self.assertEqual(pd_simple_eval('"foo"9<f'), ["      foo"])
+        self.assertEqual(pd_simple_eval('"foo"9>f'), ["foo      "])
+        self.assertEqual(pd_simple_eval('"foo"9=f'), ["   foo   "])
 
     def test_string_trailers(self):
         self.assertEqual(pd_simple_eval('1 2 3"% % %"i'), ["1 2 3"])

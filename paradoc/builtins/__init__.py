@@ -697,6 +697,14 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Transpose', ['Tt', '™'], [
         Case.seq(lambda env, a: [pd_transpose(a)]),
     ],
+            docs="""Transpose a matrix, or list of lists.""",
+            stability="alpha")
+    cput('Transpose_fill', ['Tf'], [
+        Case.seq_value(lambda env, a, f: [pd_transpose_fill(a, f)]),
+    ],
+            docs="""Given a filler element, transpose a matrix, or list of
+            lists, with the filler element repeated as necessary until the
+            matrix is rectangular.""",
             stability="alpha")
     cput('Zip', [], [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
@@ -1005,7 +1013,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isupper()), x)])], stability="beta")
     cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])], stability="alpha")
     # }}}
-    # Replicate {{{
+    # Replicate, fill/pad {{{
     cput('Replicate', ['ˆ', 'Rp'], [
         Case.any_number(lambda env, x, n: [pd_replicate(x, num.intify(n))]),
     ],
@@ -1022,6 +1030,36 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             docs="""Make a list by repeating one of two elements some number of
             times, the first one if negative and the second one if
             positive.""",
+            stability="unstable")
+
+    # Left-padding is right-justifying and vice versa...
+    cput('Zero_fill',  ['Zf'], [
+        Case.value_number(lambda env, x, n: [env.pd_str(x).rjust(num.intify(n), '0')]),
+    ],
+            docs="""Given a value and a length, convert the value to a string
+            if necessary and left-pad it with zeroes until at least the
+            length.""",
+            stability="unstable")
+    cput('Left_fill',  ['<f'], [
+        Case.value_number(lambda env, x, n: [env.pd_str(x).rjust(num.intify(n))]),
+    ],
+            docs="""Given a value and a length, convert the value to a string
+            if necessary and left-pad it with spaces until at least the
+            length.""",
+            stability="unstable")
+    cput('Right_fill', ['>f'], [
+        Case.value_number(lambda env, x, n: [env.pd_str(x).ljust(num.intify(n))]),
+    ],
+            docs="""Given a value and a length, convert the value to a string
+            if necessary and right-pad it with spaces until at least the
+            length.""",
+            stability="unstable")
+    cput('Center_fill', ['=f'], [
+        Case.value_number(lambda env, x, n: [env.pd_str(x).center(num.intify(n))]),
+    ],
+            docs="""Given a value and a length, convert the value to a string
+            if necessary and pad it with equally many spaces on either side
+            until at least the length.""",
             stability="unstable")
     # }}}
     # Key_* functions, for big arrays {{{
