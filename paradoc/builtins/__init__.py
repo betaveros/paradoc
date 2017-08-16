@@ -576,7 +576,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             stability="alpha")
     # }}}
     # Incr/Decr/First/Last/Uncons/Unsnoc/Parens: «»‹›() {{{
-    def case_add_const(i: int):
+    def case_add_const(i: int) -> Case:
         return Case.number(lambda env, a: [num.pd_add_const(a, i)])
 
     decr_case  = case_add_const(-1)
