@@ -660,7 +660,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Negate', [], [negate_case],
             docs="Negate a number.", stability="beta")
     cput('Mold', [], [mold_case],
-            docs="Mold a sequence like another.", stability="alpha")
+            docs="Mold the first sequence like the second.", stability="alpha")
     cput('Negate_or_mold', ['M'], [negate_case, mold_case],
             docs="{{ 'Negate'|b }} a number, or {{ 'Mold'|b }} a sequence like another.",
             stability="alpha")
