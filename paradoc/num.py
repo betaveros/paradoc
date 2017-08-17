@@ -117,9 +117,11 @@ def pd_add_const(a: PdNum, const: int) -> PdNum:
     else:
         return a + const
 
-def pd_mul_div_const(a: PdNum, mul: int, div: int) -> PdNum:
+def pd_mul_div_const(a: PdNum, mul: int, div: int, to_int: bool = False) -> PdNum:
     if isinstance(a, Char):
         return Char(a.ord * mul // div)
+    elif to_int:
+        return int(a * mul // div)
     else:
         return a * mul / div
 

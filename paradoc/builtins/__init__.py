@@ -987,10 +987,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
                 pd_foreach_x_only_then_empty_list(env, b, range(p))
             ),
         ]
-    cput('Halve', ['½'], pd_constant_fraction_cases(1, 2), stability="beta")
-    cput('Quarter', ['¼'], pd_constant_fraction_cases(1, 4), stability="beta")
-    cput('Three_quarters', ['¾'], pd_constant_fraction_cases(3, 4), stability="beta")
+    cput('Halve', ['½', 'Hf'], pd_constant_fraction_cases(1, 2), stability="alpha")
+    cput('Quarter', ['¼', 'Qt'], pd_constant_fraction_cases(1, 4), stability="alpha")
+    cput('Three_quarters', ['¾', 'Tq'], pd_constant_fraction_cases(3, 4), stability="alpha")
     cput('Double', ['×'], pd_constant_fraction_cases(2, 1), stability="beta")
+
+    cput('Halve_int', ['Hi'], [
+        Case.number(lambda env, a: [num.pd_mul_div_const(a, 1, 2, to_int=True)]),
+    ], stability="unstable")
 
     cput('Square', ['²'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
