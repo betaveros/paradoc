@@ -531,7 +531,7 @@ def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
     else:
         return list(seq) * n_int
 def pd_cartesian_product_seq(*seqs: PdSeq) -> list:
-    return list(list(e) for e in itertools.product(pd_iterable(seq) for seq in seqs))
+    return list(list(e) for e in itertools.product(*(pd_iterable(seq) for seq in seqs)))
 
 def pd_pow_seq(seq: PdSeq, n: PdNum) -> PdSeq:
     n_int = num.intify(n)

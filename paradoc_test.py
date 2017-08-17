@@ -50,6 +50,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('7 3/ 7 3÷ 7.0 2.0/ 0.25 0.25+'), [7/3, 7//3, 3.5, 0.5])
         self.assertEqual(pd_simple_eval('7 3G 8 36G'), [1,4])
         self.assertEqual(pd_simple_eval('16´'), [1/16])
+        self.assertEqual(pd_simple_eval('3 4 *p'), [81])
 
     def test_arithmetic_trailers(self):
         self.assertEqual(pd_simple_eval('2 3á 2 3à'), [5, -1])
@@ -192,6 +193,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {5>} ='), [9])
         self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {6<} <'), [[3,1,4,1,5]])
         self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {6<} >'), [[9,2,6,5,3,5]])
+
+    def test_list_operations(self):
+        self.assertEqual(pd_simple_eval('[2 4][6 0 1]+'), [[2,4,6,0,1]])
+        self.assertEqual(pd_simple_eval('[2 4]6*'), [[2,4,2,4,2,4,2,4,2,4,2,4]])
+        self.assertEqual(pd_simple_eval('[2 4][6 0 1]*'), [[[2,6],[2,0],[2,1],[4,6],[4,0],[4,1]]])
+        self.assertEqual(pd_simple_eval('[2 4]3*p'),
+                [[[2,2,2],[2,2,4],[2,4,2],[2,4,4],[4,2,2],[4,2,4],[4,4,2],[4,4,4]]])
 
     def test_replicate(self):
         self.assertEqual(pd_simple_eval('3 4 Replicate'), [[3,3,3,3]])
