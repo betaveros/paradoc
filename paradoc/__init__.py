@@ -530,6 +530,22 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
                 env.push(objects.pd_deepmap_n2v(lambda e: e ** (1/i), v))
         return (BuiltIn(str(i) + "_root", root_i), False)
 
+    @put("get", "g",
+            docs="""Index into a sequence.""",
+            stability="unstable")
+    def get_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def get_i(env: Environment) -> None:
+            env.push(objects.pd_index(env.pop(), i))
+        return (BuiltIn(str(i) + "_get", get_i), False)
+
+    @put("last", "l",
+            docs="""Index from the end of a sequence.""",
+            stability="unstable")
+    def last_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def last_i(env: Environment) -> None:
+            env.push(objects.pd_index(env.pop(), -1-i))
+        return (BuiltIn(str(i) + "_last", last_i), False)
+
     for agchar in 'áéíóúàèìòùý':
         @put(agchar, docs=ag_document(agchar), stability="unstable")
         def ag_trailer(outer_env: Environment, i: int, agchar: str = agchar) -> Tuple[PdObject, bool]:
