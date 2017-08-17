@@ -19,7 +19,7 @@ def second_or_error(x: Tuple[object, Optional[PdObject]], error_msg: str) -> PdO
         raise AssertionError(error_msg)
     return t2
 
-def initialize_builtins(env: Environment, sandboxed: bool) -> None:
+def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     def put(*ss: str,
             docs: Optional[str] = None,
@@ -79,6 +79,11 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     env.put('Åx', case_double('ZXCVBNM'), stability="alpha")
     env.put('Åy', case_double('AEIOUY'), stability="alpha")
     env.put('Åz', str_class('z-aZ-A'), stability="alpha")
+
+    env.put('Debug', int(debug),
+            docs="""A variable tested to see whether debugging output in the
+            program should be enabled.""",
+            stability="alpha")
 
     BULLET = '•'
 
@@ -932,12 +937,13 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     def pd_newline_output(env: Environment) -> None:
         print()
 
-    @put('Debug', 'Dump',
+    @put('Dump', 'Pdebug',
             docs="""Print debugging information about the environment and
             stack.""",
             stability="alpha")
     def dump(env: Environment) -> None:
-        print('Dump:', env.debug_dump(), file=sys.stderr)
+        if env.get('Debug'):
+            print('Dump:', env.debug_dump(), file=sys.stderr)
     # }}}
     # Abort, Break, Continue {{{
     @put('Abort', 'A',
