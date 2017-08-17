@@ -1,4 +1,8 @@
-from paradoc.objects import *
+from paradoc.objects import (
+        PdObject, Environment, PdSeq, PdValue, PdNum, Char, Block, pd_deepmap_n2v,
+        PdEmptyStackException,
+        )
+from typing import Any, Callable, List, Optional, Tuple, Type, Union
 
 # A "type" of an argument, possibly with a coercion. Loaded with stuff for
 # introspective usefulness. Note we don't typecheck coercions! Their argument
@@ -13,7 +17,6 @@ class ArgType:
     def maybe_process(self, arg: PdObject) -> Optional[PdObject]:
         for typs, coercion in self.coercions:
             if isinstance(arg, typs):
-                res = coercion(arg)
                 return coercion(arg)
         return None
 

@@ -1,9 +1,12 @@
 # coding: utf-8
 # vim:set expandtab fdm=marker:
 import typing
-from typing import *
+from typing import (
+        Callable, Dict, Generator, Iterable, Iterator, List, Optional, Set,
+        Tuple, TypeVar, Union, overload,
+        )
 import sys
-from paradoc.num import Char, Num, PdNum
+from paradoc.num import Char, PdNum
 import paradoc.num as num
 import collections
 import random
@@ -554,7 +557,7 @@ def pd_split_seq_by_gen(seq: PdSeq, tok: PdSeq) -> Generator[PdSeq, None, None]:
     seqlen = len(seq)
     toklen = len(tok)
     while True:
-        if i + toklen > len(seq):
+        if i + toklen > seqlen:
             # No more breaks are possible.
             yield seq[cur_start:]
             return

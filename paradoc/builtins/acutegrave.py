@@ -1,8 +1,7 @@
 # coding: utf-8
 # vim:set expandtab fdm=marker:
-from typing import *
 import paradoc.num as num
-from paradoc.objects import PdObject
+from paradoc.objects import PdObject, pd_foreach_then_empty_list, pd_foreach_x_only_then_empty_list, pd_map
 from paradoc.builtins.case import Case, CasedBuiltIn
 
 note = """

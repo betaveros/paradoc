@@ -1,8 +1,6 @@
 # coding: utf-8
-from typing import *
-import paradoc.num as num
+from typing import Optional
 from paradoc.objects import PdObject
-from paradoc.builtins.case import Case, CasedBuiltIn
 from paradoc.builtins.acutegrave import ag_convert
 
 # Paradoc has a few large families of built-in variables that are easier to

@@ -1,4 +1,4 @@
-from typing import *
+from typing import Callable, Generic, List, Optional, Tuple, TypeVar
 from paradoc.objects import PdObject, Environment
 
 # bool is whether the result is "reluctant"

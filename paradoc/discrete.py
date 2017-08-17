@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import *
+from typing import Union, List, Tuple, overload
 import math
 # Discrete math: combinatorial and number-theoretic functions. Really just
 # lazy imports in case you want to grab paradoc and not install sympy; I

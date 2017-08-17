@@ -1,4 +1,4 @@
-from typing import *
+from typing import List, Tuple, Dict
 from paradoc.objects import Environment
 from paradoc.trailer import Trailer
 import string

@@ -1,10 +1,11 @@
 # coding: utf-8
 # vim:set expandtab fdm=marker:
 from paradoc.objects import *
-# import paradoc.objects
+from typing import Callable, List, Optional, Tuple
+import itertools
 import paradoc.num as num
 import paradoc.base as base
-import sys, math, collections
+import sys, math
 import time, datetime
 import random
 import operator, functools

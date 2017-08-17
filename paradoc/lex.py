@@ -1,6 +1,6 @@
 # coding: utf-8
 import typing
-from typing import *
+from typing import Iterable, Generator, Tuple
 import re
 import string
 

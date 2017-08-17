@@ -1,5 +1,4 @@
-from typing import *
-from typing import IO # ???
+from typing import IO, List, Optional, Union
 import sys
 
 # I'm closing the file after finishing reading from it so that I can read all

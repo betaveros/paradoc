@@ -10,11 +10,12 @@
 # Drawing some inspiration from rhoScript and resisting the change towards CJam
 # and other languages like Pyth, Paradoc is designed to be writeable in a
 # literate manner as well as a golfed format.
-from typing import *
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Union
 import itertools
 from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_code, break_trailer, is_numeric_literal_token, name_trailer_dissections
-from paradoc.num import Char, PdNum
+from paradoc.num import Char
 from paradoc.objects import Block, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException, PdAbortException, PdBreakException, PdContinueException
+import paradoc.num as num
 import paradoc.objects as objects
 import paradoc.base as base
 import paradoc.input_triggers as input_triggers
@@ -493,7 +494,8 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             stability="beta")
     def zip_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
         def zip_i(env: Environment) -> None:
-            env.push(objects.pd_zip_as_list(*env.pop_n(i)))
+            env.push(objects.pd_zip_as_list(*(
+                objects.pd_to_list_range(e) for e in env.pop_n(i))))
         return (BuiltIn(str(i) + "_zip", zip_i), False)
 
     @put("bits", "b",
@@ -535,7 +537,9 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             stability="unstable")
     def get_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
         def get_i(env: Environment) -> None:
-            env.push(objects.pd_index(env.pop(), i))
+            e = env.pop()
+            assert isinstance(e, (str, list, range))
+            env.push(objects.pd_index(e, i))
         return (BuiltIn(str(i) + "_get", get_i), False)
 
     @put("last", "l",
@@ -543,7 +547,9 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             stability="unstable")
     def last_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
         def last_i(env: Environment) -> None:
-            env.push(objects.pd_index(env.pop(), -1-i))
+            e = env.pop()
+            assert isinstance(e, (str, list, range))
+            env.push(objects.pd_index(e, -1-i))
         return (BuiltIn(str(i) + "_last", last_i), False)
 
     for agchar in 'áéíóúàèìòùý':
@@ -771,7 +777,7 @@ class CodeBlock(Block):
                     elif is_numeric_literal_token(token):
                         r_token = token.replace('—', '-')
                         try:
-                            parsed_num = int(r_token) # type: PdNum
+                            parsed_num = int(r_token) # type: Union[int, float]
                         except ValueError:
                             try:
                                 parsed_num = float(r_token)
@@ -924,7 +930,7 @@ def main() -> None:
                     main_with_code(prog_file.read(),
                             sandboxed=args.sandboxed, debug=args.debug)
         else:
-            paradoc_repl(sandboxed=args.sandboxed)
+            paradoc_repl(sandboxed=args.sandboxed, debug=args.debug)
     except PdAbortException as e:
         sys.exit(e.code)
 
