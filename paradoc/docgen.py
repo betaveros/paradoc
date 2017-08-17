@@ -166,6 +166,12 @@ In decreasing order of importance:
     `*` to behave consistently on integers `n` and half-open ranges `[0..n)`,
     and for it to perform the more intuitive Cartesian products on sequences.
 
+-   In Paradoc, `#` no longer performs exponentiation; that is relegated to the
+    (non-ASCII character) `ˆ` or `*p`, which seems a more reasonable mnemonic
+    anyway (although I liked the audial mnemonic of **Pound** and **Power**)
+    and allows it to also perform list exponentiation in the sense of Cartesian
+    products.
+
 -   Most of the alphabetic built-ins are different, of course.
 
 """

@@ -179,11 +179,25 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[8m 8 0]Lm'), [[8,8,0]])
         self.assertEqual(pd_simple_eval('[[7 2 5 9 3 5 8][7 2 5 9 3][]]Lm'), [[7,5,0]])
 
+    def test_find_index(self):
+        self.assertEqual(pd_simple_eval('"foo" "o" #'), [1])
+        self.assertEqual(pd_simple_eval('"food" \'f #q; \'o #q; \'d #'), [0,1,3])
+        self.assertEqual(pd_simple_eval('"abracadabra" "dab" #q; "ab" #q; "bad" #'), [6,0,-1])
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9] : #v'), [[0,1,2,1,4,5]])
+        self.assertEqual(pd_simple_eval('10, 5, #'), [0])
+        self.assertEqual(pd_simple_eval('10, [6 7] #'), [6])
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9] {3>} #'), [2])
+
+    def test_find(self):
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {5>} ='), [9])
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {6<} <'), [[3,1,4,1,5]])
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {6<} >'), [[9,2,6,5,3,5]])
+
     def test_replicate(self):
         self.assertEqual(pd_simple_eval('3 4 Replicate'), [[3,3,3,3]])
-        self.assertEqual(pd_simple_eval('4 3 ˆ'), [[4,4,4]])
-        self.assertEqual(pd_simple_eval('\'x 3 ˆ'), ["xxx"])
-        self.assertEqual(pd_simple_eval('[1 2] 3 ˆ'), [[[1,2],[1,2],[1,2]]])
+        self.assertEqual(pd_simple_eval('4 3 °'), [[4,4,4]])
+        self.assertEqual(pd_simple_eval('\'x 3 °'), ["xxx"])
+        self.assertEqual(pd_simple_eval('[1 2] 3 °'), [[[1,2],[1,2],[1,2]]])
         self.assertEqual(pd_simple_eval('\'y \'x 3 Sr'), ["xxx"])
         self.assertEqual(pd_simple_eval('\'y \'x 4m Sr'), ["yyyy"])
 

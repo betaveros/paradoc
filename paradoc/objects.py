@@ -533,6 +533,13 @@ def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
 def pd_cartesian_product_seq(*seqs: PdSeq) -> list:
     return list(list(e) for e in itertools.product(pd_iterable(seq) for seq in seqs))
 
+def pd_pow_seq(seq: PdSeq, n: PdNum) -> PdSeq:
+    n_int = num.intify(n)
+    if isinstance(seq, str):
+        return [''.join(e) for e in itertools.product(seq, repeat=n_int)]
+    else:
+        return [list(e) for e in itertools.product(pd_iterable(seq), repeat=n_int)]
+
 def pd_split_seq_int_gen(seq: PdSeq, n: int, include_leftover: bool) -> Generator[PdSeq, None, None]:
     for i in range(0, len(seq), n):
         if i + n <= len(seq) or include_leftover:
@@ -750,15 +757,42 @@ def pd_transpose_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
     return res
 # }}}
 # pd_find_entry et al. (wow code duplication much) {{{
-def pd_find_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optional[int], Optional[PdObject]]:
+def pd_find_index(env: Environment, needle: PdObject, haystack: PdSeq) -> int:
+    for i, e in py_enumerate(haystack):
+        if e == needle: return i
+    return -1
+
+def pd_find_substring_index(env: Environment, needle: PdSeq, haystack: PdSeq) -> int:
+    if isinstance(needle, str) and isinstance(haystack, str):
+        try:
+            return haystack.index(needle)
+        except ValueError:
+            return -1
+    else:
+        nn = len(needle)
+        needle = list(needle)
+        for i in range(len(haystack) - nn + 1):
+            # TODO: Is this the correct way to compare slices? Probably make a
+            # utility function, there are some comparisons elsewhere that seem
+            # problematic.
+            if list(haystack[i:i + nn]) == needle:
+                return i
+        return -1
+
+def pd_find_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[int, Optional[PdObject]]:
     for i, e in py_enumerate(seq):
         if pd_truthy(env, func, [e]): return (i, e)
-    return (None, None)
+    return (-1, None)
 
-def pd_find_last_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[Optional[int], Optional[PdObject]]:
+def pd_find_last_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[int, Optional[PdObject]]:
     for i, e in py_reversed_enumerate(seq):
         if pd_truthy(env, func, [e]): return (i, e)
-    return (None, None)
+    return (-1, None)
+
+def pd_take_drop_while(env: Environment, func: Block, seq: PdSeq) -> Tuple[PdSeq, PdSeq]:
+    for i, e in py_enumerate(seq):
+        if not pd_truthy(env, func, [e]): return (seq[:i], seq[i:])
+    return (seq, [])
 
 def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
     if isinstance(seq, str):
@@ -891,11 +925,7 @@ def pd_get(env: Environment, func: Block, seq: PdSeq) -> PdObject:
         return e
 
 def pd_get_index(env: Environment, func: Block, seq: PdSeq) -> int:
-    i, e = pd_find_entry(env, func, seq)
-    if i is None:
-        raise AssertionError('pd_get_index: no element satisfying predicate found')
-    else:
-        return i
+    return pd_find_entry(env, func, seq)[0]
 
 def pd_get_last(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     _, e = pd_find_last_entry(env, func, seq)
@@ -905,11 +935,7 @@ def pd_get_last(env: Environment, func: Block, seq: PdSeq) -> PdObject:
         return e
 
 def pd_get_index_last(env: Environment, func: Block, seq: PdSeq) -> int:
-    i, e = pd_find_last_entry(env, func, seq)
-    if i is None:
-        raise AssertionError('pd_get_index_last: no element satisfying predicate found')
-    else:
-        return i
+    return pd_find_last_entry(env, func, seq)[0]
 # }}}
 # reduce, zip {{{
 def pd_reduce(env: Environment, func: Block, seq: PdSeq) -> PdObject:

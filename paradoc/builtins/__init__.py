@@ -198,7 +198,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             [0]! => 0""",
             stability="stable")
     # }}}
-    # "Arithmetic" inc Octothorpe {{{
+    # "Arithmetic" {{{
 
     cput('Plus_or_filter', ['+'], [
         Case.number2(lambda env, a, b: [num.pd_add(a, b)]),
@@ -300,16 +300,29 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             """,
             stability="stable")
 
-    cput('Power_or_find', ['#'], [
+    cput('Power', ['ˆ', '*p'], [
         Case.number2(lambda env, a, b: [num.pd_pow(a, b)]),
-        Case.block_seq_range(lambda env, block, seq:
-            [second_or_error(pd_find_entry(env, block, seq),
-                "Entry not found in Octothorpe")]),
+        Case.number_seq(lambda env, n, s: [pd_pow_seq(s, n)]),
     ],
-            docs="""Power/exponentiation on numbers. Find on blocks and
-            sequences (numbers coerce to ranges).
+            docs="""On numbers, power/exponentiate. On a list and a number,
+            exponentiate the list by making a list of all lists of that length
+            composed of elements from the original list (possibly repeating).
             """,
-            stability="stable")
+            stability="alpha")
+
+    cput('Find_index', ['#'], [
+        Case.number_seq(lambda env, n, seq:
+            [pd_find_index(env, n, seq)]),
+        Case.seq2(lambda env, haystack, needle:
+            [pd_find_substring_index(env, needle, haystack)]),
+        Case.block_seq_range(lambda env, block, seq:
+            [pd_get_index(env, block, seq)]),
+    ],
+            docs="""Inside a sequence (numbers coerce to ranges), find the
+            first index of an element, a substring, or something satisfying a
+            block.""",
+            stability="alpha")
+
     cput('Abs_diff', ['Ad', '±'], [
         Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
     ],
@@ -483,17 +496,19 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
     ],
             stability="beta")
-    cput('Equal_or_index', ['='], [
+    cput('Equal_or_index_or_find', ['='], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
         Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n))]),
-        Case.block_seq_range(lambda env, block, seq: [pd_get_index(env, block, seq)]),
+        Case.block_seq_range(lambda env, block, seq:
+            [second_or_error(pd_find_entry(env, block, seq),
+                "Entry not found in Equal_or_index_or_find")]),
     ],
             docs="""On two numbers, two strings, or two lists, compare for
             equality. On a number and a sequence, index into the sequence. On a
-            block and a sequence (numbers coerce to ranges), find the index of
-            the first element satisfying the block.""", stability="beta")
+            block and a sequence (numbers coerce to ranges), find the first
+            element satisfying the block.""", stability="beta")
     # A bunch of arithmetic operations between Union[int, float] and
     # Union[int, float] have type ignored below
     cput('Lt_or_slice', ['<'], [
@@ -501,21 +516,30 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
+        Case.block_seq_range(lambda env, block, seq:
+            [pd_take_drop_while(env, block, seq)[0]]),
     ],
             docs="""On two numbers, two strings, or two lists, compare if the
             first is less than the second. On a number and a sequence, slice
-            elements with index less than the number, as Python s[:n].""",
+            elements with index less than the number, as Python s[:n]. On a
+            sequence (numbers coerce to ranges) and a block, "take while", or
+            return the longest prefix of elements that all satisfy the
+            block.""",
             stability="beta")
     cput('Gt_or_slice', ['>'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) > num.numerify(b))]), # type: ignore
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
+        Case.block_seq_range(lambda env, block, seq:
+            [pd_take_drop_while(env, block, seq)[1]]),
     ],
             docs="""On two numbers, two strings, or two lists, compare if the
             first is greater than the second. On a number and a sequence, slice
             elements with index greater than or equal to the number, as Python
-            s[n:].""",
+            s[n:]. On a sequence (numbers coerce to ranges) and a block, "drop
+            while", or return the suffix starting with the first element that
+            fails to satisfy the block.""",
             stability="beta")
     cput('Leq_or_slice', ['<e'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) <= num.numerify(b))]), # type: ignore
@@ -966,7 +990,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
         Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s, s)]),
     ],
             stability="beta")
-    cput('Power_of_ten', ['°'], [Case.number(lambda env, n: [10 ** num.numerify(n)])],
+    cput('Power_of_ten', ['€'], [Case.number(lambda env, n: [10 ** num.numerify(n)])],
             stability="alpha")
     # }}}
     # Len, abs {{{
@@ -1014,12 +1038,14 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])], stability="alpha")
     # }}}
     # Replicate, fill/pad {{{
-    cput('Replicate', ['ˆ', 'Rp'], [
+
+    cput('Replicate', ['°', 'Rp'], [
         Case.any_number(lambda env, x, n: [pd_replicate(x, num.intify(n))]),
     ],
             docs="""Make a list by repeating an element some number of
             times.""",
             stability="beta")
+
     cput('Signed_replicate', ['Sr'], [
         Case.any_any_number(lambda env, x, y, n: [
             pd_replicate(y, num.intify(n))
