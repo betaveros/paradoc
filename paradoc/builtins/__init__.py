@@ -1300,6 +1300,32 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     def assign_bullet_destructive(env: Environment) -> None:
         e = env.pop()
         env.put(BULLET, e)
+    @put('Append_to_bullet', '©', docs="Pop and append to the variable •",
+            stability="alpha")
+    def append_to_bullet(env: Environment) -> None:
+        bval = env.get(BULLET)
+        if isinstance(bval, range):
+            bval = list(bval)
+        elif not isinstance(bval, (list, str)):
+            bval = []
+
+        e = env.pop()
+
+        # TODO: This will be linear per operation; that's pretty bad.
+        if isinstance(bval, list):
+            env.put(BULLET, bval + [e])
+        elif isinstance(bval, str):
+            env.put(BULLET, bval + env.pd_str(e))
+        else:
+            raise AssertionError("Type unaccounted for in Append_to_bullet")
+    @put('Retrieve_bullet', '®',
+            docs="""Push the current value of the variable •, then reset that
+            variable to 0.""",
+            stability="alpha")
+    def retrieve_bullet(env: Environment) -> None:
+        bval = env.get(BULLET)
+        env.put(BULLET, 0)
+        env.push(bval)
     # }}}
     # unsafe metacomputing {{{
     @put('Sleep', 'Sl', docs="Sleep for some number of seconds.",
