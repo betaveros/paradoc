@@ -1128,7 +1128,7 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             docs="""While loop: Execute first block, pop, break if false, execute
             second block, repeat.""",
             stability="alpha")
-    cput('Window_or_words', ['W'], [words_case, window_case],
+    cput('Window_or_words_or_while', ['W'], [words_case, window_case, while_case],
             docs="""Words (split by spaces) or Window (sliding window of size
             given by number) or While loop.""",
             stability="alpha")
