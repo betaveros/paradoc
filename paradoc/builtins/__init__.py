@@ -623,9 +623,9 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             docs="""Split into init and last.
 
             ex: [1 2 3]Uncons => [1 2]3""", stability="beta")
-    cput('Decr_or_uncons', ['('], [decr_case, unsnoc_case],
+    cput('Decr_or_uncons', ['('], [decr_case, uncons_case],
             docs="Decr or Uncons.", stability="beta")
-    cput('Incr_or_unsnoc', [')'], [incr_case, uncons_case],
+    cput('Incr_or_unsnoc', [')'], [incr_case, unsnoc_case],
             docs="Incr or Unsnoc.", stability="beta")
 
     first_case = Case.seq(lambda env, a: [pd_index(a,  0)])
@@ -689,17 +689,23 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
             docs="{{ 'Negate'|b }} a number, or {{ 'Mold'|b }} a sequence like another.",
             stability="alpha")
     # }}}
-    # U for Signum or Uniquify {{{
+    # U for Signum, Uniquify, Until {{{
     signum_case = Case.number(lambda env, a: [num.pd_signum(a)])
     uniquify_case = Case.seq(lambda env, a: [pd_seq_uniquify(a)])
+    until_case = Case.block2(lambda env, cond, body:
+            pd_while_then_empty_list(env, cond, body, negate=True))
     cput('Signum', [], [signum_case],
             docs="Signum of a number (-1, 0, 1) by sign.", stability="beta")
     cput('Uniquify', [], [uniquify_case],
             docs="""Uniquify a sequence: drop all but first occurrence of each
             element""",
             stability="alpha")
-    cput('Signum_or_uniquify', ['U'], [signum_case, uniquify_case],
-            docs="Signum or uniquify. Mnemonic: U for Unit",
+    cput('Until', [], [until_case],
+            docs="""Until loop: Execute first block, pop, stop if true, execute
+            second block, repeat.""",
+            stability="alpha")
+    cput('Signum_or_uniquify_or_until', ['U'], [signum_case, uniquify_case, until_case],
+            docs="Signum or uniquify or until. Mnemonic: U for Unit",
             stability="alpha")
     # }}}
     # Has as factor / count {{{
@@ -993,18 +999,23 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     cput('Power_of_ten', ['€'], [Case.number(lambda env, n: [10 ** num.numerify(n)])],
             stability="alpha")
     # }}}
-    # Len, abs {{{
+    # Len, abs, loop {{{
     abs_case = Case.number(lambda env, n: [num.pd_abs(n)])
     len_case = Case.seq(lambda env, seq: [len(seq)])
+    loop_case = Case.block(lambda env, block: [pd_forever_then_empty_list(env, block)])
     cput('Len', [], [len_case],
             docs="""Length of a sequence.""",
             stability="stable")
     cput('Abs', [], [abs_case],
             docs="""Absolute value of a number.""",
             stability="stable")
-    cput('Abs_or_len', ['L'], [abs_case, len_case],
-            docs="""{{ 'Abs'|b }} on numbers; {{ 'Len'|b }} on sequences.""",
-            stability="beta")
+    cput('Loop', [], [loop_case],
+            docs="""Loop forever (until {{ 'Break'|b }} or other error.)""",
+            stability="alpha")
+    cput('Abs_or_len_or_loop', ['L'], [abs_case, len_case, loop_case],
+            docs="""{{ 'Abs'|b }} on numbers; {{ 'Len'|b }} on sequences; {{
+            'Loop'|b }} on blocks.""",
+            stability="alpha")
     # }}}
     # Other numeric predicates {{{
     cput('Positive',         ['+p'], [Case.value_n2v(lambda e: int(e >  0))], stability="beta")
@@ -1109,11 +1120,17 @@ def initialize_builtins(env: Environment, sandboxed: bool) -> None:
     # W for Window and W for Words {{{
     words_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
     window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
+    while_case = Case.block2(lambda env, cond, body:
+            pd_while_then_empty_list(env, cond, body))
     cput('Window', [], [window_case], stability="alpha")
     cput('Space_split', ['Words'], [words_case, window_case], stability="alpha")
+    cput('While', [], [while_case],
+            docs="""While loop: Execute first block, pop, break if false, execute
+            second block, repeat.""",
+            stability="alpha")
     cput('Window_or_words', ['W'], [words_case, window_case],
             docs="""Words (split by spaces) or Window (sliding window of size
-            given by number.""",
+            given by number) or While loop.""",
             stability="alpha")
     # }}}
     # Combinatorics {{{

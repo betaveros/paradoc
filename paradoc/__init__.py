@@ -286,10 +286,27 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             objects.pd_foreach_x_only(env, b, lst)
         return (BuiltIn(b.code_repr() + "_xloop", xloop_b), False)
 
+    @put("ziplongest", "y",
+            docs="""Execute this block once for each corresponding pair of
+            elements from two lists (coerces numbers to ranges). Both elements
+            are pushed onto the stack. Collect the results into a list, which
+            has the same length as the longer of the arguments; if one list is
+            shorter, the other list's extra elements are put verbatim into the
+            list.""",
+            stability="beta")
+    def ziplongest_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def ziplongest_b(env: Environment) -> None:
+            lst_b = objects.pd_to_list_range(env.pop())
+            lst_a = objects.pd_to_list_range(env.pop())
+            env.push(objects.pd_ziplongest(env, b, lst_a, lst_b))
+        return (BuiltIn(b.code_repr() + "_ziplongest", ziplongest_b), False)
+
     @put("zip", "z",
             docs="""Execute this block once for each corresponding pair of
             elements from two lists (coerces numbers to ranges). Both elements
-            are pushed onto the stack.""",
+            are pushed onto the stack. Collect the results into a list, which
+            has the same length as the shorter of the arguments; if one list is
+            longer, its extra elements are ignored.""",
             stability="beta")
     def zip_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def zip_b(env: Environment) -> None:

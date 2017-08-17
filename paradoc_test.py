@@ -45,6 +45,10 @@ class TestParadoc(unittest.TestCase):
     def test_assignment(self):
         self.assertEqual(pd_simple_eval('123.Tst;Tst Tst+ 123—Test Test Test+ 129.**+ 129—///+', use_cache=False), [246,246,258,258])
 
+    def test_stack_ops(self):
+        self.assertEqual(pd_simple_eval('1 2 3 \\ 1 2 3 @ 1 2 3 : 1 2 3 :p'),
+                [1,3,2,2,3,1,1,2,3,3,1,2,3,2,3])
+
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])
         self.assertEqual(pd_simple_eval('7 3/ 7 3÷ 7.0 2.0/ 0.25 0.25+'), [7/3, 7//3, 3.5, 0.5])
@@ -200,6 +204,12 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 4][6 0 1]*'), [[[2,6],[2,0],[2,1],[4,6],[4,0],[4,1]]])
         self.assertEqual(pd_simple_eval('[2 4]3*p'),
                 [[[2,2,2],[2,2,4],[2,4,2],[2,4,4],[4,2,2],[4,2,4],[4,4,2],[4,4,4]]])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]('), [[4,6,0,1],2])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1])'), [[2,4,6,0],1])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]‹'), [2])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]›'), [1])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]«'), [[2,4,6,0]])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]»'), [[4,6,0,1]])
 
     def test_replicate(self):
         self.assertEqual(pd_simple_eval('3 4 Replicate'), [[3,3,3,3]])
@@ -211,6 +221,8 @@ class TestParadoc(unittest.TestCase):
 
     def test_zip_trailers(self):
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]+z'), [[10,9,8]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 4 4 4]+z'), [[10,9,8]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 4 4 4]+y'), [[10,9,8,4,4,4]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ä'), [[3,5,8,14,20]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ë'), [[1,3,5,8,13,16]])
 

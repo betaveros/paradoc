@@ -878,6 +878,20 @@ def pd_foreach_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> Lis
     pd_foreach(env, func, seq)
     return []
 
+def pd_forever_then_empty_list(env: Environment, func: Block) -> List[PdObject]:
+    env.push_yx()
+    try:
+        for i in itertools.count(0):
+            # TODO: X-stack treatment is consistent design, but two seems
+            # wasteful.
+            env.set_yx(i, i)
+            try:
+                func(env)
+            except PdContinueException: pass
+    except PdBreakException: pass
+    env.pop_yx()
+    return []
+
 def pd_foreach_x_only(env: Environment, func: Block, seq: PdSeq) -> None:
     env.push_yx()
     try:
@@ -936,6 +950,20 @@ def pd_get_last(env: Environment, func: Block, seq: PdSeq) -> PdObject:
 
 def pd_get_index_last(env: Environment, func: Block, seq: PdSeq) -> int:
     return pd_find_last_entry(env, func, seq)[0]
+
+def pd_while_then_empty_list(env: Environment, cond: Block, body: Block,
+        negate: bool = False) -> List[PdObject]:
+    try:
+        while True:
+            cond(env)
+            if bool(env.pop()) ^ negate:
+                try:
+                    body(env)
+                except PdContinueException as e: pass
+            else:
+                break
+    except PdBreakException as e: pass
+    return []
 # }}}
 # reduce, zip {{{
 def pd_reduce(env: Environment, func: Block, seq: PdSeq) -> PdObject:
@@ -953,10 +981,24 @@ def pd_zip(env: Environment,
         func: Block,
         iterable1: Iterable[PdObject],
         iterable2: Iterable[PdObject]) -> PdObject:
-    acc = [] # type: List[PdObject]
-    for e1, e2 in zip(iterable1, iterable2):
-        acc.extend(pd_sandbox(env, func, [e1, e2]))
-    return acc
+    return [e
+        for e1, e2 in zip(iterable1, iterable2)
+        for e in pd_sandbox(env, func, [e1, e2])
+    ]
+
+def pd_ziplongest(env: Environment,
+        func: Block,
+        iterable1: Iterable[PdObject],
+        iterable2: Iterable[PdObject]) -> PdObject:
+    def zip_longest_helper(e1: Optional[PdObject], e2: Optional[PdObject]) -> List[PdObject]:
+        if e1 is not None and e2 is not None:
+            return pd_sandbox(env, func, [e1, e2])
+        else:
+            return [e for e in (e1, e2) if e is not None]
+    return [e
+        for e1, e2 in itertools.zip_longest(iterable1, iterable2)
+        for e in zip_longest_helper(e1, e2)
+    ]
 # }}}
 # string conversions {{{
 def basic_pd_str(obj: PdObject) -> str:

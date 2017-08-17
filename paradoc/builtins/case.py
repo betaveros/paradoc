@@ -192,10 +192,13 @@ class Case:
     @staticmethod
     def condition_block(func: Callable[[Environment, PdObject, Block], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_any, just_block], func, commutative=commutative)
+    @staticmethod
+    def block2(func: Callable[[Environment, Block, Block], List[PdObject]]) -> 'Case':
+        return Case(2, [just_block, just_block], func)
 
     @staticmethod
     def any3(func: Callable[[Environment, PdObject, PdObject, PdObject], List[PdObject]]) -> 'Case':
-        return Case(2, [just_any, just_any], func)
+        return Case(3, [just_any, just_any, just_any], func)
     @staticmethod
     def any_any_number(func: Callable[[Environment, PdObject, PdObject, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(3, [just_any, just_any, just_number], func, commutative=commutative)
