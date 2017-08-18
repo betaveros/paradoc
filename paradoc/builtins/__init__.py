@@ -1275,6 +1275,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             if necessary and pad it with equally many spaces on either side
             until at least the length.""",
             stability="unstable")
+
+    cput('Space_repeat', [' x'], [
+        Case.int_len(lambda env, n: [' ' * n]),
+    ],
+            stability="alpha")
+
+    cput('Newline_repeat', ['\nx', '\\nx'], [
+        Case.int_len(lambda env, n: ['\n' * n]),
+    ],
+            stability="alpha")
     # }}}
     # Key_* functions, for big arrays {{{
     cput('Key_new', ['Kn'], [

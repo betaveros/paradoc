@@ -72,6 +72,15 @@ int_coerce = ArgType([
         ((str,),        lambda x: int(x)),
         ])
 
+# Accepts an int, coercing Chars and floats to integers and taking the
+# lengths of sequences
+int_len = ArgType([
+        ((Char,),          lambda x: x.ord),
+        ((int),            lambda x: x),
+        ((float),          lambda x: int(x)),
+        ((str,list,range), lambda x: len(x)),
+        ])
+
 # Accepts an int or a float, coercing Chars to integers and taking the lengths
 # of sequences
 number_len = ArgType([
@@ -127,6 +136,9 @@ class Case:
     @staticmethod
     def int_(func: Callable[[Environment, int], List[PdObject]]) -> 'Case':
         return Case(1, [just_int], func)
+    @staticmethod
+    def int_len(func: Callable[[Environment, int], List[PdObject]]) -> 'Case':
+        return Case(1, [int_len], func)
     @staticmethod
     def str_(func: Callable[[Environment, str], List[PdObject]]) -> 'Case':
         return Case(1, [just_str], func)
