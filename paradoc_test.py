@@ -212,7 +212,7 @@ class TestParadoc(unittest.TestCase):
     def test_list_operations(self):
         self.assertEqual(pd_simple_eval('[2 4][6 0 1]+'), [[2,4,6,0,1]])
         self.assertEqual(pd_simple_eval('[2 4]6*'), [[2,4,2,4,2,4,2,4,2,4,2,4]])
-        self.assertEqual(pd_simple_eval('[2 4][6 0 1]*'), [[[2,6],[2,0],[2,1],[4,6],[4,0],[4,1]]])
+        self.assertEqual(pd_simple_eval('[2 4][6 0 1]*'), [[[[2,6],[2,0],[2,1]],[[4,6],[4,0],[4,1]]]])
         self.assertEqual(pd_simple_eval('[2 4]3*p'),
                 [[[2,2,2],[2,2,4],[2,4,2],[2,4,4],[4,2,2],[4,2,4],[4,4,2],[4,4,4]]])
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]('), [[4,6,0,1],2])
@@ -221,6 +221,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]›'), [1])
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]«'), [[2,4,6,0]])
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]»'), [[4,6,0,1]])
+        self.assertEqual(pd_simple_eval('[4 2]²'), [[[[4,4],[4,2]],[[2,4],[2,2]]]])
+        self.assertEqual(pd_simple_eval('[4 2]³'), [[
+            [[[4,4,4],[4,4,2]],[[4,2,4],[4,2,2]]],
+            [[[2,4,4],[2,4,2]],[[2,2,4],[2,2,2]]],
+            ]])
 
     def test_replicate(self):
         self.assertEqual(pd_simple_eval('3 4 Replicate'), [[3,3,3,3]])

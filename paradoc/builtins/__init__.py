@@ -238,7 +238,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Mul_or_xloop', ['*'], [
         Case.number2(lambda env, a, b: [num.pd_mul(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_mul_seq(seq, n)]),
-        Case.seq2(lambda env, a, b: [pd_cartesian_product_seq(a, b)]),
+        Case.seq2(lambda env, a, b: [pd_cartesian_product_seq_matrix(a, b)]),
         Case.block_seq_range(lambda env, block, seq:
             pd_foreach_x_only_then_empty_list(env, block, seq)),
     ],
@@ -1165,12 +1165,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     cput('Square', ['²'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
-        Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s)]),
+        Case.seq(lambda env, s: [pd_cartesian_product_seq_matrix(s, s)]),
     ],
             stability="beta")
     cput('Cube', ['³'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 3)]),
-        Case.seq(lambda env, s: [pd_cartesian_product_seq(s, s, s)]),
+        Case.seq(lambda env, s: [pd_cartesian_product_seq_matrix_3(s, s, s)]),
     ],
             stability="beta")
     cput('Power_of_ten', ['€'], [Case.number(lambda env, n: [10 ** num.numerify(n)])],
