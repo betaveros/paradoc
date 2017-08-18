@@ -149,6 +149,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 3 5]:_%'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]{:}_map'), [[2,2,3,3,5,5]])
 
+    def test_map_product(self):
+        self.assertEqual(pd_simple_eval('[1 2][3 4]*_%p'), [[[3,4],[6,8]]])
+        self.assertEqual(pd_simple_eval('[1 2]*_²'), [[[1,2],[2,4]]])
+
     def test_filter(self):
         self.assertEqual(pd_simple_eval('[1 3 7 5 0 9 2]{5<}+'), [[1,3,0,2]])
         self.assertEqual(pd_simple_eval('[1 3 7 5 0 9 2]{5<},'), [[0,1,4,6]])

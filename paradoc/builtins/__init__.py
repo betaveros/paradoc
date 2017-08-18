@@ -306,10 +306,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             """,
             stability="stable")
 
-    cput('Divmod', ['‰'], [
+    cput('Divmod_or_map_product', ['‰', '%p'], [
         Case.number2(lambda env, a, b: [num.pd_intdiv(a, b), num.pd_mod(a, b)]),
+        Case.seq2_range_block(lambda env, seq1, seq2, block:
+            [pd_map_product(env, block, seq1, seq2)])
     ],
-            docs="""Integer division and modulus.""",
+            docs="""On integers, integer division and modulus. On a block, map
+            over the Cartesian product of the previous two sequences (numbers
+            coerce to ranges).""",
             stability="unstable")
 
     cput('Power', ['ˆ', '*p'], [
@@ -1166,6 +1170,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Square', ['²'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
         Case.seq(lambda env, s: [pd_cartesian_product_seq_matrix(s, s)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_map_product(env, block, seq, seq)]),
     ],
             stability="beta")
     cput('Cube', ['³'], [

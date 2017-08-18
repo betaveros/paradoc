@@ -245,6 +245,9 @@ class Case:
     @staticmethod
     def list_list_block(func: Callable[[Environment, list, list, Block], List[PdObject]]) -> 'Case':
         return Case(3, [just_list, just_list, just_block], func)
+    @staticmethod
+    def seq2_range_block(func: Callable[[Environment, PdSeq, PdSeq, Block], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(3, [seq_range, seq_range, just_block], func, commutative=commutative)
 
 class CasedBuiltIn(Block):
     def __init__(self,

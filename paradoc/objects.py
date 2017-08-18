@@ -864,6 +864,34 @@ def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     return pd_build_like(seq,
         pd_map_iterable(env, func, pd_iterable(seq)))
 
+def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq) -> list:
+    # Approximately: (f : a -> b -> c) -> (seq1 : [a]) -> (seq2 : [b]) -> [[c]]
+    env.push_yx()
+    outer = [] # type: list
+    try:
+        for i, e1 in py_enumerate(seq1):
+            env.set_yx(i, e1)
+
+            env.push_yx()
+            inner = [] # type: List[PdObject]
+            try:
+                for j, e2 in py_enumerate(seq2):
+                    env.set_yx(j, e2)
+                    try:
+                        inner.extend(pd_sandbox(env, func, [e1, e2]))
+                    except PdContinueException:
+                        pass
+            finally:
+                env.pop_yx()
+
+            outer.append(pd_build_like(seq2, inner))
+    except PdBreakException:
+        pass
+    finally:
+        env.pop_yx()
+
+    return outer
+
 def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     env.push_yx()
     acc = [] # type: List[PdObject]
