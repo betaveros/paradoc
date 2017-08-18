@@ -322,6 +322,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             """,
             stability="alpha")
 
+    cput('Int_sqrt', ['Si'], [
+        Case.number(lambda env, a: [int(num.numerify(a) ** 0.5)]),
+    ],
+            docs="""Integer square root.""",
+            stability="alpha")
+
     cput('Find_index', ['#'], [
         Case.number_seq(lambda env, n, seq:
             [pd_find_index(env, n, seq)]),
