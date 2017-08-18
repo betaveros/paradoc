@@ -76,8 +76,8 @@ int_coerce = ArgType([
 # lengths of sequences
 int_len = ArgType([
         ((Char,),          lambda x: x.ord),
-        ((int),            lambda x: x),
-        ((float),          lambda x: int(x)),
+        ((int,),           lambda x: x),
+        ((float,),         lambda x: int(x)),
         ((str,list,range), lambda x: len(x)),
         ])
 
