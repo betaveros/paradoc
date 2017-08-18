@@ -362,6 +362,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.str_(lambda env, s: [''.join(sorted(s))]),
         Case.list_(lambda env, x: [list(sorted(x))]),
     ], docs="Sort or select from stack", stability="beta")
+    cput('Is_sorted', ['$p'], [
+        Case.seq(lambda env, s: [int(all(a <= b for a, b in zip(s, s[1:])))]),
+    ], docs="Test if sorted", stability="alpha")
     # }}}
     # Range/enumerate/flatten; Comma, J {{{
     range_case = Case.number(lambda env, n: [range(num.intify(n))])
