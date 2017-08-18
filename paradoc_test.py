@@ -56,6 +56,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('16´'), [1/16])
         self.assertEqual(pd_simple_eval('3 4 *p'), [81])
 
+    def test_lifted_arithmetic(self):
+        self.assertEqual(pd_simple_eval('"123" "321" +i'), [444])
+        self.assertEqual(pd_simple_eval('2.9 1.1 -i'), [1])
+
     def test_arithmetic_trailers(self):
         self.assertEqual(pd_simple_eval('2 3á 2 3à'), [5, -1])
         self.assertEqual(pd_simple_eval('8é 42è'), [256,1764])
@@ -79,6 +83,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('8 8.01>a'), [0])
         self.assertEqual(pd_simple_eval('8 8.0000000001=a'), [1])
         self.assertEqual(pd_simple_eval('8 8.01=a'), [0])
+
+    def test_lifted_comparison(self):
+        self.assertEqual(pd_simple_eval('[1 2][3 4]=lq <lq >lq <elq >el'), [1,0,0,1,1])
+        self.assertEqual(pd_simple_eval('[1  ][3 4]=lq <lq >lq <elq >el'), [0,1,0,1,0])
+        self.assertEqual(pd_simple_eval('[1 2][3  ]=lq <lq >lq <elq >el'), [0,0,1,0,1])
+        self.assertEqual(pd_simple_eval('[1 2 3]4  =lq <lq >lq <elq >el'), [0,1,0,1,0])
+        self.assertEqual(pd_simple_eval('4[1 2 3]  =lq <lq >lq <elq >el'), [0,0,1,0,1])
 
     def test_rounding(self):
         self.assertEqual(pd_simple_eval('[1.2 3.5 8.9 3.5m]{Iq <iq >iq =i}e'), [1,1,2,1,3,3,4,4,8,8,9,9,-3,-4,-3,-4])
@@ -311,6 +322,13 @@ class TestParadoc(unittest.TestCase):
     def test_ranges(self):
         self.assertEqual(pd_simple_eval('3,[0 1 2]='), [1])
         self.assertEqual(pd_simple_eval('3,[0 1 3]='), [0])
+        self.assertEqual(pd_simple_eval('3D[2 1 0]='), [1])
+        self.assertEqual(pd_simple_eval('3J[1 2 3]='), [1])
+        self.assertEqual(pd_simple_eval('3Dj[3 2 1]='), [1])
+        self.assertEqual(pd_simple_eval('4Er[0 2]='), [1])
+        self.assertEqual(pd_simple_eval('4Or[1 3]='), [1])
+        self.assertEqual(pd_simple_eval('4Ej[2 4]='), [1])
+        self.assertEqual(pd_simple_eval('5Oj[1 3 5]='), [1])
         self.assertEqual(pd_simple_eval('3 5To[3 4 5]='), [1])
         self.assertEqual(pd_simple_eval('5 9Tl[5 6 7 8]='), [1])
         self.assertEqual(pd_simple_eval('2 6¨[2 3 4 5]='), [1])

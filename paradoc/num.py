@@ -87,6 +87,18 @@ def lift_intify(f: Callable[[int, int], int]) -> Callable[[PdNum, PdNum], PdNum]
             return f(intify(a), intify(b))
     return inner
 
+def any_cmp(a: Any, b: Any) -> int:
+    return int(a > b) - int(a < b)
+
+def pd_cmp(a0: PdNum, b0: PdNum) -> int:
+    a = a0.ord if isinstance(a0, Char) else a0
+    b = b0.ord if isinstance(b0, Char) else b0
+    if isinstance(a, int) and isinstance(b, int):
+        return int(a > b) - int(a < b)
+    else:
+        af, bf = float(a), float(b)
+        return int(af > bf) - int(af < bf)
+
 pd_add = lift_numerify(operator.add)
 pd_sub = lift_numerify(operator.sub)
 pd_mul = lift_numerify(operator.mul)
@@ -147,6 +159,3 @@ def pd_count_multiplicity_in(a0: PdNum, b0: PdNum) -> int:
         b //= a
         c += 1
     return c
-
-def cmp(a: Any, b: Any) -> int:
-    return int(a > b) - int(a < b)

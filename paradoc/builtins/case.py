@@ -64,6 +64,22 @@ list_int_range = ArgType([
         ((list, range), lambda x: x),
         ])
 
+# Accepts an int, coercing Chars, floats, and strings to integers
+int_coerce = ArgType([
+        ((Char,),       lambda x: x.ord),
+        ((int,),        lambda x: x),
+        ((float,),      lambda x: int(x)),
+        ((str,),        lambda x: int(x)),
+        ])
+
+# Accepts an int or a float, coercing Chars to integers and taking the lengths
+# of sequences
+number_len = ArgType([
+        ((Char,),          lambda x: x.ord),
+        ((int,float),      lambda x: x),
+        ((str,list,range), lambda x: len(x)),
+        ])
+
 # A case in a function definition, which specifies a list of types of
 # arguments the function might accept and what the function would do with
 # them.
@@ -145,6 +161,12 @@ class Case:
     @staticmethod
     def number2(func: Callable[[Environment, PdNum, PdNum], List[PdObject]]) -> 'Case':
         return Case(2, [just_number, just_number], func)
+    @staticmethod
+    def int2_coerce(func: Callable[[Environment, int, int], List[PdObject]]) -> 'Case':
+        return Case(2, [int_coerce, int_coerce], func)
+    @staticmethod
+    def number2_len(func: Callable[[Environment, Union[int, float], Union[int, float]], List[PdObject]]) -> 'Case':
+        return Case(2, [number_len, number_len], func)
     @staticmethod
     def str2(func: Callable[[Environment, str, str], List[PdObject]]) -> 'Case':
         return Case(2, [just_str, just_str], func)

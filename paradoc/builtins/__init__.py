@@ -343,6 +343,30 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Inverse', ['´'], [Case.value_n2v(lambda e: 1/e)],
             docs="""Inverse (reciprocal) of numbers. Deeply vectorizes.""",
             stability="alpha")
+
+    cput('Plus_ints', ['+i'], [
+        Case.int2_coerce(lambda env, a, b: [a + b]),
+    ],
+            docs="""Add two things after coercing both to integers. """,
+            stability="alpha")
+    cput('Plus_lengths', ['+l'], [
+        Case.number2_len(lambda env, a, b: [num.pd_add(a, b)]),
+    ],
+            docs="""Subtract two things after coercing both to ints or floats,
+            sequences by taking their length.""",
+            stability="unstable")
+    cput('Minus_ints', ['-i'], [
+        Case.int2_coerce(lambda env, a, b: [a - b]),
+    ],
+            docs="""Subtract two things after coercing both to integers.""",
+            stability="unstable")
+    cput('Minus_lengths', ['-l'], [
+        Case.number2_len(lambda env, a, b: [num.pd_sub(a, b)]),
+    ],
+            docs="""Subtract two things after coercing both to ints or floats,
+            sequences by taking their length.""",
+            stability="unstable")
+
     # }}}
     # Conversions C, F, I, S {{{
     cput('To_char', ['C'], [
@@ -434,6 +458,27 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="beta")
     cput('Inclusive_range_or_flatten',      ['…'], [flatten_case,      range_to_case],
             stability="beta")
+
+    cput('Range_one_down', ['Dj'], [
+        Case.number(lambda env, n: [range(num.intify(n), 0, -1)])
+    ],
+            docs="Range, inclusive downward from 1", stability="alpha")
+    cput('Range_odds_exclusive', ['Or'], [
+        Case.number(lambda env, n: [range(1, num.intify(n), 2)])
+    ],
+            docs="Range, odds, from 1, exclusive", stability="unstable")
+    cput('Range_evens_exclusive', ['Er'], [
+        Case.number(lambda env, n: [range(0, num.intify(n), 2)])
+    ],
+            docs="Range, evens, from 0, exclusive", stability="unstable")
+    cput('Range_odds_inclusive', ['Oj'], [
+        Case.number(lambda env, n: [range(1, num.intify(n) + 1, 2)])
+    ],
+            docs="Range, odds, from 1, inclusive", stability="unstable")
+    cput('Range_evens_inclusive', ['Ej'], [
+        Case.number(lambda env, n: [range(2, num.intify(n) + 1, 2)])
+    ],
+            docs="Range, evens, from 2, inclusive", stability="unstable")
     # }}}
     # Binary operators &|^ {{{
     cput('Bin_or_or_union_or_unless', ['|'], [
@@ -515,6 +560,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
     ],
             stability="beta")
+    cput('Equal_identity', ['Is'], [
+        Case.number2(lambda env, a, b: [int(a is b)]),
+    ],
+            docs="Test for Python identity (is)",
+            stability="alpha")
     cput('Equal_or_index_or_find', ['='], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
@@ -528,10 +578,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             equality. On a number and a sequence, index into the sequence. On a
             block and a sequence (numbers coerce to ranges), find the first
             element satisfying the block.""", stability="beta")
-    # A bunch of arithmetic operations between Union[int, float] and
-    # Union[int, float] have type ignored below
     cput('Lt_or_slice', ['<'], [
-        Case.number2(lambda env, a, b: [int(num.numerify(a) < num.numerify(b))]), # type: ignore
+        Case.number2(lambda env, a, b: [int(num.pd_cmp(a, b) < 0)]),
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
@@ -546,7 +594,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             block.""",
             stability="beta")
     cput('Gt_or_slice', ['>'], [
-        Case.number2(lambda env, a, b: [int(num.numerify(a) > num.numerify(b))]), # type: ignore
+        Case.number2(lambda env, a, b: [int(num.pd_cmp(a, b) > 0)]),
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
@@ -561,7 +609,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             fails to satisfy the block.""",
             stability="beta")
     cput('Leq_or_slice', ['<e'], [
-        Case.number2(lambda env, a, b: [int(num.numerify(a) <= num.numerify(b))]), # type: ignore
+        Case.number2(lambda env, a, b: [int(num.pd_cmp(a, b) <= 0)]),
         Case.str2(lambda env, a, b: [int(a <= b)]),
         Case.list2(lambda env, a, b: [int(list(a) <= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)+1]]),
@@ -569,7 +617,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Less than or equal to.""",
             stability="beta")
     cput('Geq_or_slice', ['>e'], [
-        Case.number2(lambda env, a, b: [int(num.numerify(a) >= num.numerify(b))]), # type: ignore
+        Case.number2(lambda env, a, b: [int(num.pd_cmp(a, b) >= 0)]),
         Case.str2(lambda env, a, b: [int(a >= b)]),
         Case.list2(lambda env, a, b: [int(list(a) >= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]), # TODO: ?
@@ -618,11 +666,42 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Maximum of array""",
             stability="alpha")
     cput('Compare', ['˜'], [
-        Case.number2(lambda env, a, b: [num.cmp(num.numerify(a), num.numerify(b))]),
-        Case.str2(lambda env, a, b: [num.cmp(a, b)]),
-        Case.list2(lambda env, a, b: [num.cmp(list(a), list(b))]),
+        Case.number2(lambda env, a, b: [num.pd_cmp(a, b)]),
+        Case.str2(lambda env, a, b: [num.any_cmp(a, b)]),
+        Case.list2(lambda env, a, b: [num.any_cmp(list(a), list(b))]),
     ],
             docs="""Compare (-1, 0, or 1)""",
+            stability="unstable")
+
+    cput('Lt_length', ['<l'], [
+        Case.number2_len(lambda env, a, b: [int(num.pd_cmp(a, b) < 0)]),
+    ],
+            docs="""Less than, after coercing two arguments to ints or floats,
+            sequences by taking their length.""",
+            stability="unstable")
+    cput('Gt_length', ['>l'], [
+        Case.number2_len(lambda env, a, b: [int(num.pd_cmp(a, b) > 0)]),
+    ],
+            docs="""Greater than, after coercing two arguments to ints or
+            floats, sequences by taking their length.""",
+            stability="unstable")
+    cput('Eq_length', ['=l'], [
+        Case.number2_len(lambda env, a, b: [int(a == b)]),
+    ],
+            docs="""Equal to, after coercing two arguments to ints or floats,
+            sequences by taking their length.""",
+            stability="unstable")
+    cput('Leq_length', ['<el'], [
+        Case.number2_len(lambda env, a, b: [int(num.pd_cmp(a, b) <= 0)]),
+    ],
+            docs="""Less than or equal to, after coercing two arguments to
+            ints or floats, sequences by taking their length.""",
+            stability="unstable")
+    cput('Geq_length', ['>el'], [
+        Case.number2_len(lambda env, a, b: [int(num.pd_cmp(a, b) >= 0)]),
+    ],
+            docs="""Greater than or equal to, after coercing two arguments to
+            ints or floats, sequences by taking their length.""",
             stability="unstable")
     # }}}
     # Shifting and slicing {{{
