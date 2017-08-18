@@ -612,6 +612,49 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Maximum of array""",
             stability="alpha")
     # }}}
+    # Shifting and slicing {{{
+    left_shift_case  = Case.number2(lambda env, a, b: [num.pd_lshift(a, b)])
+    right_shift_case = Case.number2(lambda env, a, b: [num.pd_rshift(a, b)])
+    cput('Left_shift', [], [left_shift_case],
+            docs="""Bitwise left shift""",
+            stability="beta")
+    cput('Right_shift', [], [right_shift_case],
+            docs="""Bitwise right shift""",
+            stability="beta")
+    nonempty_left_slices_case  = Case.seq(
+            lambda env, seq: [[seq[:n+1] for n in range(len(seq))]])
+    nonempty_right_slices_case = Case.seq(
+            lambda env, seq: [[seq[n:] for n in range(len(seq) - 1, -1, -1)]])
+    nonempty_slices_case = Case.seq(
+            lambda env, seq: [[seq[lo:hi]
+                for lo in range(len(seq))
+                for hi in range(lo + 1, len(seq) + 1)]])
+
+    cput('Left_slices', [], [nonempty_left_slices_case],
+            docs="""Left slices (nonempty, by increasing length)""",
+            stability="alpha")
+    cput('Right_slices', [], [nonempty_right_slices_case],
+            docs="""Right slices (nonempty, by increasing length)""",
+            stability="alpha")
+
+    cput('Left_shift_or_slices', ['<s'], [
+        nonempty_left_slices_case, left_shift_case,
+    ],
+            docs="""{{ 'Left_shift'|b }} on numbers, {{ 'Left_slices'|b }} on a
+            sequence""",
+            stability="alpha")
+
+    cput('Right_shift_or_slices', ['>s'], [
+        nonempty_right_slices_case, left_shift_case,
+    ],
+            docs="""{{ 'Right_shift'|b }} on numbers, {{ 'Right_slices'|b }} on
+            a sequence""",
+            stability="alpha")
+
+    cput('All_slices', ['=s'], [nonempty_slices_case],
+            docs="""All slices of a sequence.""",
+            stability="alpha")
+    # }}}
     # Incr/Decr/First/Last/Uncons/Unsnoc/Parens: «»‹›() {{{
     def case_add_const(i: int) -> Case:
         return Case.number(lambda env, a: [num.pd_add_const(a, i)])

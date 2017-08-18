@@ -100,6 +100,9 @@ pd_and = lift_intify(operator.and_)
 pd_or  = lift_intify(operator.or_)
 pd_xor = lift_intify(operator.xor)
 
+pd_lshift = lift_intify(operator.lshift)
+pd_rshift = lift_intify(operator.rshift)
+
 def int_gcd(a: int, b: int) -> int:
 	return a if b == 0 else int_gcd(b, a % b)
 
