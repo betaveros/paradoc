@@ -446,11 +446,15 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Binary AND on numbers. Intersection on sequences.
             One-branch if on blocks.""", stability="beta")
-    cput('Exclusive_or_or_symmetric_difference', ['^'], [
+    cput('Exclusive_or_or_symmetric_difference_or_find_last', ['^'], [
         Case.number2(lambda env, a, b: [num.pd_xor(a, b)]),
         Case.seq2_range(lambda env, a, b: [pd_seq_symmetric_difference(a, b)]),
+        Case.block_seq_range(lambda env, block, seq:
+            [second_or_error(pd_find_last_entry(env, block, seq),
+                "Entry not found in Exclusive_or_or_symmetric_difference_or_find_last")]),
     ],
             docs="""Binary XOR on numbers. Symmetric difference on sequences.
+            Find last on block and sequence.
             """, stability="beta")
     cput('If', [], [
         Case.any2(lambda env, cond, body:
