@@ -104,9 +104,13 @@ pd_lshift = lift_intify(operator.lshift)
 pd_rshift = lift_intify(operator.rshift)
 
 def int_gcd(a: int, b: int) -> int:
-	return a if b == 0 else int_gcd(b, a % b)
+    return a if b == 0 else int_gcd(b, a % b)
+
+def int_lcm(a: int, b: int) -> int:
+    return a * b // int_gcd(a, b)
 
 pd_gcd = lift_intify(int_gcd)
+pd_lcm = lift_intify(int_lcm)
 
 pd_ceil   = lift_numerify1(lambda x: int(math.ceil(x)))
 pd_floor  = lift_numerify1(lambda x: int(math.floor(x)))
@@ -143,3 +147,6 @@ def pd_count_multiplicity_in(a0: PdNum, b0: PdNum) -> int:
         b //= a
         c += 1
     return c
+
+def cmp(a: Any, b: Any) -> int:
+    return int(a > b) - int(a < b)

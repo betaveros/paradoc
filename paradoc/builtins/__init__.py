@@ -306,6 +306,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             """,
             stability="stable")
 
+    cput('Divmod', ['‰'], [
+        Case.number2(lambda env, a, b: [num.pd_intdiv(a, b), num.pd_mod(a, b)]),
+    ],
+            docs="""Integer division and modulus.""",
+            stability="unstable")
+
     cput('Power', ['ˆ', '*p'], [
         Case.number2(lambda env, a, b: [num.pd_pow(a, b)]),
         Case.number_seq(lambda env, n, s: [pd_pow_seq(s, n)]),
@@ -611,6 +617,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Maximum of array""",
             stability="alpha")
+    cput('Compare', ['˜'], [
+        Case.number2(lambda env, a, b: [num.cmp(num.numerify(a), num.numerify(b))]),
+        Case.str2(lambda env, a, b: [num.cmp(a, b)]),
+        Case.list2(lambda env, a, b: [num.cmp(list(a), list(b))]),
+    ],
+            docs="""Compare (-1, 0, or 1)""",
+            stability="unstable")
     # }}}
     # Shifting and slicing {{{
     left_shift_case  = Case.number2(lambda env, a, b: [num.pd_lshift(a, b)])
@@ -780,6 +793,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Reverse a sequence (coerces numbers to range).""",
             stability="beta")
+    cput('Bifurcate', ['Ð'], [
+        Case.seq_range(lambda env, a: [a, a[::-1]]),
+    ],
+            docs="""Bifurcate: copy and reverse a sequence (coerces numbers to
+            range). Stolen from 05AB1E, will probably get replaced once
+            something more sensible and useful presents itself with this
+            letter...""",
+            stability="unstable")
     cput('Transpose', ['Tt', '™'], [
         Case.seq(lambda env, a: [pd_transpose(a)]),
     ],
@@ -833,6 +854,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""GCD; group like elements of a sequence, possibly under a
             mapping.""",
             stability="beta")
+    cput('Lcm', ['µ'], [
+        Case.number2(lambda env, a, b: [num.pd_lcm(a, b)]),
+    ],
+            stability="unstable")
     # }}}
     # Circumflexed vowels {{{
     even_case = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 0)])
@@ -1216,6 +1241,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     )
     cput('Binomial_coefficient', ['Bc'], [binomial_coefficient_case],
             stability="beta")
+    cput('Ç', [], [binomial_coefficient_case],
+            docs="Unstable alias for {{ 'Binomial_coefficient'|b }}.",
+            stability="unstable")
     # TODO: choose
     cput('Subsequences', ['¿'], [
         Case.number(lambda env, n: [2 ** num.numerify(n)]),
@@ -1261,6 +1289,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.value_n2v(discrete.totient),
     ],
             docs="Euler's totient function", stability="alpha")
+    cput('Ø', [], [
+        Case.value_n2v(discrete.totient),
+    ],
+            docs="Euler's {{ 'Totient'|b }} function (unstable alias)",
+            stability="unstable")
     cput('Jacobi_symbol', ['Js'], [
         Case.number2(lambda env, m, n: [discrete.jacobi_symbol(num.numerify(m), num.numerify(n))]),
     ],
