@@ -382,7 +382,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.value(lambda env, a: [env.pd_str(a)]),
     ], docs="Convert to string", stability="beta")
     # }}}
-    # Sort, $ {{{
+    # Sort, $; test for sortedness {{{
     cput('Sort', [], [
         Case.str_(lambda env, s: [''.join(sorted(s))]),
         Case.list_(lambda env, x: [list(sorted(x))]),
@@ -395,6 +395,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Is_sorted', ['$p'], [
         Case.seq(lambda env, s: [int(all(a <= b for a, b in zip(s, s[1:])))]),
     ], docs="Test if sorted", stability="alpha")
+    cput('Is_strictly_increasing', ['<p'], [
+        Case.seq(lambda env, s: [int(all(a < b for a, b in zip(s, s[1:])))]),
+    ], docs="Test if strictly increasing", stability="alpha")
+    cput('Is_strictly_decreasing', ['>p'], [
+        Case.seq(lambda env, s: [int(all(a > b for a, b in zip(s, s[1:])))]),
+    ], docs="Test if strictly decreasing", stability="alpha")
     # }}}
     # Range/enumerate/flatten; Comma, J {{{
     range_case = Case.number(lambda env, n: [range(num.intify(n))])
@@ -1014,7 +1020,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Any', ['There_exists', 'Te'], any_cases, stability="beta")
     cput('Not_all', ['Na'], not_all_cases, stability="beta")
     cput('Not_any', ['Not_exists', 'Ne'], not_any_cases, stability="beta")
-    cput('Identical', [], identical_cases, stability="beta")
+    cput('Identical', ['=p'], identical_cases, stability="beta")
     cput('Unique', [], unique_cases, stability="beta")
     cput('Above_zero_or_all', ['Â'], [
         Case.number(lambda env, a: [int(num.numerify(a) > 0)])
