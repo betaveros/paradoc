@@ -334,11 +334,16 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2 3][1 5 1 3]Hav'), [[2,0,1]])
         self.assertEqual(pd_simple_eval('[\'A \'a 67]"PARADOC"Hav'), [[2,0,1]])
 
+    def test_reverse(self):
+        self.assertEqual(pd_simple_eval('[2 5 3]D'), [[3,5,2]])
+        self.assertEqual(pd_simple_eval('[[2 4][6 0 3]]Ð'), [[[4,2],[3,0,6]]])
+
     def test_ranges(self):
         self.assertEqual(pd_simple_eval('3,[0 1 2]='), [1])
         self.assertEqual(pd_simple_eval('3,[0 1 3]='), [0])
         self.assertEqual(pd_simple_eval('3D[2 1 0]='), [1])
         self.assertEqual(pd_simple_eval('3J[1 2 3]='), [1])
+        self.assertEqual(pd_simple_eval('3Ð[3 2 1]='), [1])
         self.assertEqual(pd_simple_eval('3Dj[3 2 1]='), [1])
         self.assertEqual(pd_simple_eval('4Er[0 2]='), [1])
         self.assertEqual(pd_simple_eval('4Or[1 3]='), [1])

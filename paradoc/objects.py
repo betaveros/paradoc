@@ -911,6 +911,19 @@ def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     return pd_build_like(seq,
         pd_map_iterable(env, func, pd_iterable(seq)))
 
+def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
+    acc = [] # type: List[PdObject]
+    for e in pd_iterable(seq):
+        if isinstance(e, Block):
+            raise TypeError("Can't map reverse over block")
+        elif isinstance(e, Char):
+            acc.append(e.chr)
+        elif isinstance(e, (int, float)):
+            acc.append([e])
+        else:
+            acc.append(e[::-1])
+    return acc
+
 def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq) -> list:
     # Approximately: (f : a -> b -> c) -> (seq1 : [a]) -> (seq2 : [b]) -> [[c]]
     env.push_yx()

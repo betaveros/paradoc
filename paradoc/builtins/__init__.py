@@ -934,13 +934,15 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Reverse a sequence (coerces numbers to range).""",
             stability="beta")
-    cput('Bifurcate', ['Ð'], [
-        Case.seq_range(lambda env, a: [a, a[::-1]]),
+    cput('Reverse_one_or_map', ['Ð'], [
+        Case.number(lambda env, n: [range(num.intify(n), 0, -1)]),
+        Case.seq_range(lambda env, a: [pd_map_reverse_singleton(a)]),
     ],
-            docs="""Bifurcate: copy and reverse a sequence (coerces numbers to
-            range). Stolen from 05AB1E, will probably get replaced once
-            something more sensible and useful presents itself with this
-            letter...""",
+            docs="""On numbers, reverse inclusive range from that number to
+            1. On sequences, reverse each element (numbers coerce to length-1
+            lists, and characters coerce to length-1 strings, so you can also
+            use this to wrap each element of a flat list into a list).
+            (Heavily inspired by studying 05AB1E.)""",
             stability="unstable")
     cput('Transpose', ['Tt', '™'], [
         Case.seq(lambda env, a: [pd_transpose(a)]),
