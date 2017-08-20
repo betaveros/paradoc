@@ -7,15 +7,7 @@ from paradoc.builtins.acutegrave import ag_convert
 # generate lazily (?).
 
 def arithmetic_literal_trigger(varname: str) -> Optional[PdObject]:
-    if len(varname) == 1:
-        pi = 'ÝÁÉÍÓÚ'.find(varname)
-        if pi != -1: return pi # 0, 1 .. 5
-
-        ni = 'ÀÈÌÒÙ'.find(varname)
-        if ni != -1: return -1 - ni # -1 .. -5
-
-        return None
-    elif len(varname) == 2:
+    if len(varname) == 2:
         c1, c2 = varname
         if c2 not in 'áéíóúàèìòùý': return None
         if 'A' <= c1 <= 'Z':

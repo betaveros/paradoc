@@ -53,8 +53,14 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])
         self.assertEqual(pd_simple_eval('7 3/ 7 3÷ 7.0 2.0/ 0.25 0.25+'), [7/3, 7//3, 3.5, 0.5])
         self.assertEqual(pd_simple_eval('7 3G 8 36G'), [1,4])
-        self.assertEqual(pd_simple_eval('16´'), [1/16])
         self.assertEqual(pd_simple_eval('3 4 *p'), [81])
+        self.assertEqual(pd_simple_eval('[4 6][30 20]Á'), [[34,26]])
+        self.assertEqual(pd_simple_eval('20[1 2 3]À'), [[19,18,17]])
+        self.assertEqual(pd_simple_eval('[2 5 3]É'), [[4,32,8]])
+        self.assertEqual(pd_simple_eval('[2 5 3]È'), [[4,25,9]])
+        self.assertEqual(pd_simple_eval('16Í'), [1/16])
+        self.assertEqual(pd_simple_eval('[2 5 3]Ì'), [[-2,-5,-3]])
+        self.assertEqual(pd_simple_eval('[[1 2][3 4]][[5 6][7 8]]Ó'), [[[5,12],[21,32]]])
 
     def test_lifted_arithmetic(self):
         self.assertEqual(pd_simple_eval('"123" "321" +i'), [444])

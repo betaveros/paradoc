@@ -477,12 +477,52 @@ def pd_deepmap_s2v(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
             else:
                 acc.append(pd_deepmap_s2v(func, e))
         return acc
+
+# deeply vectorize a (Num, Num) -> Value function
+def pd_deepvectorize_nn2v(func: Callable[[PdNum, PdNum], PdValue],
+        obj1: PdObject, obj2: PdObject) -> PdValue:
+    if isinstance(obj1, Block):
+        raise TypeError('Cannot deeply vectorize over block ' + repr(obj1))
+    if isinstance(obj2, Block):
+        raise TypeError('Cannot deeply vectorize over block ' + repr(obj2))
+    if (    isinstance(obj1, (Char, int, float)) and
+            isinstance(obj2, (Char, int, float))):
+        return func(obj1, obj2)
+    else:
+        n = max(pd_len_singleton(obj1), pd_len_singleton(obj2))
+
+        acc = [pd_deepvectorize_nn2v(func, e1, e2)
+                for e1, e2
+                in zip(pd_cycle_to_len(n, obj1), pd_cycle_to_len(n, obj2))
+        ] # type: List[PdObject] # !?
+        if ((isinstance(obj1, str) or isinstance(obj2, str)) and
+                isinstance(obj1, (Char, int, str)) and
+                isinstance(obj2, (Char, int, str))):
+            return pd_maybe_build_str(acc)
+        else:
+            return acc
 # }}}
 # iteration wrappers {{{
 def pd_iterable(seq: PdSeq) -> Iterable[PdObject]:
     if isinstance(seq, str):
         return (Char(ord(c)) for c in seq)
     return seq
+
+def pd_len_singleton(v: PdValue) -> int:
+    if isinstance(v, (Char, int, float)):
+        return 1
+    else:
+        return len(v)
+
+def pd_cycle_to_len(n: int, obj: PdValue) -> Iterable[PdObject]:
+    if isinstance(obj, (Char, int, float)):
+        return itertools.repeat(obj, n)
+    elif isinstance(obj, str):
+        n0 = len(obj)
+        return (Char(ord(obj[i % n0])) for i in range(n))
+    else:
+        n0 = len(obj)
+        return (obj[i % n0] for i in range(n))
 
 def pd_reversed_iterable(seq: PdSeq) -> Iterable[PdObject]:
     if isinstance(seq, str):
@@ -603,14 +643,21 @@ def pd_replicate(atom: PdObject, n: int) -> PdSeq:
         return chr(atom.ord) * n
     else:
         return [atom] * n
-def pd_build_like(orig: PdSeq, result: List[PdObject]) -> PdSeq:
-    if isinstance(orig, str) and all(isinstance(c, (Char, int)) for c in result):
+
+def pd_maybe_build_str(result: List[PdObject]) -> PdSeq:
+    if all(isinstance(c, (Char, int)) for c in result):
         return (
             ''.join(
                 chr(c.ord if isinstance(c, Char) else c) # type: ignore
                 for c in result
             )
         )
+    else:
+        return result
+
+def pd_build_like(orig: PdSeq, result: List[PdObject]) -> PdSeq:
+    if isinstance(orig, str):
+        return pd_maybe_build_str(result)
     else:
         return result
 

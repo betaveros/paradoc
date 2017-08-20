@@ -355,9 +355,6 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Absolute difference.""",
             stability="stable")
-    cput('Inverse', ['´'], [Case.value_n2v(lambda e: 1/e)],
-            docs="""Inverse (reciprocal) of numbers. Deeply vectorizes.""",
-            stability="alpha")
 
     cput('Plus_ints', ['+i'], [
         Case.int2_coerce(lambda env, a, b: [a + b]),
@@ -381,7 +378,45 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Subtract two things after coercing both to ints or floats,
             sequences by taking their length.""",
             stability="unstable")
-
+    # }}}
+    # Acute/grave vowels {{{
+    cput('Plus_deep_vectorizing', ['Á'], [
+        Case.value2(lambda env, a, b: [pd_deepvectorize_nn2v(num.pd_add, a, b)]),
+    ],
+            docs="""Addition on numbers; deeply vectorizes.""",
+            stability="unstable")
+    cput('Minus_deep_vectorizing', ['À'], [
+        Case.value2(lambda env, a, b: [pd_deepvectorize_nn2v(num.pd_sub, a, b)]),
+    ],
+            docs="""Subraction on numbers; deeply vectorizes.""",
+            stability="unstable")
+    cput('Two_power_vectorizing', ['É'], [Case.value_n2v(lambda e: 2**e)],
+            docs="""Two to the power of numbers. Deeply vectorizes.""",
+            stability="alpha")
+    cput('Square_deep', ['È'], [Case.value_n2v(lambda e: e**2)],
+            docs="""Square of numbers. Deeply vectorizes.""",
+            stability="alpha")
+    cput('Inverse', ['Í'], [Case.value_n2v(lambda e: 1/e)],
+            docs="""Inverse (reciprocal) of numbers. Deeply vectorizes.""",
+            stability="alpha")
+    cput('Negate_deep', ['Ì'], [Case.value_n2v(lambda e: -e)],
+            docs="""Negate numbers. Deeply vectorizes.""",
+            stability="alpha")
+    cput('Multiply_deep_vectorizing', ['Ó'], [
+        Case.value2(lambda env, a, b: [pd_deepvectorize_nn2v(num.pd_mul, a, b)]),
+    ],
+            docs="""Multiplication on numbers; deeply vectorizes.""",
+            stability="unstable")
+    cput('Divide_deep_vectorizing', ['Ò'], [
+        Case.value2(lambda env, a, b: [pd_deepvectorize_nn2v(num.pd_div, a, b)]),
+    ],
+            docs="""Division on numbers; deeply vectorizes.""",
+            stability="unstable")
+    cput('Modulus_deep_vectorizing', ['Ú'], [
+        Case.value2(lambda env, a, b: [pd_deepvectorize_nn2v(num.pd_mod, a, b)]),
+    ],
+            docs="""Modulus on numbers; deeply vectorizes.""",
+            stability="unstable")
     # }}}
     # Conversions C, F, I, S {{{
     cput('To_char', ['C'], [
