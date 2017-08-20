@@ -1,7 +1,7 @@
 from typing import List, Tuple, Dict
 from paradoc.objects import Environment
 from paradoc.trailer import Trailer
-import string
+import string, sys
 
 introduction = """
 *Because there aren't enough golfing languages already™*
@@ -464,6 +464,9 @@ def document(env: Environment,
 
     name_jt = jenv.from_string(name_template)
 
+    linked_names = set()
+    id_referenced_names = set()
+
     def link_name(id_prefix: str, name: str, is_trailer: bool) -> Markup:
         chars = [] # type: List[dict]
         if is_trailer: chars.append({'text': '_'})
@@ -483,6 +486,7 @@ def document(env: Environment,
             else:
                 chars.append({'text': c})
 
+        linked_names.add((id_prefix, name))
         return Markup(name_jt.render({
             'id': mangle_to_id(id_prefix, name), 'chars': chars
         }))
@@ -493,8 +497,10 @@ def document(env: Environment,
         return link_name(family[0], name, True)
 
     def mangle_builtin_id(name: str) -> str:
+        id_referenced_names.add(('V', name))
         return mangle_to_id('V', name)
     def mangle_trailer_id(name: str, family: str) -> str:
+        id_referenced_names.add((family[0], name))
         return mangle_to_id(family[0], name)
 
     jenv.filters['b'] = link_builtin
@@ -579,4 +585,8 @@ def document(env: Environment,
         'vars': data,
         'trailer_families': trailer_data
     }))
+
+    undefined_names = linked_names - id_referenced_names
+    if undefined_names:
+        print('WARNING!!! Undefined names', undefined_names, file=sys.stderr)
     # print(pystache.render(template, {'vars': sorted(data, key=lambda d: -d['stability_index'])}))

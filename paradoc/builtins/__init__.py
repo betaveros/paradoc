@@ -236,7 +236,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(b, a)]),
         Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
     ],
-            docs="""Reversed subtraction. Compare {{ 'Minus'|b }}.""",
+            docs="""Reversed subtraction. Compare
+            {{ 'Minus_or_reject'|b }}.""",
             stability="beta")
 
     cput('Mul_or_xloop', ['*'], [
@@ -271,7 +272,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             occurrences of the second sequence. For-each on blocks and
             sequences (numbers coerce to ranges).
 
-            See also {{ 'Intdiv'|b }}.
+            See also {{ 'Intdiv_or_split_discard'|b }}.
 
             ex:
             [1 2 3 4]2/ => [[1 2][3 4]]
@@ -455,7 +456,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             with indices from 1) on sequences. On block and sequence, list
             indices at which block is false.
 
-            Compare {{ 'Range_enumerate_or_reject_indices'|b }}.
+            Compare {{ 'Range_enumerate_or_filter_indices'|b }}.
             """, stability="beta")
 
     range_til_case = Case.number2(lambda env, lo, hi: [range(num.intify(lo), num.intify(hi))])
