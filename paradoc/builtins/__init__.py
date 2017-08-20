@@ -61,7 +61,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     env.put('La', str_class('a-z'), docs="Lowercase alphabet", stability="alpha")
     env.put('Aa', str_class('A-Za-z'), docs="Alphabet", stability="alpha")
 
-    env.put('Å', ' ', docs="Utility constant: space", stability="alpha")
+    # Non-breaking space (U+00A0)
+    env.put('\xa0', ' ', docs="Utility constant: space", stability="alpha")
+    env.put('␣', ' ', docs="Utility constant: space", stability="alpha")
+
+    env.put('Å', str_class('A-Z'), docs="Uppercase alphabet alias", stability="alpha")
     env.put('Åa', str_class('a-zA-Z'), stability="alpha")
     env.put('Åb', case_double('BCDFGHJKLMNPQRSTVWXZ'), stability="alpha")
     env.put('Åc', case_double('BCDFGHJKLMNPQRSTVWXYZ'), stability="alpha")
@@ -733,10 +737,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             lambda env, seq: [[seq[:n+1] for n in range(len(seq))]])
     nonempty_right_slices_case = Case.seq(
             lambda env, seq: [[seq[n:] for n in range(len(seq) - 1, -1, -1)]])
-    nonempty_slices_case = Case.seq(
-            lambda env, seq: [[seq[lo:hi]
+    def nonempty_slices_func(env: Environment, seq: PdSeq) -> List[PdObject]:
+        return [[seq[lo:hi]
                 for lo in range(len(seq))
-                for hi in range(lo + 1, len(seq) + 1)]])
+                for hi in range(lo + 1, len(seq) + 1)]]
+    nonempty_slices_case = Case.seq(nonempty_slices_func)
 
     cput('Left_slices', [], [nonempty_left_slices_case],
             docs="""Left slices (nonempty, by increasing length)""",
@@ -759,9 +764,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             a sequence""",
             stability="alpha")
 
-    cput('All_slices', ['=s'], [nonempty_slices_case],
-            docs="""All slices of a sequence.""",
-            stability="alpha")
+    nonempty_slices_range_case = Case.seq_range(nonempty_slices_func)
+
+    cput('All_slices', ['=s', '§'], [nonempty_slices_range_case],
+            docs="""All slices of a sequence (numbers coerce to ranges).""",
+            stability="unstable")
     # }}}
     # Incr/Decr/First/Last/Uncons/Unsnoc/Parens: «»‹›() {{{
     def case_add_const(i: int) -> Case:
@@ -919,10 +926,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.block_seq_range(lambda env, block, seq: [pd_reduce(env, block, seq)]),
     ],
             stability="beta")
-    cput('Line_join', ['\nr', '\\nr'], [
-        Case.seq_range(lambda env, seq: ['\n'.join(env.pd_str(e) for e in pd_iterable(seq))]),
-    ],
+    line_join_case = Case.seq_range(lambda env, seq:
+            ['\n'.join(env.pd_str(e) for e in pd_iterable(seq))])
+    cput('Line_join', ['\nr', '\\nr'], [line_join_case],
+            docs="Join with newlines",
             stability="beta")
+    cput('Ŋ', ['\x0e'], [line_join_case],
+            docs="Unstable aliases for {{ 'Line_join'|b }}.",
+            stability="unstable")
     cput('Space_join', [' r'], [
         Case.seq_range(lambda env, seq: [' '.join(env.pd_str(e) for e in pd_iterable(seq))]),
     ],
@@ -1050,15 +1061,17 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="Under zero or Unique (test)", stability="beta")
     # }}}
     # Tilde and Eval {{{
-    @put('Compl_or_eval_or_expand', '~', docs="Complement, eval, expand", stability="beta")
+    @put('Compl_or_eval_or_expand', '~',
+            docs="""Bitwise complement of integers. Expand lists or strings
+            onto the stack, pushing each element separately in order. Eval on a
+            block.""",
+            stability="beta")
     def tilde(env: Environment) -> None:
         a = env.pop()
         if isinstance(a, Block):
             a(env)
-        elif isinstance(a, str):
-            env.evaluate(a)
-        elif isinstance(a, (list, range)):
-            env.push(*a)
+        elif isinstance(a, (str, list, range)):
+            env.push(*pd_iterable(a))
         elif isinstance(a, int):
             env.push(~a)
         else:
@@ -1098,6 +1111,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     def pd_print(env: Environment) -> None:
         a = env.pop()
         env.print_output_record(env.pd_str(a))
+
+    @put('Printkeep', 'Ƥ', '\x10',
+            docs="""Pop something, output to standard output followed by an
+            output record separator, then push it back. Pretty much just {{
+            'Print'|b }}_{{ 'keep'|bt }}.""",
+            stability="unstable")
+    def pd_printkeep(env: Environment) -> None:
+        a = env.pop()
+        env.print_output_record(env.pd_str(a))
+        env.push(a)
 
     @put('Space_output', ' o',
             docs="Output a space.", stability="beta")
@@ -1365,7 +1388,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="beta")
     # }}}
     # Number theory (primes etc) {{{
-    cput('Is_prime', ['Pp'], [
+    cput('Is_prime', ['Pp', '¶'], [
         Case.value_n2v(discrete.is_prime_as_int),
     ],
             docs="""Test if this is prime.""",

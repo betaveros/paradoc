@@ -476,6 +476,10 @@ def document(env: Environment,
                 chars.append({'sp': True, 'text': 'SPACE'})
             elif c == "\t":
                 chars.append({'sp': True, 'text': 'TAB'})
+            elif c == "\xa0":
+                chars.append({'sp': True, 'text': 'NBSP'})
+            elif '\x00' <= c <= '\x1f' :
+                chars.append({'sp': True, 'text': '^' + chr(ord(c) + 64)})
             else:
                 chars.append({'text': c})
 
