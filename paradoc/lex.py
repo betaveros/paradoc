@@ -68,6 +68,9 @@ def lex(code: str,
 def lex_trailer(trailer: str) -> Generator[str, None, None]:
     return lex(trailer, [trailer_token_pattern])
 
+def lex_trailers(*trailers: str) -> Generator[str, None, None]:
+    for trailer in trailers: yield from lex_trailer(trailer)
+
 def lex_code(code: str) -> Generator[str, None, None]:
     return lex(code, [trailer_token_or_starting_comment_pattern, pd_token_pattern])
 
