@@ -26,6 +26,7 @@ class ArgType:
 
 just_int    = ArgType.just_type(int)
 just_float  = ArgType.just_type(float)
+just_char   = ArgType.just_type(Char)
 just_number = ArgType.just_type(Char, int, float)
 just_str    = ArgType.just_type(str)
 just_list   = ArgType.just_type(list, range)
@@ -217,6 +218,9 @@ class Case:
     @staticmethod
     def seq_value(func: Callable[[Environment, PdSeq, PdValue], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_seq, just_value], func, commutative=commutative)
+    @staticmethod
+    def char_number(func: Callable[[Environment, Char, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(2, [just_char, just_number], func, commutative=commutative)
     @staticmethod
     def value_number(func: Callable[[Environment, PdValue, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_value, just_number], func, commutative=commutative)

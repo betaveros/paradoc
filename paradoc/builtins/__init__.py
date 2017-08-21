@@ -1348,33 +1348,47 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="unstable")
 
     # Left-padding is right-justifying and vice versa...
-    cput('Zero_fill',  ['Zf'], [
-        Case.value_number(lambda env, x, n: [env.pd_str(x).rjust(num.intify(n), '0')]),
-    ],
+
+    def char_biased_pad_cases(
+            f: Callable[[str, int], str]) -> List[Case]:
+        return [
+            Case.char_number(lambda env, c, n: [f(env.pd_str(c), num.intify(n))]),
+            Case.value_number(lambda env, c, n: [f(env.pd_str(c), num.intify(n))]),
+        ]
+
+    cput('Zero_fill',  ['Zf'],
+        char_biased_pad_cases(lambda s, n: s.rjust(n, '0')),
             docs="""Given a value and a length, convert the value to a string
             if necessary and left-pad it with zeroes until at least the
             length.""",
             stability="unstable")
-    cput('Left_fill',  ['<f'], [
-        Case.value_number(lambda env, x, n: [env.pd_str(x).rjust(num.intify(n))]),
-    ],
+    cput('Left_fill',  ['<f'],
+        char_biased_pad_cases(lambda s, n: s.rjust(n)),
             docs="""Given a value and a length, convert the value to a string
             if necessary and left-pad it with spaces until at least the
             length.""",
             stability="unstable")
-    cput('Right_fill', ['>f'], [
-        Case.value_number(lambda env, x, n: [env.pd_str(x).ljust(num.intify(n))]),
-    ],
+    cput('Right_fill', ['>f'],
+        char_biased_pad_cases(lambda s, n: s.ljust(n)),
             docs="""Given a value and a length, convert the value to a string
             if necessary and right-pad it with spaces until at least the
             length.""",
             stability="unstable")
-    cput('Center_fill', ['=f'], [
-        Case.value_number(lambda env, x, n: [env.pd_str(x).center(num.intify(n))]),
-    ],
+    cput('Center_fill', ['=f'],
+        char_biased_pad_cases(lambda s, n: s.center(n)),
             docs="""Given a value and a length, convert the value to a string
             if necessary and pad it with equally many spaces on either side
             until at least the length.""",
+            stability="unstable")
+    cput('Left_add_spaces',  ['«f'],
+        char_biased_pad_cases(lambda s, n: ' ' * n + s),
+            docs="""Given a value and a length, convert the value to a string
+            if necessary and prepend that many spaces.""",
+            stability="unstable")
+    cput('Right_add_spaces', ['»f'],
+        char_biased_pad_cases(lambda s, n: s + ' ' * n),
+            docs="""Given a value and a length, convert the value to a string
+            if necessary and append that many spaces.""",
             stability="unstable")
 
     cput('Space_repeat', [' x'], [
