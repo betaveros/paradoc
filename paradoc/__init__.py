@@ -494,8 +494,17 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             stability="beta")
     def zip_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
         def zip_i(env: Environment) -> None:
-            env.push(objects.pd_zip_as_list(*(
-                objects.pd_to_list_range(e) for e in env.pop_n(i))))
+            if i <= 0:
+                raise ValueError('Must zip a positive integer of things')
+            args = env.pop_n(i)
+            last_arg = args[-1]
+            if isinstance(last_arg, Block):
+                args = [env.pop()] + args[:-1]
+                env.push(objects.pd_zip(env, last_arg,
+                    *(objects.pd_to_list_range(e) for e in args)))
+            else:
+                env.push(objects.pd_zip_as_list(*(
+                    objects.pd_to_list_range(e) for e in args)))
         return (BuiltIn(str(i) + "_zip", zip_i), False)
 
     @put("bits", "b",
@@ -692,6 +701,8 @@ block_starters = {
     'ε'   : '_each',
     '\x18': '_xloop',
     'χ'   : '_xloop',
+    '\x1a': '_zip',
+    'ζ'   : '_zip',
 }
 
 class CodeBlock(Block):

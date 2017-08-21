@@ -100,10 +100,11 @@ class TestParadoc(unittest.TestCase):
     def test_rounding(self):
         self.assertEqual(pd_simple_eval('[1.2 3.5 8.9 3.5m]{Iq <iq >iq =i}e'), [1,1,2,1,3,3,4,4,8,8,9,9,-3,-4,-3,-4])
 
-    def test_multiplication(self):
+    def test_multiplication_or_xloop(self):
         self.assertEqual(pd_simple_eval('"foo"3* 3"bar"*'), ["foofoofoo","barbarbar"])
         self.assertEqual(pd_simple_eval('[1 2]3* 3[3 4]*'), [[1,2,1,2,1,2],[3,4,3,4,3,4]])
         self.assertEqual(pd_simple_eval('0{10*)}4*'), [1111])
+        self.assertEqual(pd_simple_eval('0 4χ10*)'), [1111])
 
     def test_constant_fractions(self):
         self.assertEqual(pd_simple_eval('3½7¾9¼11×'), [1.5,5.25,2.25,22])
@@ -174,6 +175,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10,{5<}+'), [[0,1,2,3,4]])
         self.assertEqual(pd_simple_eval('10,3%_bind_filter'), [[1,2,4,5,7,8]])
         self.assertEqual(pd_simple_eval('10,3%bf'), [[1,2,4,5,7,8]])
+        self.assertEqual(pd_simple_eval('[1 3 7 5 0 9 2]φ5<'), [[1,3,0,2]])
 
     def test_builtin_reduce(self):
         self.assertEqual(pd_simple_eval('[5 7 8]{+}R'), [20])
@@ -250,8 +252,17 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('\'y \'x 3 Sr'), ["xxx"])
         self.assertEqual(pd_simple_eval('\'y \'x 4m Sr'), ["yyyy"])
 
-    def test_zip_trailers(self):
+    def test_zip(self):
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]{+}Zip'), [[10,9,8]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]Zip'), [[[1,9],[2,7],[3,5]]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 1 2 3 5]Zp'), [[[1,9],[2,7],[3,5]]])
+        self.assertEqual(pd_simple_eval('[1 2][9 7 5 1 2 5]Zl'), [[[1,9],[2,7],[5],[1],[2],[5]]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]+z'), [[10,9,8]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 1 2 3 5]2z'), [[[1,9],[2,7],[3,5]]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]{+}2z'), [[10,9,8]])
+        self.assertEqual(pd_simple_eval('[1 2][3 4 5][6 7]3z'), [[[1,3,6],[2,4,7]]])
+        self.assertEqual(pd_simple_eval('[1 2][3 4 5][6 7]{*+}3z'), [[19,30]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]ζ2*+'), [[19,16,13]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 4 4 4]+z'), [[10,9,8]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 4 4 4]+y'), [[10,9,8,4,4,4]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ä'), [[3,5,8,14,20]])

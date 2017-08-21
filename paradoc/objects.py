@@ -68,7 +68,7 @@ def x_index(token: str) -> Optional[int]:
     elif token == 'Z': return 2
     # TODO it's pretty unclear if this is actually what we want
     elif token == 'Xx' or token == '¥': return 3
-    elif token == 'Xy' or token == 'Ž': return 4
+    elif token == 'Xy': return 4
     elif token == 'Xz': return 5
     elif token == 'Yx': return 6
     elif token == 'Yy': return 7
@@ -756,6 +756,9 @@ def pd_mold(el_source: PdValue, template: PdSeq) -> PdObject:
         return pd_mold_from(pd_deep_generator(el_source), template)
 def pd_zip_as_list(*seq: PdSeq) -> PdObject:
     return [list(es) for es in zip(*(pd_iterable(s) for s in seq))]
+def pd_ziplongest_as_list(*seq: PdSeq) -> PdObject:
+    return [[e for e in es if e is not None] for es in itertools.zip_longest(
+        *(pd_iterable(s) for s in seq))]
 
 def pd_str_subsequences_gen(seq: str) -> Generator[str, None, None]:
     if not seq:
@@ -1082,11 +1085,10 @@ def pd_reduce(env: Environment, func: Block, seq: PdSeq) -> PdObject:
 
 def pd_zip(env: Environment,
         func: Block,
-        iterable1: Iterable[PdObject],
-        iterable2: Iterable[PdObject]) -> PdObject:
+        *iterables: Iterable[PdObject]) -> PdObject:
     return [e
-        for e1, e2 in zip(iterable1, iterable2)
-        for e in pd_sandbox(env, func, [e1, e2])
+        for es in zip(*iterables)
+        for e in pd_sandbox(env, func, list(es))
     ]
 
 def pd_ziplongest(env: Environment,

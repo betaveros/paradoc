@@ -956,9 +956,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             lists, with the filler element repeated as necessary until the
             matrix is rectangular.""",
             stability="alpha")
-    cput('Zip', [], [
+    cput('Zip', ['Zp', 'Ž'], [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
+        Case.seq2_range_block(lambda env, a, b, block: [pd_zip(env, block, a, b)]),
     ],
+            docs="""Zip two sequences (numbers coerce to ranges), returning a
+            list of length-2 lists; or zip them with a block, which operates on
+            corresponding pairs of the two lists. Truncates to the length of
+            the shorter input sequence. Also see {{ 'zip'|it }}.""",
+            stability="alpha")
+    cput('Ziplongest', ['Zl'], [
+        Case.seq2_range(lambda env, a, b: [pd_ziplongest_as_list(a, b)]),
+        Case.seq2_range_block(lambda env, a, b, block: [pd_ziplongest(env, block, a, b)]),
+    ],
+            docs="""Zip two sequences (numbers coerce to ranges), returning a
+            list of length-2 or (at indices between their lengths, if the
+            sequences are of unequal length) length-1 lists; or zip them with a
+            block, which operates on corresponding pairs of the two lists,
+            where elements of the longer list are collected unmodified. The
+            result has length equal to that of the longest list.""",
             stability="alpha")
     # }}}
     # Reduce/join {{{
