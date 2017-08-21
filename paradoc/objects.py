@@ -500,6 +500,36 @@ def pd_deepvectorize_nn2v(func: Callable[[PdNum, PdNum], PdValue],
             return pd_maybe_build_str(acc)
         else:
             return acc
+def pd_deepmap_block(env: Environment, func: Block, seq: PdSeq) -> PdObject:
+    env.push_yx()
+    i = 0
+    # The boolean is True if we need to break
+    def process(obj: PdValue) -> Tuple[bool, List[PdObject]]:
+        nonlocal i
+        if isinstance(obj, (Char, int, float)):
+            env.set_yx(i, obj)
+            i += 1
+            try:
+                return (False, pd_sandbox(env, func, [obj]))
+            except PdContinueException:
+                return (False, [])
+            except PdBreakException:
+                return (True, [])
+        else:
+            acc = []
+            for e in pd_iterable(obj):
+                if isinstance(e, Block):
+                    raise AssertionError("can't deep-map across Block")
+                else:
+                    flag, res = process(e)
+                    acc.extend(res)
+                    if flag:
+                        return (True, [acc])
+            return (False, [acc])
+
+    _, [res] = process(seq)
+    env.pop_yx()
+    return res
 # }}}
 # iteration wrappers {{{
 def pd_iterable(seq: PdSeq) -> Iterable[PdObject]:

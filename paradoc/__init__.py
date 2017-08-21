@@ -271,6 +271,17 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
                     BuiltIn(b.code_repr() + "_bind", bind_b),
                     objects.pd_map)), False)
 
+    @put("deepmap", "walk", "w",
+            docs="""Apply this block to each element of a possibly multi-level
+            list (coerces numbers to ranges), as deeply as possible; collect
+            the results into a new list with the same shape. Mnemonic: walk,
+            as in traversing the entire structure; or upside-down "deeper"
+            m.""",
+            stability="alpha")
+    def deepmap_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_deepmap",
+                lambda env: apply_pd_list_op(env, b, objects.pd_deepmap_block)), False)
+
     @put("xloop", "x",
             docs="""Execute this block once for each element of a list (coerces
             numbers to ranges). Unlike {{ 'each'|bt }}, the element is not

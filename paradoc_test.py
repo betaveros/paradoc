@@ -166,6 +166,9 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 3 5]:m'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]:_%'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]{:}_map'), [[2,2,3,3,5,5]])
+    def test_deepmap(self):
+        self.assertEqual(pd_simple_eval('[2 3 5]{7+}w'), [[9,10,12]])
+        self.assertEqual(pd_simple_eval('[[2 3]5[7 9]]{7+}w'), [[[9,10],12,[14,16]]])
 
     def test_map_product(self):
         self.assertEqual(pd_simple_eval('[1 2][3 4]*_%p'), [[[3,4],[6,8]]])
