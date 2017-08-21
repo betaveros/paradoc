@@ -49,6 +49,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('1 2 3 \\ 1 2 3 @ 1 2 3 : 1 2 3 :p'),
                 [1,3,2,2,3,1,1,2,3,3,1,2,3,2,3])
 
+    def test_not(self):
+        self.assertEqual(pd_simple_eval('[0 1 1m 0C 1C "" 0.0 "0" \'0]!m'),
+                [[1,0,0,1,0,1,1,0,0]])
+
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])
         self.assertEqual(pd_simple_eval('7 3/ 7 3÷ 7.0 2.0/ 0.25 0.25+'), [7/3, 7//3, 3.5, 0.5])

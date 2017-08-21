@@ -15,7 +15,7 @@ class Char:
     @property
     def chr(self) -> str:
         return chr(self.ord)
-    def __nonzero__(self) -> bool:
+    def __bool__(self) -> bool:
         return bool(self.ord)
     def __lt__(self, other: Any) -> bool:
         if isinstance(other, Char):
