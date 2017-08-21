@@ -119,17 +119,35 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
             ex: 1 2 3 :p => 1 2 3 2 3""",
             stability="beta")
+    cput('Dup_around', [':a'], [Case.any2(lambda env, a, b: [a, b, a])],
+            docs="""Duplicate the second element of the stack onto the top: a b
+            -> a b a
+
+            ex: 1 2 3 :a => 1 2 3 2""",
+            stability="alpha")
     cput('Swap', ['\\'], [Case.any2(lambda env, a, b: [b, a])],
             docs="""Swap the top two elements of the stack.
 
             ex: 1 2 3\ => 1 3 2""",
             stability="stable")
-    cput('Rotate', ['Rot', '@'], [Case.any3(lambda env, a, b, c: [b, c, a])],
+    cput('Swap_around', ['\\a'], [Case.any3(lambda env, a, b, c: [c, b, a])],
+            docs="""Swap the first and third elements of the stack (swap
+            "around" the second one).
+
+            ex: 1 2 3\\a => 3 2 1""",
+            stability="alpha")
+    cput('Rotate', ['Rot', 'Ro'], [Case.any3(lambda env, a, b, c: [b, c, a])],
             docs="""Rotate the top three elements of the stack so that the 3rd
             from the top is now on top: a b c -> b c a
 
-            ex: 1 2 3@ => 2 3 1""",
-            stability="stable")
+            ex: 1 2 3Ro => 2 3 1""",
+            stability="beta")
+    cput('Unrotate', ['Unrot', 'Ur'], [Case.any3(lambda env, a, b, c: [c, a, b])],
+            docs="""Rotate the top three elements of the stack so that the
+            top is now on bottom: a b c -> c a b
+
+            ex: 1 2 3Ur => 3 1 2""",
+            stability="beta")
     cput('Pop', [';'], [Case.any(lambda env, x: [])],
             docs="""Pop the top element of the stack.
 
@@ -339,7 +357,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Integer square root.""",
             stability="alpha")
 
-    cput('Find_index', ['#'], [
+    cput('Find_index', ['@'], [
         Case.number_seq(lambda env, n, seq:
             [pd_find_index(env, n, seq)]),
         Case.seq2(lambda env, haystack, needle:
@@ -349,7 +367,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Inside a sequence (numbers coerce to ranges), find the
             first index of an element, a substring, or something satisfying a
-            block.""",
+            block. Mnemonic: finds where the element is AT.""",
             stability="alpha")
 
     cput('Abs_diff', ['Ad', '±'], [
@@ -918,13 +936,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     # }}}
     # Has as factor / count {{{
-    cput('Has_factor_count', ['H'], [
+    cput('Count_maybe_factors', ['#'], [
         Case.number2(lambda env, a, b: [num.pd_count_multiplicity_in(b, a)]),
         Case.seq_value(lambda env, s, x: [pd_count_in(env, x, s)]),
     ],
-            docs="""Count factor multiplicity or frequency. Mnemonic: Has,
-            because nonzero means the number has the factor or the sequence has
-            the element.""",
+            docs="""Count factor multiplicity or frequency. Mnemonic: number
+            sign.""",
             stability="alpha")
     # }}}
     # Down, Transpose, Zip {{{

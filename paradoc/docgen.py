@@ -166,11 +166,16 @@ In decreasing order of importance:
     `*` to behave consistently on integers `n` and half-open ranges `[0..n)`,
     and for it to perform the more intuitive Cartesian products on sequences.
 
--   In Paradoc, `#` no longer performs exponentiation; that is relegated to the
-    (non-ASCII character) `ˆ` or `*p`, which seems a more reasonable mnemonic
-    anyway (although I liked the audial mnemonic of **Pound** and **Power**)
-    and allows it to also perform list exponentiation in the sense of Cartesian
-    products.
+-   In Paradoc, `@` and `#` are changed to what I consider more mnemonic
+    operations. `@` finds the index of an element or substring in a sequence
+    (so it figures out where the element is **at**) and `#` counts the
+    **number** of occurrences of that element of substring. Exponentiation is
+    relegated to the (non-ASCII character) `ˆ` or `*p`, which seems a more
+    reasonable mnemonic anyway (although I thought the audial mnemonic of
+    **Pound** for `#` and **Power** was pretty reasonable) and allows it to
+    also perform list exponentiation in the sense of Cartesian products. There
+    is currently no one-character built-in for the stack-manipulation analogue
+    of `@` in GolfScript/CJam.
 
 -   Most of the alphabetic built-ins are different, of course.
 

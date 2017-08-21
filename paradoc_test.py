@@ -46,8 +46,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('123.Tst;Tst Tst+ 123—Test Test Test+ 129.**+ 129—///+', use_cache=False), [246,246,258,258])
 
     def test_stack_ops(self):
-        self.assertEqual(pd_simple_eval('1 2 3 \\ 1 2 3 @ 1 2 3 : 1 2 3 :p'),
-                [1,3,2,2,3,1,1,2,3,3,1,2,3,2,3])
+        self.assertEqual(pd_simple_eval('1 2 3 \\ 1 2 3 Ro 1 2 3 Ur 1 2 3 : 1 2 3 :p'),
+                [1,3,2,2,3,1,3,1,2,1,2,3,3,1,2,3,2,3])
+        self.assertEqual(pd_simple_eval('1 2 3 \\a 1 2 3 \\u 1 2 3 :a'),
+                [3,2,1,2,1,3,1,2,3,2])
 
     def test_not(self):
         self.assertEqual(pd_simple_eval('[0 1 1m 0C 1C "" 0.0 "0" \'0]!m'),
@@ -217,13 +219,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[[7 2 5 9 3 5 8][7 2 5 9 3][]]Lm'), [[7,5,0]])
 
     def test_find_index(self):
-        self.assertEqual(pd_simple_eval('"foo" "o" #'), [1])
-        self.assertEqual(pd_simple_eval('"food" \'f #q; \'o #q; \'d #'), [0,1,3])
-        self.assertEqual(pd_simple_eval('"abracadabra" "dab" #q; "ab" #q; "bad" #'), [6,0,-1])
-        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9] : #v'), [[0,1,2,1,4,5]])
-        self.assertEqual(pd_simple_eval('10, 5, #'), [0])
-        self.assertEqual(pd_simple_eval('10, [6 7] #'), [6])
-        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9] {3>} #'), [2])
+        self.assertEqual(pd_simple_eval('"foo" "o" @'), [1])
+        self.assertEqual(pd_simple_eval('"food" \'f @q; \'o @q; \'d @'), [0,1,3])
+        self.assertEqual(pd_simple_eval('"abracadabra" "dab" @q; "ab" @q; "bad" @'), [6,0,-1])
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9] : @v'), [[0,1,2,1,4,5]])
+        self.assertEqual(pd_simple_eval('10, 5, @'), [0])
+        self.assertEqual(pd_simple_eval('10, [6 7] @'), [6])
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9] {3>} @'), [2])
 
     def test_find(self):
         self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {5>} ='), [9])
@@ -348,11 +350,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('4 5 )d'), [5,6])
         self.assertEqual(pd_simple_eval('2 3 4 5 +d'), [5,9])
 
-    def test_has(self):
-        self.assertEqual(pd_simple_eval('[4 10 5000]5Hv'), [[0,1,4]])
-        self.assertEqual(pd_simple_eval('[6 28 224]4Hv'), [[0,1,2]])
-        self.assertEqual(pd_simple_eval('[1 2 3][1 5 1 3]Hav'), [[2,0,1]])
-        self.assertEqual(pd_simple_eval('[\'A \'a 67]"PARADOC"Hav'), [[2,0,1]])
+    def test_count(self):
+        self.assertEqual(pd_simple_eval('[4 10 5000]5#v'), [[0,1,4]])
+        self.assertEqual(pd_simple_eval('[6 28 224]4#v'), [[0,1,2]])
+        self.assertEqual(pd_simple_eval('[1 2 3][1 5 1 3]#av'), [[2,0,1]])
+        self.assertEqual(pd_simple_eval('[\'A \'a 67]"PARADOC"#av'), [[2,0,1]])
 
     def test_reverse(self):
         self.assertEqual(pd_simple_eval('[2 5 3]D'), [[3,5,2]])
