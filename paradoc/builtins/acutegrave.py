@@ -40,11 +40,11 @@ def ag_document(c: str) -> str:
 def ag_convert(c: str, n: int, varname: str) -> PdObject:
     if c == 'á':
         return CasedBuiltIn(varname, [
-            Case.value_n2v(lambda e: num.pd_add(e, n)),
+            Case.value_n2v(lambda e: num.pd_add_const(e, n)),
         ])
     elif c == 'à':
         return CasedBuiltIn(varname, [
-            Case.value_n2v(lambda e: num.pd_sub(e, n)),
+            Case.value_n2v(lambda e: num.pd_add_const(e, -n)),
         ])
     elif c == 'é':
         return 2 ** n
@@ -56,7 +56,7 @@ def ag_convert(c: str, n: int, varname: str) -> PdObject:
         return -n
     elif c == 'ó':
         return CasedBuiltIn(varname, [
-            Case.value_n2v(lambda e: num.pd_mul(e, n)),
+            Case.value_n2v(lambda e: num.pd_mul_div_const(e, n, 1)),
             Case.block(lambda env, block:
                 pd_foreach_x_only_then_empty_list(env, block, range(n))),
         ])
@@ -68,7 +68,7 @@ def ag_convert(c: str, n: int, varname: str) -> PdObject:
         ])
     elif c == 'ú':
         return CasedBuiltIn(varname, [
-            Case.value_n2v(lambda e: num.pd_mod(e, n)),
+            Case.value_n2v(lambda e: num.pd_mod_const(e, n)),
             Case.block(lambda env, block: [pd_map(env, block, range(n))]),
         ])
     elif c == 'ù':

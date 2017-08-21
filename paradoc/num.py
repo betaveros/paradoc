@@ -144,6 +144,12 @@ def pd_mul_div_const(a: PdNum, mul: int, div: int, to_int: bool = False) -> PdNu
     else:
         return a * mul / div
 
+def pd_mod_const(a: PdNum, const: int) -> PdNum:
+    if isinstance(a, Char):
+        return Char(a.ord % const)
+    else:
+        return a % const
+
 def pd_power_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):
         return Char(a.ord ** const) # really?
