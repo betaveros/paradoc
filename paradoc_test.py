@@ -145,6 +145,11 @@ class TestParadoc(unittest.TestCase):
 
     def test_slices(self):
         self.assertEqual(pd_simple_eval('[3 7 2 5]1<q>'), [[3],[7,2,5]])
+        self.assertEqual(pd_simple_eval('[2 5 3]<s'), [[[2],[2,5],[2,5,3]]])
+        self.assertEqual(pd_simple_eval('[2 5 3]>s'), [[[3],[5,3],[2,5,3]]])
+        self.assertEqual(pd_simple_eval('[2 5 3]=s'), [[[2],[2,5],[2,5,3],[5],[5,3],[3]]])
+        self.assertEqual(pd_simple_eval('[2 5 3]«s'), [[[],[2],[2,5],[2,5,3]]])
+        self.assertEqual(pd_simple_eval('[2 5 3]»s'), [[[],[3],[5,3],[2,5,3]]])
 
     def test_each(self):
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}/'), [9,10,12])

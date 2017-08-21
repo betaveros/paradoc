@@ -793,6 +793,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             lambda env, seq: [[seq[:n+1] for n in range(len(seq))]])
     nonempty_right_slices_case = Case.seq(
             lambda env, seq: [[seq[n:] for n in range(len(seq) - 1, -1, -1)]])
+    from_empty_left_slices_case  = Case.seq(
+            lambda env, seq: [[seq[:n] for n in range(len(seq) + 1)]])
+    from_empty_right_slices_case = Case.seq(
+            lambda env, seq: [[seq[n:] for n in range(len(seq), -1, -1)]])
     def nonempty_slices_func(env: Environment, seq: PdSeq) -> List[PdObject]:
         return [[seq[lo:hi]
                 for lo in range(len(seq))
@@ -818,6 +822,20 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""{{ 'Right_shift'|b }} on numbers, {{ 'Right_slices'|b }} on
             a sequence""",
+            stability="alpha")
+
+    cput('From_empty_left_slices', ['«s'], [
+        from_empty_left_slices_case,
+    ],
+            docs="""Left slices (including the empty one, by increasing
+            length)""",
+            stability="alpha")
+
+    cput('From_empty_right_slices', ['»s'], [
+        from_empty_right_slices_case,
+    ],
+            docs="""Right slices (including the empty one, by increasing
+            length)""",
             stability="alpha")
 
     nonempty_slices_range_case = Case.seq_range(nonempty_slices_func)
