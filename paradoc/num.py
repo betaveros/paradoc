@@ -159,3 +159,5 @@ def pd_count_multiplicity_in(a0: PdNum, b0: PdNum) -> int:
         b //= a
         c += 1
     return c
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

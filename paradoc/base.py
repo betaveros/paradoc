@@ -30,3 +30,5 @@ def to_base_digits_lower(base: int, num: int) -> str:
     return ''.join(digits_lower[d] for d in to_base_digits(base, num))
 def to_base_digits_upper(base: int, num: int) -> str:
     return ''.join(digits_upper[d] for d in to_base_digits(base, num))
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

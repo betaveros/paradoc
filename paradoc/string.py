@@ -24,3 +24,5 @@ def str_class(s: str) -> str:
 
 def case_double(s: str) -> str:
     return s.upper() + s.lower()
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

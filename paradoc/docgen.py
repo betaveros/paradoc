@@ -590,3 +590,5 @@ def document(env: Environment,
     if undefined_names:
         print('WARNING!!! Undefined names', undefined_names, file=sys.stderr)
     # print(pystache.render(template, {'vars': sorted(data, key=lambda d: -d['stability_index'])}))
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

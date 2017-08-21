@@ -1,4 +1,5 @@
 # coding: utf-8
+# vim:set ts=4 sw=4 et:
 from typing import Union, List, Tuple, overload
 import math
 # Discrete math: combinatorial and number-theoretic functions. Really just
@@ -103,3 +104,5 @@ def fibonacci(n: Union[int, float]) -> Union[int, float]:
     except ModuleNotFoundError:
         raise Exception("Install sympy to use number-theoretic functions!")
     return ns.fibonacci(n)
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

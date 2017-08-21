@@ -287,3 +287,5 @@ class CasedBuiltIn(Block):
         return self.name
     def __repr__(self) -> str:
         return '<CasedBuiltIn {}>'.format(self.name)
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

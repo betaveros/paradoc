@@ -19,3 +19,5 @@ class Trailer(Generic[T]):
 
     def __call__(self, env: Environment, obj: T) -> Tuple[PdObject, bool]:
         return self.func(env, obj)
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

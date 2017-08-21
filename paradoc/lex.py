@@ -1,4 +1,5 @@
 # coding: utf-8
+# vim:set ts=4 sw=4 et:
 import typing
 from typing import Iterable, Generator, Tuple
 import re
@@ -103,3 +104,4 @@ def name_trailer_dissections(token: str, trailer: str) -> Generator[Tuple[str, I
 
         yield (token + trailer[:index], lex_trailer(trailer[index:]))
 
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

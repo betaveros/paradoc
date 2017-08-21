@@ -1,3 +1,4 @@
+# vim:set ts=4 sw=4 et:
 from typing import IO, List, Optional, Union
 import sys
 
@@ -68,3 +69,5 @@ def all(file: IO[str] = sys.stdin) -> Optional[str]:
         file.close()
         return ret
     except ValueError: return None
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

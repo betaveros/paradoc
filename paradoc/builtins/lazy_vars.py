@@ -21,4 +21,4 @@ def arithmetic_literal_trigger(varname: str) -> Optional[PdObject]:
     else:
         return None
 
-# vim:set expandtab fdm=marker:
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

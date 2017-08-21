@@ -995,4 +995,4 @@ def main() -> None:
 
 if __name__ == "__main__": main()
 
-# vim:set fdm=marker:
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

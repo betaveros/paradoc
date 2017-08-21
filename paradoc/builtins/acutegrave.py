@@ -1,5 +1,4 @@
 # coding: utf-8
-# vim:set expandtab fdm=marker:
 import paradoc.num as num
 from paradoc.objects import PdObject, pd_foreach_then_empty_list, pd_foreach_x_only_then_empty_list, pd_map
 from paradoc.builtins.case import Case, CasedBuiltIn
@@ -78,3 +77,5 @@ def ag_convert(c: str, n: int, varname: str) -> PdObject:
         return 10 ** n
 
     raise NotImplementedError('unrecognized acute/grave letter ' + repr(c))
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

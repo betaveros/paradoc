@@ -1,5 +1,4 @@
 # coding: utf-8
-# vim:set expandtab fdm=marker:
 from paradoc.objects import *
 from typing import Callable, List, Optional, Tuple
 import itertools
@@ -1665,3 +1664,5 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     # }}}
     env.lazy_var_triggers.append(arithmetic_literal_trigger)
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

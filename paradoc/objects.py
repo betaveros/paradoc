@@ -1,5 +1,4 @@
 # coding: utf-8
-# vim:set expandtab fdm=marker:
 import typing
 from typing import (
         Callable, Dict, Generator, Iterable, Iterator, List, Optional, Set,
@@ -1294,3 +1293,5 @@ def pd_array_key_get(arr: Union[list, range], k: Union[list, range]) -> PdObject
         target = target[sk]
     return target
 # }}}
+
+# vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:
