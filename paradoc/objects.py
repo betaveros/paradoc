@@ -527,9 +527,11 @@ def pd_deepmap_block(env: Environment, func: Block, seq: PdSeq) -> PdObject:
                         return (True, [acc])
             return (False, [acc])
 
-    _, [res] = process(seq)
-    env.pop_yx()
-    return res
+    try:
+        _, [res] = process(seq)
+        return res
+    finally:
+        env.pop_yx()
 # }}}
 # iteration wrappers {{{
 def pd_iterable(seq: PdSeq) -> Iterable[PdObject]:
@@ -912,7 +914,8 @@ def pd_map_iterable(env: Environment, func: Block, it: Iterable[PdObject]) -> Li
                 acc.extend(pd_sandbox(env, func, [element]))
             except PdContinueException: pass
     except PdBreakException: pass
-    env.pop_yx()
+    finally:
+        env.pop_yx()
     return acc
 
 def pd_map_fold_into(env: Environment, func: Block, seq: PdSeq,
@@ -932,7 +935,8 @@ def pd_map_fold_into(env: Environment, func: Block, seq: PdSeq,
             except PdContinueException: pass
             if ret is not None: break
     except PdBreakException: pass
-    env.pop_yx()
+    finally:
+        env.pop_yx()
     if ret is None:
         ret = f(None)
         if ret is None:
@@ -994,7 +998,8 @@ def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
                 acc.extend(pd_sandbox(env, func, [element]))
             except PdContinueException: pass
     except PdBreakException: pass
-    env.pop_yx()
+    finally:
+        env.pop_yx()
     return sum(acc)
 
 def pd_foreach(env: Environment, func: Block, seq: PdSeq) -> None:
@@ -1007,7 +1012,8 @@ def pd_foreach(env: Environment, func: Block, seq: PdSeq) -> None:
                 func(env)
             except PdContinueException as e: pass
     except PdBreakException as e: pass
-    env.pop_yx()
+    finally:
+        env.pop_yx()
 
 def pd_foreach_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
     pd_foreach(env, func, seq)
@@ -1024,7 +1030,8 @@ def pd_forever_then_empty_list(env: Environment, func: Block) -> List[PdObject]:
                 func(env)
             except PdContinueException: pass
     except PdBreakException: pass
-    env.pop_yx()
+    finally:
+        env.pop_yx()
     return []
 
 def pd_foreach_x_only(env: Environment, func: Block, seq: PdSeq) -> None:
@@ -1036,7 +1043,8 @@ def pd_foreach_x_only(env: Environment, func: Block, seq: PdSeq) -> None:
                 func(env)
             except PdContinueException: pass
     except PdBreakException: pass
-    env.pop_yx()
+    finally:
+        env.pop_yx()
 
 def pd_foreach_x_only_then_empty_list(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
     pd_foreach_x_only(env, func, seq)
@@ -1049,21 +1057,25 @@ def pd_run_with_probability_then_empty_list(env: Environment, func: Block, prob:
 def pd_filter(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> PdSeq:
     env.push_yx()
     acc = [] # type: List[PdObject]
-    for i, element in enumerate(pd_iterable(seq)):
-        env.set_yx(i, element)
-        if pd_truthy(env, func, [element]) ^ negate:
-            acc.append(element)
-    env.pop_yx()
+    try:
+        for i, element in enumerate(pd_iterable(seq)):
+            env.set_yx(i, element)
+            if pd_truthy(env, func, [element]) ^ negate:
+                acc.append(element)
+    finally:
+        env.pop_yx()
     return pd_build_like(seq, acc)
 
 def pd_filter_indexes(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> List[int]:
     env.push_yx()
     acc = [] # type: List[int]
-    for i, element in py_enumerate(seq):
-        env.set_yx(i, element)
-        if pd_truthy(env, func, [element]) ^ negate:
-            acc.append(i)
-    env.pop_yx()
+    try:
+        for i, element in py_enumerate(seq):
+            env.set_yx(i, element)
+            if pd_truthy(env, func, [element]) ^ negate:
+                acc.append(i)
+    finally:
+        env.pop_yx()
     return acc
 
 def pd_get(env: Environment, func: Block, seq: PdSeq) -> PdObject:
