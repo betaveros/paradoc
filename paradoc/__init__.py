@@ -22,6 +22,7 @@ import paradoc.input_triggers as input_triggers
 from paradoc.trailer import TrailerFunc, Trailer
 from paradoc.builtins import initialize_builtins
 from paradoc.builtins.acutegrave import ag_convert, ag_document
+import paradoc.assign as assign
 import sys
 import argparse
 
@@ -785,18 +786,18 @@ class CodeBlock(Block):
                 raise NotImplementedError('unknown global trailer token ' + repr(trailer_token))
 
         # This is not None when assignment is active:
-        assign_trailer = None # type: Optional[str]
+        active_assign_token_trailer = None # type: Optional[Tuple[str, str]]
         block_acc = [] # type: List[str]
 
         for token0 in self.tokens[body_start:]:
             token, trailer = break_trailer(token0)
             # print('in body', repr(token), repr(trailer), file=sys.stderr)
             try:
-                if assign_trailer is not None:
-                    # assign_trailer is only not None if we're actually
-                    # executing an assignment (in the outermost level, not
-                    # in a block). Otherwise it just gets parsed into the
-                    # block as a separate token
+                if active_assign_token_trailer is not None:
+                    # this is only not None if we're actually executing an
+                    # assignment (in the outermost level, not in a block).
+                    # Otherwise it just gets parsed into the block as a
+                    # separate token
                     assert block_level == 0
                     # Digits should have been parsed as part of the same
                     # token.
@@ -804,22 +805,25 @@ class CodeBlock(Block):
 
                     if token.startswith('{'):
                         assert block_prefix_trailer is None
-                        block_prefix_trailer = assign_trailer
+                        _, block_prefix_trailer = active_assign_token_trailer
                         if trailer: block_acc.append(trailer)
                     elif token in block_starters:
                         raise Exception("Cannot combine explicit prefix trailer with block opener with implicit trailer: " +
-                                repr(assign_trailer) + ", " + repr(token))
+                                repr(active_assign_token_trailer) + ", " + repr(token))
                     else:
-                        x = env.pop()
-                        if assign_trailer == '':
-                            env.push(x)
-                        elif assign_trailer == '_destructive':
-                            pass
-                        else:
-                            raise Exception("Unrecognized assign trailer " + repr(assign_trailer))
-                        env.put(token0, x)
+                        a_token, a_trailer = active_assign_token_trailer
+                        a_trailer_tokens = None # type: Optional[Iterable[str]]
+                        for v_name, ts in name_trailer_dissections(a_token, a_trailer):
+                            variant = assign.variant_dict.get(v_name)
+                            if variant is not None:
+                                a_trailer_tokens = ts
+                                break
+                        if variant is None or a_trailer_tokens is None:
+                            raise NameError('Could not parse (assignment) ' + repr((a_token, a_trailer)))
 
-                    assign_trailer = None
+                        act_after_trailer_tokens(env, variant.block(token0), a_trailer_tokens)
+
+                    active_assign_token_trailer = None
                 elif block_level == 0:
                     if token.startswith('}'):
                         raise Exception("closing curly brace out of nowhere")
@@ -844,13 +848,8 @@ class CodeBlock(Block):
                             except ValueError:
                                 raise ValueError('could not parse number ' + repr(token))
                         act_after_trailer_tokens(env, parsed_num, lex_trailer(trailer))
-                    elif token.startswith('.'):
-                        assign_trailer = trailer
-                    elif token.startswith('—'):
-                        # TODO depends on what we want other combinations
-                        # of this token to do; this will at least give bad
-                        # error messages
-                        assign_trailer = '_destructive' + trailer
+                    elif token.startswith('.') or token.startswith('—'):
+                        active_assign_token_trailer = (token, trailer)
                     else:
                         val = None # type: Optional[PdObject]
                         trailer_tokens = None
@@ -890,7 +889,7 @@ class CodeBlock(Block):
                 msg = 'Error while interpreting token {} caused by exception: {}\n{}'.format(token + trailer, ex, env.debug_dump())
                 raise Exception(msg) from ex
             # print('generic debug dump', env.debug_dump(), file=sys.stderr)
-        if assign_trailer is not None:
+        if active_assign_token_trailer is not None:
             raise Exception('Assignment with no target')
         while block_level > 0:
             block_level -= 1

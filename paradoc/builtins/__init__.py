@@ -4,6 +4,7 @@ from typing import Callable, List, Optional, Tuple
 import itertools
 import paradoc.num as num
 import paradoc.base as base
+import paradoc.assign as assign
 import sys, math
 import time, datetime
 import random
@@ -1672,29 +1673,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     @put('Append_to_bullet', '©', docs="Pop and append to the variable •",
             stability="alpha")
     def append_to_bullet(env: Environment) -> None:
-        bval = env.get(BULLET)
-        if isinstance(bval, range):
-            bval = list(bval)
-        elif not isinstance(bval, (list, str)):
-            bval = []
-
-        e = env.pop()
-
-        # TODO: This will be linear per operation; that's pretty bad.
-        if isinstance(bval, list):
-            env.put(BULLET, bval + [e])
-        elif isinstance(bval, str):
-            env.put(BULLET, bval + env.pd_str(e))
-        else:
-            raise AssertionError("Type unaccounted for in Append_to_bullet")
+        assign.append_func(env, BULLET)
     @put('Retrieve_bullet', '®',
             docs="""Push the current value of the variable •, then reset that
             variable to 0.""",
             stability="alpha")
     def retrieve_bullet(env: Environment) -> None:
-        bval = env.get(BULLET)
-        env.put(BULLET, 0)
-        env.push(bval)
+        assign.retrieve_func(env, BULLET)
     # }}}
     # unsafe metacomputing {{{
     @put('Sleep', 'Sl', docs="Sleep for some number of seconds.",
