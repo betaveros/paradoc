@@ -93,6 +93,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     env.put('\x00', 0, stability="unstable")
     env.put('\x01', 1, stability="unstable")
 
+    env.put('Hw', 'Hello, World!', stability="unstable")
+
     BULLET = '•'
 
     env.put(BULLET, 0,
