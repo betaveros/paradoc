@@ -422,9 +422,12 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Uc'), ["HELLO :) 123 XD"])
         self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Lc'), ["hello :) 123 xd"])
         self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Xc'), ["HeLlO :) 123 Xd"])
+        self.assertEqual(pd_simple_eval('"([{<!?>}])"Mc'), [")]}>!?<{[("])
 
     def test_string_predicates(self):
         self.assertEqual(pd_simple_eval('"B3 t@"ApqUpqLpqWp'), [[1,0,0,1,0],[1,0,0,0,0],[0,0,0,1,0],[0,0,1,0,0]])
+        self.assertEqual(pd_simple_eval('"+-- <foo>"Vc'), [[1,-1,-1,0,-1,0,0,0,1]])
+        self.assertEqual(pd_simple_eval('"([{<!?>}])"Nc'), [[1,1,1,1,0,0,-1,-1,-1,-1]])
 
     def test_split(self):
         self.assertEqual(pd_simple_eval('"assdfs""s"/'), [["a","","df",""]])

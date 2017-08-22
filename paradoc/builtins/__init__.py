@@ -1431,15 +1431,30 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Log_ten', ['Lt'], [Case.value_n2v(math.log10)], stability="alpha")
     cput('Log_two', ['Lg'], [Case.value_n2v(math.log2 )], stability="alpha")
     # }}}
-    # Letter-case-related functions {{{
+    # Character conversion and predicates (letter-case etc) {{{
     cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower() , x)])], stability="beta")
     cput('Uppercase', ['Uc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.upper() , x)])], stability="beta")
     cput('Exchange_case', ['Xc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.swapcase(), x)])], stability="alpha")
+    # TODO: this doesn't work on, say, lists of chars
+    cput('Title_case', ['Tc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.title(), x)])], stability="alpha")
+    cput('Matching_character', ['Mc'], [
+        Case.value(lambda env, x: [pd_deepmap_s2s(
+            lambda e: num.matching_dict.get(e, e), x, whole_str_ok=False)])
+    ],
+        stability="alpha")
 
     cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isalpha()), x)])], stability="beta")
     cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.islower()), x)])], stability="beta")
     cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isupper()), x)])], stability="beta")
     cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])], stability="alpha")
+    cput('Value_of_character', ['Vc'], [
+        Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: num.value_dict.get(e, 0), x)])
+    ],
+            stability="alpha")
+    cput('Nest_of_character', ['Nc'], [
+        Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: num.nest_dict.get(e, 0), x)])
+    ],
+            stability="alpha")
     # }}}
     # Replicate, fill/pad {{{
 

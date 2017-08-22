@@ -459,9 +459,12 @@ def pd_deepmap_n2v(func: Callable[[Union[int, float]], PdValue], obj: PdValue) -
                 acc.append(pd_deepmap_n2v(func, e))
         return acc
 # deeply map a Python str -> str function on strs, Chars, numbers
-def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue) -> PdValue:
+def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue, whole_str_ok: bool = True) -> PdValue:
     if isinstance(obj, str):
-        return func(obj)
+        if whole_str_ok:
+            return func(obj)
+        else:
+            return ''.join(func(c) for c in obj)
     elif isinstance(obj, Char):
         return Char(func(obj.chr))
     elif isinstance(obj, (int, float)):
@@ -475,7 +478,8 @@ def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue) -> PdValue:
                 acc.append(pd_deepmap_s2s(func, e))
         return acc
 # deeply map a Python str -> PdValue function on strs, Chars, numbers
-# The difference from above is no Char/string preservation
+# The difference from above is no Char/string preservation, and multi-character
+# strings are never kept and mapped together
 def pd_deepmap_s2v(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
     if isinstance(obj, (Char, int, float)):
         return func(chr(num.intify(obj)))
