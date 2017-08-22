@@ -1258,14 +1258,19 @@ def basic_pd_str(obj: PdObject) -> str:
 
 def pd_repr(obj: PdObject) -> str:
     if isinstance(obj, (list, range)):
-        if isinstance(obj, list) and all(isinstance(e, str) for e in obj):
-            # TODO fix string
-            return repr(obj)
         return '[' + ' '.join(pd_repr(e) for e in obj) + ']'
     elif isinstance(obj, Block):
         return obj.code_repr()
-    else:
+    elif isinstance(obj, Char):
+        return "'" + obj.chr
+    elif isinstance(obj, str):
+        return '"' + ''.join(
+            '\\"' if c == '"' else '\\\\' if c == '\\' else c
+            for c in obj) + '"'
+    elif isinstance(obj, int):
         return repr(obj)
+    elif isinstance(obj, float):
+        return repr(obj).replace('-', '—')
 # }}}
 # other conversions {{{
 def pd_to_char(val: PdValue) -> Char:
