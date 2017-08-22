@@ -197,6 +197,10 @@ class Case:
         return Case(2, [just_list, just_number], func,
                 commutative=commutative)
     @staticmethod
+    def list_range_number(func: Callable[[Environment, Union[list, range], PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(2, [list_int_range, just_number], func,
+                commutative=commutative)
+    @staticmethod
     def str_number(func: Callable[[Environment, str, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_str, just_number], func,
                 commutative=commutative)

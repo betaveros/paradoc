@@ -895,6 +895,39 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('All_slices', ['=s', '§'], [nonempty_slices_range_case],
             docs="""All slices of a sequence (numbers coerce to ranges).""",
             stability="unstable")
+
+    cput('Left_cycle', ['<c'], [
+        Case.list_range_number(lambda env, seq, n: [list(seq[num.intify(n):]) + list(seq[:num.intify(n)])]),
+        Case.str_number(lambda env, seq, n: [seq[num.intify(n):] + seq[:num.intify(n)]]),
+    ],
+            docs="""Left cycle a list or string by some number of elements,
+            which are cut off the left and reattached to the right.""",
+            stability="unstable")
+
+    cput('Right_cycle', ['>c'], [
+        Case.list_range_number(lambda env, seq, n: [list(seq[-num.intify(n):]) + list(seq[:-num.intify(n)])]),
+        Case.str_number(lambda env, seq, n: [seq[-num.intify(n):] + seq[:-num.intify(n)]]),
+    ],
+            docs="""Right cycle a list or string by some number of elements,
+            which are cut off the right and reattached to the left.""",
+            stability="unstable")
+
+    cput('Left_cycle_one', ['<o'], [
+        Case.list_int_range(lambda env, seq: [list(seq[1:]) + list(seq[:1])]),
+        Case.str_(lambda env, seq: [seq[1:] + seq[:1]]),
+    ],
+            docs="""Left cycle a list or string once: move the first element to
+            the last.""",
+            stability="unstable")
+
+    cput('Right_cycle_one', ['>o'], [
+        Case.list_int_range(lambda env, seq: [list(seq[-1:]) + list(seq[:-1])]),
+        Case.str_(lambda env, seq: [seq[-1:] + seq[:-1]]),
+    ],
+            docs="""Right cycle a list or string once: move the last element to
+            the first.""",
+            stability="unstable")
+
     # }}}
     # Incr/Decr/First/Last/Uncons/Unsnoc/Parens: «»‹›() {{{
     def case_add_const(i: int) -> Case:
