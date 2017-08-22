@@ -1117,6 +1117,18 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             for e in es:
                 if e: return True
             return None
+    def make_all_and_exists_fold_f() -> Callable[[Optional[List[PdObject]]], Optional[bool]]:
+        exists = False
+        def f(es: Optional[List[PdObject]]) -> Optional[bool]:
+            nonlocal exists
+            if es is None:
+                return exists
+            else:
+                for e in es:
+                    if not e: return False
+                    exists = True
+                return None
+        return f
     def make_unique_fold_f() -> Callable[[Optional[List[PdObject]]], Optional[bool]]:
         s = set() # type: Set[PdObject]
         def f(es: Optional[List[PdObject]]) -> Optional[bool]:
@@ -1140,6 +1152,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
                     elif obj != e: return False
                 return None
         return f
+    def all_and_exists(seq: Iterable[object]) -> bool:
+        exists = False
+        for e in seq:
+            if not e: return False
+            exists = True
+        return exists
     all_cases = [
         Case.seq(lambda env, a: [int(all(pd_iterable(a)))]),
         Case.block_seq_range(lambda env, block, seq:
@@ -1149,6 +1167,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq(lambda env, a: [int(any(pd_iterable(a)))]),
         Case.block_seq_range(lambda env, block, seq:
             [int(pd_map_fold_into(env, block, seq, any_fold_f))]),
+    ]
+    all_and_exists_cases = [
+        Case.seq(lambda env, a: [int(all_and_exists(pd_iterable(a)))]),
+        Case.block_seq_range(lambda env, block, seq:
+            [int(pd_map_fold_into(env, block, seq, make_all_and_exists_fold_f()))]),
     ]
     not_all_cases = [
         Case.seq(lambda env, a: [int(not all(pd_iterable(a)))]),
@@ -1172,6 +1195,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ]
     cput('All', ['For_all', 'Fa'], all_cases, stability="beta")
     cput('Any', ['There_exists', 'Te'], any_cases, stability="beta")
+    cput('All_and_exists', ['Ae'], all_and_exists_cases, stability="alpha")
     cput('Not_all', ['Na'], not_all_cases, stability="beta")
     cput('Not_any', ['Not_exists', 'Ne'], not_any_cases, stability="beta")
     cput('Identical', ['=p'], identical_cases, stability="beta")
