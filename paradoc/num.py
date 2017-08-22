@@ -150,6 +150,12 @@ def pd_mod_const(a: PdNum, const: int) -> PdNum:
     else:
         return a % const
 
+def pd_xor_const(a: PdNum, const: int) -> PdNum:
+    if isinstance(a, Char):
+        return Char(a.ord ^ const)
+    else:
+        return int(a) ^ const
+
 def pd_power_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):
         return Char(a.ord ** const) # really?

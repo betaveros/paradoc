@@ -73,6 +73,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 5 3]Ì'), [[-2,-5,-3]])
         self.assertEqual(pd_simple_eval('[[1 2][3 4]][[5 6][7 8]]Ó'), [[[5,12],[21,32]]])
 
+    def test_increment_decrement_etc(self):
+        self.assertEqual(pd_simple_eval('4«4(4)4»'), [2,3,5,6])
+        self.assertEqual(pd_simple_eval('[4 9 2 5 3]~p'), [[5,8,3,4,2]])
+
     def test_lifted_arithmetic(self):
         self.assertEqual(pd_simple_eval('"123" "321" +i'), [444])
         self.assertEqual(pd_simple_eval('2.9 1.1 -i'), [1])

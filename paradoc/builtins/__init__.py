@@ -1010,6 +1010,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case],
             stability="alpha")
+
+    cput('Complement_parity', ['~p'], [
+        Case.value_n2v(lambda e: num.pd_xor_const(e, 1))
+    ],
+            stability="alpha")
     # }}}
     # Sum, Product, etc {{{
     cput('Sum', ['Š'], [
