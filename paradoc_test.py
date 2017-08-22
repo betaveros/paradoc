@@ -256,6 +256,8 @@ class TestParadoc(unittest.TestCase):
 
     def test_list_operations(self):
         self.assertEqual(pd_simple_eval('[2 4][6 0 1]+'), [[2,4,6,0,1]])
+        self.assertEqual(pd_simple_eval('[2 4][6 0 1]Cb'), [[2,4,6,0,1,2,4]])
+        self.assertEqual(pd_simple_eval('[2 4][6 0 1]Cf'), [[6,0,1,2,4,6,0,1]])
         self.assertEqual(pd_simple_eval('[2 4]6*'), [[2,4,2,4,2,4,2,4,2,4,2,4]])
         self.assertEqual(pd_simple_eval('[2 4][6 0 1]*'), [[[[2,6],[2,0],[2,1]],[[4,6],[4,0],[4,1]]]])
         self.assertEqual(pd_simple_eval('[2 4]3*p'),

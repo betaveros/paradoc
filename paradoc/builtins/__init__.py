@@ -244,6 +244,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             block and list (numbers coerce to ranges).""",
             stability="stable")
 
+    cput('Cat_between', ['Cb'], [
+        Case.list2_singleton(lambda env, a, b: [list(a) + list(b) + list(a)]),
+        Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b) + env.pd_str(a)]),
+    ],
+            docs="""two copies of a with b between: a, b -> a + b + a""",
+            stability="unstable")
+    cput('Cat_flank', ['Cf'], [
+        Case.list2_singleton(lambda env, a, b: [list(b) + list(a) + list(b)]),
+        Case.seq2_singleton(lambda env, a, b: [env.pd_str(b) + env.pd_str(a) + env.pd_str(b)]),
+    ],
+            docs="""a with two copies of b flanking: a, b -> b + a + b""",
+            stability="unstable")
+
     cput('Minus_or_reject', ['-'], [
         Case.number2(lambda env, a, b: [num.pd_sub(a, b)]),
         Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(a, b)]),
