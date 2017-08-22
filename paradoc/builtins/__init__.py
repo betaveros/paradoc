@@ -957,9 +957,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Count_maybe_factors', ['#'], [
         Case.number2(lambda env, a, b: [num.pd_count_multiplicity_in(b, a)]),
         Case.seq_value(lambda env, s, x: [pd_count_in(env, x, s)]),
+        Case.block_seq_range(lambda env, b, s: [pd_count(env, b, s)]),
     ],
-            docs="""Count factor multiplicity or frequency. Mnemonic: number
-            sign.""",
+            docs="""Count factor multiplicity, frequency, or number satisfying
+            predicate. Mnemonic: number sign.""",
             stability="alpha")
     # }}}
     # Down, Transpose, Zip {{{

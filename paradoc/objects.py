@@ -1054,29 +1054,26 @@ def pd_run_with_probability_then_empty_list(env: Environment, func: Block, prob:
     if random.random() < prob: func(env)
     return []
 
-def pd_filter(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> PdSeq:
+def pd_filter_entries(env: Environment, func: Block, seq: PdSeq,
+        negate: bool = False) -> List[Tuple[int, PdObject]]:
     env.push_yx()
-    acc = [] # type: List[PdObject]
+    acc = [] # type: List[Tuple[int, PdObject]]
     try:
         for i, element in enumerate(pd_iterable(seq)):
             env.set_yx(i, element)
             if pd_truthy(env, func, [element]) ^ negate:
-                acc.append(element)
-    finally:
-        env.pop_yx()
-    return pd_build_like(seq, acc)
-
-def pd_filter_indexes(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> List[int]:
-    env.push_yx()
-    acc = [] # type: List[int]
-    try:
-        for i, element in py_enumerate(seq):
-            env.set_yx(i, element)
-            if pd_truthy(env, func, [element]) ^ negate:
-                acc.append(i)
+                acc.append((i, element))
     finally:
         env.pop_yx()
     return acc
+
+def pd_filter(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> PdSeq:
+    return pd_build_like(seq,
+            [e for (i, e) in pd_filter_entries(env, func, seq, negate)])
+def pd_filter_indexes(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> List[int]:
+    return [i for (i, e) in pd_filter_entries(env, func, seq, negate)]
+def pd_count(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> int:
+    return len(pd_filter_entries(env, func, seq, negate))
 
 def pd_get(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     _, e = pd_find_entry(env, func, seq)
