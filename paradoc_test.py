@@ -227,6 +227,11 @@ class TestParadoc(unittest.TestCase):
     def test_min_max_of_list(self):
         self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]>rq<r'), [9,2])
 
+    def test_sort(self):
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]$'), [[0,1,2,4,6]])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]3¢'), [4])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]=r'), [2])
+
     def test_len(self):
         self.assertEqual(pd_simple_eval('[8m 8 0]Lm'), [[8,8,0]])
         self.assertEqual(pd_simple_eval('[[7 2 5 9 3 5 8][7 2 5 9 3][]]Lm'), [[7,5,0]])

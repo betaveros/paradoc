@@ -485,7 +485,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             {{ 'Iterate'|b }}.""",
             stability="beta")
     # }}}
-    # Sort, $; test for sortedness {{{
+    # Sort, $; test for sortedness; order_statistic {{{
     cput('Sort', [], [
         Case.str_(lambda env, s: [''.join(sorted(s))]),
         Case.list_(lambda env, x: [list(sorted(x))]),
@@ -495,6 +495,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.str_(lambda env, s: [''.join(sorted(s))]),
         Case.list_(lambda env, x: [list(sorted(x))]),
     ], docs="Sort or select from stack", stability="beta")
+    cput('Order_statistic', ['¢'], [
+        Case.list_number(lambda env, x, i: [sorted(x)[num.intify(i)]]),
+        Case.str_number(lambda env, s, i: [Char(sorted(s)[num.intify(i)])]),
+    ], docs="Order statistic (zero-indexed)", stability="alpha")
     cput('Is_sorted', ['$p'], [
         Case.seq(lambda env, s: [int(all(a <= b for a, b in zip(s, s[1:])))]),
     ], docs="Test if sorted", stability="alpha")
@@ -774,6 +778,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Maximum of array""",
             stability="alpha")
+    cput('Array_median', ['=r'], [
+        # TODO: True median should try to take the average of two elements
+        Case.list_(lambda env, x: [sorted(x)[len(x)//2]]),
+        Case.str_(lambda env, s: [Char(sorted(s)[len(s)//2])]),
+    ], docs="Median of array", stability="alpha")
     cput('Compare', ['˜'], [
         Case.number2(lambda env, a, b: [num.pd_cmp(a, b)]),
         Case.str2(lambda env, a, b: [num.any_cmp(a, b)]),
