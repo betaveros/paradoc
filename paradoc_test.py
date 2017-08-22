@@ -475,6 +475,12 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('1 2 3"% % %"i'), ["1 2 3"])
         self.assertEqual(pd_simple_eval('1 2 3"%2d + %2d = %02d"f'), [" 1 +  2 = 03"])
 
+    def test_loops(self):
+        self.assertEqual(pd_simple_eval('5:_(k_W'), [5,4,3,2,1,0])
+        self.assertEqual(pd_simple_eval('5-pk_(k_U'), [5,4,3,2,1,0,-1])
+        self.assertEqual(pd_simple_eval('1{2*36%}I'), [[1,2,4,8,16,32,28,20]])
+        self.assertEqual(pd_simple_eval('1{2*36%}F'), [4])
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -1095,6 +1095,22 @@ def pd_get_last(env: Environment, func: Block, seq: PdSeq) -> PdObject:
 def pd_get_index_last(env: Environment, func: Block, seq: PdSeq) -> int:
     return pd_find_last_entry(env, func, seq)[0]
 
+def pd_do_then_empty_list(env: Environment, body: Block,
+        peek: bool = False, negate: bool = False) -> List[PdObject]:
+    try:
+        while True:
+            try:
+                body(env)
+            except PdContinueException: pass
+            if peek:
+                condition = env.peek()
+            else:
+                condition = env.pop()
+            if not (bool(condition) ^ negate):
+                break
+    except PdBreakException as e: pass
+    return []
+
 def pd_while_then_empty_list(env: Environment, cond: Block, body: Block,
         negate: bool = False) -> List[PdObject]:
     try:
@@ -1142,6 +1158,23 @@ def pd_ziplongest(env: Environment,
         for e1, e2 in itertools.zip_longest(iterable1, iterable2)
         for e in zip_longest_helper(e1, e2)
     ]
+# }}}
+# function iteration {{{
+def pd_iterate(env: Environment, func: Block) -> Tuple[List[PdObject], PdObject]:
+    """Iterate a block, peeking at the stack top at the start and after each
+    iteration, until a value repeats. Pop that value. Returns the list of (all
+    distinct) elements peeked along the way and the final repeated value."""
+    acc = [] # type: List[PdObject]
+    seen = set() # type: Set[PdObject]
+    while True:
+        obj = env.peek()
+        if obj in seen:
+            env.pop()
+            return (acc, obj)
+
+        acc.append(obj)
+        seen.add(obj)
+        func(env)
 # }}}
 # string conversions {{{
 def basic_pd_str(obj: PdObject) -> str:

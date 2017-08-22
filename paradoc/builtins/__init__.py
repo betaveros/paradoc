@@ -438,19 +438,51 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Modulus on numbers; deeply vectorizes.""",
             stability="unstable")
     # }}}
-    # Conversions C, F, I, S {{{
-    cput('To_char', ['C'], [
-        Case.value(lambda env, a: [pd_to_char(a)]),
-    ], docs="Convert to char", stability="beta")
-    cput('To_float', ['F'], [
-        Case.value(lambda env, a: [pd_to_float(a)]),
-    ], docs="Convert to float", stability="beta")
-    cput('To_int', ['I'], [
-        Case.value(lambda env, a: [pd_to_int(a)]),
-    ], docs="Convert to int", stability="beta")
-    cput('To_string', ['S'], [
-        Case.value(lambda env, a: [env.pd_str(a)]),
-    ], docs="Convert to string", stability="beta")
+    # Conversions / loopy things: C, F, I, S {{{
+    to_char_case   = Case.value(lambda env, a: [pd_to_char(a)])
+    to_float_case  = Case.value(lambda env, a: [pd_to_float(a)])
+    to_int_case    = Case.value(lambda env, a: [pd_to_int(a)])
+    to_string_case = Case.value(lambda env, a: [env.pd_str(a)])
+
+    cput('To_char',   [   ], [to_char_case  ], docs="Convert to char",   stability="beta")
+    cput('To_float',  [   ], [to_float_case ], docs="Convert to float",  stability="beta")
+    cput('To_int',    [   ], [to_int_case   ], docs="Convert to int",    stability="beta")
+    cput('To_string', ['S'], [to_string_case], docs="Convert to string", stability="beta")
+
+    peekdo_case      = Case.block(lambda env, body: pd_do_then_empty_list(env, body, peek=True))
+    iterate_case     = Case.block(lambda env, body: [pd_iterate(env, body)[0]])
+    fixed_point_case = Case.block(lambda env, body: [pd_iterate(env, body)[1]])
+
+    cput('Peekdo', [], [peekdo_case],
+            docs="""Like {{ 'Doloop'|b }} except the condition is peeked
+            instead of popped.""",
+            stability="beta")
+    cput('Fixed_point', [], [fixed_point_case],
+            docs="""Iterate a block, peeking at the stack between iterations,
+            until a value repeats. Pushes that value. (This is more general
+            than a "fixed point" as usually defined since it doesn't require a
+            value to repeat after just one iteration.)""",
+            stability="alpha")
+    cput('Iterate', [], [iterate_case],
+            docs="""Iterate a block, peeking at the stack between iterations,
+            until a value repeats. Pushes all values peeked until (excluding)
+            the repeated value.""",
+            stability="unstable")
+
+    cput('To_char_or_peekloop', ['C'], [to_char_case, peekdo_case],
+            docs="""On a non-block value, {{ 'To_char'|b }}; on a block,
+            {{ 'Peekdo'|b }}. Mnemonic: "C" is right next to "D" and it's a
+            homophone of "see", which is a synonym of "peek".""",
+            stability="alpha")
+
+    cput('To_float_or_fixed_point', ['F'], [to_float_case, fixed_point_case],
+            docs="""On a non-block value, {{ 'To_float'|b }}; on a block,
+            {{ 'Fixed_point'|b }}.""",
+            stability="beta")
+    cput('To_int_or_iterate', ['I'], [to_int_case, iterate_case],
+            docs="""On a non-block value, {{ 'To_float'|b }}; on a block,
+            {{ 'Iterate'|b }}.""",
+            stability="beta")
     # }}}
     # Sort, $; test for sortedness {{{
     cput('Sort', [], [
@@ -963,11 +995,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             predicate. Mnemonic: number sign.""",
             stability="alpha")
     # }}}
-    # Down, Transpose, Zip {{{
-    cput('Reverse', ['Down', 'D'], [
-        Case.seq_range(lambda env, a: [a[::-1]]),
-    ],
+    # Down/Do, Transpose, Zip {{{
+    reverse_case = Case.seq_range(lambda env, a: [a[::-1]])
+    doloop_case  = Case.block(lambda env, body: pd_do_then_empty_list(env, body))
+    cput('Reverse', ['Down'], [reverse_case, doloop_case],
             docs="""Reverse a sequence (coerces numbers to range).""",
+            stability="beta")
+    cput('Doloop', [], [doloop_case],
+            docs="""Do loop: execute the block, then pop an element, and repeat
+            until the popped element is falsy.""",
+            stability="beta")
+    cput('Reverse_or_doloop', ['Down_or_doloop', 'D'], [reverse_case, doloop_case],
+            docs="""On a number of a sequence, {{ 'Reverse'|b }}; on a block,
+            {{ 'Doloop'|b }}.""",
             stability="beta")
     cput('Reverse_one_or_map', ['Ð'], [
         Case.number(lambda env, n: [range(num.intify(n), 0, -1)]),
