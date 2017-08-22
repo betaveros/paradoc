@@ -51,6 +51,8 @@ PdSeq = Union[str, list, range]
 PdValue = Union[PdNum, PdSeq]
 PdObject = Union[PdValue, Block]
 
+PdKey = Union[PdNum, str, tuple, range]
+
 # exceptions {{{
 class PdEmptyStackException(Exception): pass
 class PdEndOfFileException(Exception): pass
@@ -406,6 +408,14 @@ def pd_to_list_range(obj: PdObject, coerce_start: int = 0) -> Union[list, range]
         return range(coerce_start, coerce_start + obj)
     else:
         raise AssertionError(repr(obj) + " cannot be converted to list")
+
+# Returns Hashable, but typing that doesn't really work...
+def pykey(obj: PdObject) -> PdKey:
+    if isinstance(obj, (Char, int, float, str, range)): return obj
+    elif isinstance(obj, list): return tuple(pykey(x) for x in obj)
+    else:
+        raise TypeError(repr(obj) + " cannot be converted to key")
+
 # }}}
 # sandbox {{{
 def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObject]:
@@ -1045,6 +1055,19 @@ def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
         env.pop_yx()
     return sum(acc)
 
+def pd_translate_entries(source: PdSeq, target: PdSeq) -> Generator[Tuple[PdKey, PdObject], None, None]:
+    t0 = None # type: Optional[PdObject]
+    for s, t in itertools.zip_longest(pd_iterable(source), pd_iterable(target)):
+        if t is not None:
+            t0 = t # loop the last element of the target
+        if t0 is None:
+            raise ValueError("Cannot translate with empty target")
+        yield pykey(s), t0
+
+def pd_translate(operand: PdSeq, source: PdSeq, target: PdSeq) -> PdSeq:
+    td = dict(pd_translate_entries(source, target))
+    return pd_build_like(operand, [td.get(pykey(e), e) for e in pd_iterable(operand)])
+
 def pd_foreach(env: Environment, func: Block, seq: PdSeq) -> None:
     env.push_yx()
     try:
@@ -1208,15 +1231,16 @@ def pd_iterate(env: Environment, func: Block) -> Tuple[List[PdObject], PdObject]
     iteration, until a value repeats. Pop that value. Returns the list of (all
     distinct) elements peeked along the way and the final repeated value."""
     acc = [] # type: List[PdObject]
-    seen = set() # type: Set[PdObject]
+    seen = set() # type: Set[PdKey]
     while True:
         obj = env.peek()
-        if obj in seen:
+        key = pykey(obj)
+        if key in seen:
             env.pop()
             return (acc, obj)
 
         acc.append(obj)
-        seen.add(obj)
+        seen.add(key)
         func(env)
 # }}}
 # string conversions {{{
@@ -1331,12 +1355,13 @@ def pd_seq_symmetric_difference(a: PdSeq, b: PdSeq) -> PdSeq:
     return pd_build_like(a, acc)
 
 def pd_seq_uniquify(a: PdSeq) -> PdSeq:
-    s = set() # type: Set[PdObject]
+    s = set() # type: Set[PdKey]
     acc = [] # type: List[PdObject]
     for element in pd_iterable(a):
-        if element not in s:
+        key = pykey(element)
+        if key not in s:
             acc.append(element)
-            s.add(element)
+            s.add(key)
     return pd_build_like(a, acc)
 
 def pd_seq_is_identical(a: PdSeq) -> bool:
@@ -1349,12 +1374,13 @@ def pd_seq_is_identical(a: PdSeq) -> bool:
     return True
 
 def pd_seq_is_unique(a: PdSeq) -> bool:
-    s = set() # type: Set[PdObject]
+    s = set() # type: Set[PdKey]
     for element in pd_iterable(a):
-        if element in s:
+        key = pykey(element)
+        if key in s:
             return False
         else:
-            s.add(element)
+            s.add(key)
     return True
 
 def pd_if_then_empty_list(env: Environment, condition: PdObject, body: PdObject, negate: bool = False) -> List[PdObject]:

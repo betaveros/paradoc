@@ -244,6 +244,9 @@ class Case:
     def any3(func: Callable[[Environment, PdObject, PdObject, PdObject], List[PdObject]]) -> 'Case':
         return Case(3, [just_any, just_any, just_any], func)
     @staticmethod
+    def seq3_singleton(func: Callable[[Environment, PdSeq, PdSeq, PdSeq], List[PdObject]]) -> 'Case':
+        return Case(3, [seq_singleton, seq_singleton, seq_singleton], func)
+    @staticmethod
     def any_any_number(func: Callable[[Environment, PdObject, PdObject, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(3, [just_any, just_any, just_number], func, commutative=commutative)
     @staticmethod

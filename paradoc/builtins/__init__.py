@@ -399,6 +399,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Subtract two things after coercing both to ints or floats,
             sequences by taking their length.""",
             stability="unstable")
+
+    cput('Translate', ['Tr'], [
+        Case.seq3_singleton(lambda env, seq, src, tgt: [pd_translate(seq, src, tgt)]),
+    ],
+            docs="""Translate the first argument using a mapping obtained by
+            zipping the second and third, repeading the last element of the
+            third as necessary.""",
+            stability="alpha")
     # }}}
     # Acute/grave vowels {{{
     cput('Plus_deep_vectorizing', ['Á'], [
