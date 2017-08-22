@@ -1234,7 +1234,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         else:
             raise NotImplementedError
 
-    @put('Eval', stability="alpha")
+    @put('Eval', 'Pd', docs="Evaluate a string as Paradoc code", stability="alpha")
     def pd_eval(env: Environment) -> None:
         a = env.pop()
         if isinstance(a, str):
