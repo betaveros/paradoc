@@ -946,15 +946,27 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case],
             stability="alpha")
     # }}}
-    # Sum, Product {{{
+    # Sum, Product, etc {{{
     cput('Sum', ['Š'], [
-        Case.list_int_range(lambda env, x: [sum(x)]),
+        Case.seq_range(lambda env, x: [pd_deep_sum(x)]),
     ],
             docs="Sum (coerces numbers to range).", stability="beta")
     cput('Product', ['Þ'], [
-        Case.list_int_range(lambda env, x: [functools.reduce(operator.mul, x, 1)]),
+        Case.seq_range(lambda env, x: [pd_deep_product(x)]),
     ],
             docs="Product (coerces numbers to range!?).", stability="alpha")
+    cput('Deep_length', ['Dl'], [
+        Case.value(lambda env, x: [pd_deep_length(x)]),
+    ],
+            docs="Deep length.", stability="unstable")
+    cput('Average', ['Av'], [
+        Case.seq_range(lambda env, x: [pd_deep_average(x)]),
+    ],
+            docs="Average (deep).", stability="alpha")
+    cput('Standard_deviation', ['Sg'], [
+        Case.seq_range(lambda env, x: [pd_deep_standard_deviation(x)]),
+    ],
+            docs="Standard deviation (deep). Mnemonic: sigma", stability="alpha")
     # }}}
     # M for Minus (negate) and Mold {{{
     negate_case = Case.number(lambda env, a: [num.pd_mul_div_const(a, -1, 1)])
@@ -1663,12 +1675,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     @put('Sum_stack', 'Šs',
             stability="beta")
     def sum_stack(env: Environment) -> None:
-        env.push(sum(env.pop_until_stack_marker()))
+        env.push(pd_deep_sum(env.pop_until_stack_marker()))
     @put('Product_stack', 'Þs',
             stability="beta")
     def product_stack(env: Environment) -> None:
         # TODO: make this a deepmap or something?
-        env.push(functools.reduce(operator.mul, env.pop_until_stack_marker(), 1))
+        env.push(pd_deep_product(env.pop_until_stack_marker()))
     @put('Force_stack', 'Fs',
             stability="alpha")
     def force_stack(env: Environment) -> None:

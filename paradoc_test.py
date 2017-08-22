@@ -2,6 +2,7 @@
 from paradoc import lex_code, pd_simple_eval
 from paradoc.num import Char
 import unittest
+import math
 
 class TestParadoc(unittest.TestCase):
 
@@ -456,6 +457,12 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('11 Fb'), [89])
         self.assertEqual(pd_simple_eval('12 Et'), [4])
         self.assertEqual(pd_simple_eval('2 21 Js'), [-1])
+
+    def test_aggregation(self):
+        self.assertEqual(pd_simple_eval('[6 6 6]L'), [3])
+        self.assertEqual(pd_simple_eval('[6 6 6]Š'), [18])
+        self.assertEqual(pd_simple_eval('[6 6 6]Þ'), [216])
+        self.assertAlmostEqual(pd_simple_eval('[2 4 5 8 6]Sg')[0], math.sqrt(5))
 
     def test_stack_functions(self):
         self.assertEqual(pd_simple_eval('6 6 6 Ls'), [3])

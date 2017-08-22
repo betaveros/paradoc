@@ -5,6 +5,7 @@ from typing import (
         Tuple, TypeVar, Union, overload,
         )
 import sys
+import math
 from paradoc.num import Char, PdNum
 import paradoc.num as num
 import collections
@@ -500,6 +501,48 @@ def pd_deepvectorize_nn2v(func: Callable[[PdNum, PdNum], PdValue],
             return pd_maybe_build_str(acc)
         else:
             return acc
+def pd_deep_stats(obj: PdObject) -> Tuple[int, Union[int, float], Union[int, float]]:
+    """Return the count, sum, and sum of squares, deeply accumulated over the
+    object."""
+    if isinstance(obj, Block):
+        raise TypeError('Cannot deeply accumulate stats over block ' +
+                repr(obj))
+    if isinstance(obj, (Char, int, float)):
+        v = num.numerify(obj)
+        return (1, v, v**2)
+    else:
+        c = 0 # type: int
+        s = 0 # type: Union[int, float]
+        q = 0 # type: Union[int, float]
+        for e in pd_iterable(obj):
+            c1, s1, q1 = pd_deep_stats(e)
+            c += c1
+            s += s1 # type: ignore
+            q += q1 # type: ignore
+        return (c, s, q)
+
+def pd_deep_length(obj: PdObject) -> int:
+    return pd_deep_stats(obj)[0]
+def pd_deep_sum(obj: PdObject) -> Union[int, float]:
+    return pd_deep_stats(obj)[1]
+def pd_deep_average(obj: PdObject) -> float:
+    c, s, _ = pd_deep_stats(obj)
+    return s / c
+def pd_deep_standard_deviation(obj: PdObject) -> float:
+    c, s, q = pd_deep_stats(obj)
+    return math.sqrt((q - s**2 / c) / (c - 1))
+
+def pd_deep_product(obj: PdObject) -> Union[int, float]:
+    if isinstance(obj, Block):
+        raise TypeError('Cannot deeply compute product over block ' +
+                repr(obj))
+    if isinstance(obj, (Char, int, float)):
+        return num.numerify(obj)
+    else:
+        p = 1 # type: Union[int, float]
+        for e in pd_iterable(obj):
+            p *= pd_deep_product(e) # type: ignore
+        return p
 def pd_deepmap_block(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     env.push_yx()
     i = 0
