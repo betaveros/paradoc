@@ -942,6 +942,10 @@ def main_with_code(code: str, sandboxed: bool, debug: bool) -> None:
 
 def paradoc_repl(sandboxed: bool, debug: bool) -> None:
     env = initialized_environment(sandboxed, debug)
+    try:
+        import readline
+    except ImportError:
+        pass
     while True:
         try:
             code = input("prdc> ")
