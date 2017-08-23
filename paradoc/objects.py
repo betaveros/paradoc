@@ -263,7 +263,7 @@ class Environment: # {{{
     def join_output_fields(self, ss: Iterable[str]) -> str:
         return self.get_output_field_separator().join(ss)
 
-    def print_output_record(self, s: str, outfile: typing.IO[str] = sys.stdout) -> None:
+    def print_output_record(self, s: str = "", outfile: typing.IO[str] = sys.stdout) -> None:
         print(s, end=self.get_output_record_separator(), file=outfile)
 
     def get_epsilon(self) -> float:

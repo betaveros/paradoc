@@ -1392,6 +1392,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         a = env.pop()
         env.print_output_record(env.pd_str(a))
 
+    @put('Print_lines', 'Pl',
+            docs="""Output each element of a sequence to standard output, each
+            followed by an output record separator. At the end, output an extra
+            output record separator.""",
+            stability="unstable")
+    def pd_print_lines(env: Environment) -> None:
+        a = env.pop()
+        if not isinstance(a, (str, list, range)):
+            raise TypeError('Cannot Print_lines non-sequence')
+        for e in pd_iterable(a):
+            env.print_output_record(env.pd_str(e))
+        env.print_output_record()
+
     @put('Printkeep', 'Ƥ', '\x10',
             docs="""Pop something, output to standard output followed by an
             output record separator, then push it back. Pretty much just {{
