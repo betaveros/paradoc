@@ -1001,11 +1001,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Round',   ['=i'], [round_case], docs="Round to the nearest integer; follows Python's rules.",
             stability="alpha")
 
-    cput('Floor_or_first', ['‹'], [floor_case, first_case],
-            docs="""{{ 'Floor'|b }} or {{ 'First'|b }} of sequence""",
+    modify_first_case = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, seq, 0)])
+    modify_last_case  = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, seq, -1)])
+
+    cput('Modify_first', [], [modify_first_case],
+            docs="""Run a block over the first element of a list, then replace
+            it in the list with the result.""",
+            stability="unstable")
+    cput('Modify_last', [], [modify_last_case],
+            docs="""Run a block over the last element of a list, then replace
+            it in the list with the result.""",
+            stability="unstable")
+
+    cput('Floor_or_first', ['‹'], [floor_case, first_case, modify_first_case],
+            docs="""{{ 'Floor'|b }} or {{ 'First'|b }} of sequence or
+            {{ 'Modify_first'|b }}""",
             stability="alpha")
-    cput('Ceiling_or_last', ['›'], [ceil_case, last_case],
-            docs="""{{ 'Ceiling'|b }} or {{ 'Last'|b }} of sequence""",
+    cput('Ceiling_or_last', ['›'], [ceil_case, last_case, modify_last_case],
+            docs="""{{ 'Ceiling'|b }} or {{ 'Last'|b }} of sequence or
+            {{ 'Modify_last'|b }}""",
             stability="alpha")
 
     cput('Decr_two_or_but_last',  ['«'], [decr2_case, butlast_case],

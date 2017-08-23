@@ -643,6 +643,11 @@ def pd_index(seq: PdSeq, n: PdNum) -> PdObject:
         return Char(ord(seq[num.intify(n)]))
     else:
         return seq[num.intify(n)]
+def pd_modify_index(env: Environment, func: Block, seq: PdSeq, n: int) -> PdObject:
+    if isinstance(seq, str): seq = list(pd_iterable(seq))
+    before = list(seq[:n])
+    after  = [] if n == -1 else list(seq[n+1:])
+    return before + pd_sandbox(env, func, [seq[n]]) + after
 def pd_join(env: Environment, seq: PdSeq, joiner: PdSeq) -> PdObject:
     if isinstance(seq, (list, range)) and isinstance(joiner, (list, range)):
         acc = [] # type: List[PdObject]

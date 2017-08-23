@@ -278,6 +278,9 @@ class TestParadoc(unittest.TestCase):
             [[[2,4,4],[2,4,2]],[[2,2,4],[2,2,2]]],
             ]])
 
+    def test_list_modifying(self):
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]{10*}‹{100*}›'), [[20,4,6,0,100]])
+
     def test_replicate(self):
         self.assertEqual(pd_simple_eval('3 4 Replicate'), [[3,3,3,3]])
         self.assertEqual(pd_simple_eval('4 3 °'), [[4,4,4]])
