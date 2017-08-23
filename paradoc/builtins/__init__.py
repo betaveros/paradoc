@@ -1063,12 +1063,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # M for Minus (negate) and Mold {{{
     negate_case = Case.number(lambda env, a: [num.pd_mul_div_const(a, -1, 1)])
     mold_case = Case.value_seq(lambda env, x, y: [pd_mold(x, y)])
+    memoize_case = Case.block(lambda env, b: [MemoizedBlock(b)])
     cput('Negate', [], [negate_case],
             docs="Negate a number.", stability="beta")
     cput('Mold', [], [mold_case],
             docs="Mold the first sequence like the second.", stability="alpha")
-    cput('Negate_or_mold', ['M'], [negate_case, mold_case],
-            docs="{{ 'Negate'|b }} a number, or {{ 'Mold'|b }} a sequence like another.",
+    cput('Memoize', ['Memo'], [memoize_case],
+            docs="Memoize a block.", stability="alpha")
+    cput('Negate_or_mold_or_memoize', ['M'], [negate_case, memoize_case, mold_case],
+            docs="""{{ 'Negate'|b }} a number, or {{ 'Mold'|b }} a sequence
+            like another, or {{ 'Memoize'|b }} a block.""",
             stability="alpha")
     # }}}
     # U for Signum, Uniquify, Until {{{

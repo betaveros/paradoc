@@ -106,30 +106,57 @@ class Environment: # {{{
         self.evaluator(self, code)
 
     def index_x(self, index: int) -> PdObject:
-        return self._x_stack[-1-index]
+        if self.vars_delegate is None:
+            return self._x_stack[-1-index]
+        else:
+            return self.vars_delegate.index_x(index)
 
     def set_x(self, index: int, val: PdObject) -> None:
-        self._x_stack[-1-index] = val
+        if self.vars_delegate is None:
+            self._x_stack[-1-index] = val
+        else:
+            self.vars_delegate.set_x(index, val)
 
     def push_x(self, obj: PdObject) -> None:
-        self._x_stack.append(obj)
+        if self.vars_delegate is None:
+            self._x_stack.append(obj)
+        else:
+            self.vars_delegate.push_x(obj)
 
     def push_yx(self) -> None:
-        # y
-        self._x_stack.append('INTERNAL Y FILLER -- YOU SHOULD NOT SEE THIS')
-        # x
-        self._x_stack.append('INTERNAL X FILLER -- YOU SHOULD NOT SEE THIS')
+        if self.vars_delegate is None:
+            # y
+            self._x_stack.append('INTERNAL Y FILLER -- YOU SHOULD NOT SEE THIS')
+            # x
+            self._x_stack.append('INTERNAL X FILLER -- YOU SHOULD NOT SEE THIS')
+        else:
+            self.vars_delegate.push_yx()
 
     def pop_yx(self) -> None:
-        self._x_stack.pop()
-        self._x_stack.pop()
+        if self.vars_delegate is None:
+            self._x_stack.pop()
+            self._x_stack.pop()
+        else:
+            self.vars_delegate.pop_yx()
 
     def set_yx(self, y: PdObject, x: PdObject) -> None:
-        self._x_stack[-1] = x
-        self._x_stack[-2] = y
+        if self.vars_delegate is None:
+            self._x_stack[-1] = x
+            self._x_stack[-2] = y
+        else:
+            self.vars_delegate.set_yx(y, x)
 
     def set_x_top(self, obj: PdObject) -> None:
-        self._x_stack[-1] = obj
+        if self.vars_delegate is None:
+            self._x_stack[-1] = obj
+        else:
+            self.vars_delegate.set_x_top(obj)
+
+    def x_stack_repr(self) -> str:
+        if self.vars_delegate is None:
+            return repr(self._x_stack[-1])
+        else:
+            return self.vars_delegate.x_stack_repr()
 
     def get_or_none(self, token: str) -> Optional[PdObject]:
         xi = x_index(token)
@@ -208,7 +235,8 @@ class Environment: # {{{
             if res is None:
                 return None
             else:
-                self._x_stack[self.STACK_TRIGGER_X] = res
+                if self.vars_delegate is None:
+                    self._x_stack[self.STACK_TRIGGER_X] = res
                 return res
 
     def pop(self) -> PdObject:
@@ -311,20 +339,16 @@ class Environment: # {{{
 
     def debug_dump(self) -> str:
         return '\n  Stack dump: {}\n  X-stack: {}\n  Markers: {}'.format(
-                repr(self._stack), repr(self._x_stack), repr(self.marker_stack))
+                repr(self._stack), repr(self.x_stack_repr()), repr(self.marker_stack))
 
-    def bracketed_shadow(self) -> 'Environment':
-        env = Environment(
-                evaluator=self.evaluator,
-                stack=[],
-                vars_delegate=self,
-                input_trigger=self.input_trigger,
-                stack_trigger=self.pop_or_none)
-        env.mark_stack()
-        return env
+    def bracketed_shadow(self) -> 'BracketedShadowEnvironment':
+        return BracketedShadowEnvironment(self)
 
     def keep_shadow(self) -> 'KeepShadowEnvironment':
         return KeepShadowEnvironment(self)
+
+    def tracking_shadow(self) -> 'TrackingShadowEnvironment':
+        return TrackingShadowEnvironment(self)
 
     def capture_stack_as_iterable(self) -> Iterable[PdObject]:
         captured_stack = self._stack
@@ -344,21 +368,49 @@ class Environment: # {{{
                 pass
         return inner_generator()
 
-class KeepShadowEnvironment(Environment):
+class BracketedShadowEnvironment(Environment):
     def __init__(self, shadow_parent: Environment) -> None:
         Environment.__init__(self,
                 evaluator = shadow_parent.evaluator,
                 input_trigger = shadow_parent.input_trigger,
-                stack_trigger = self.shadow_keep_trigger,
+                stack_trigger = self.shadow_trigger,
                 vars_delegate = shadow_parent)
         self.shadow_parent = shadow_parent
         self.shadow_i = 0
+        self.mark_stack()
 
-    def shadow_keep_trigger(self) -> Optional[PdObject]:
+    def shadow_trigger(self) -> Optional[PdObject]:
+        res = self.shadow_parent.pop_or_none()
+        if res is not None:
+            self.shadow_i += 1
+        return res
+
+class KeepShadowEnvironment(BracketedShadowEnvironment):
+    def __init__(self, shadow_parent: Environment) -> None:
+        BracketedShadowEnvironment.__init__(self, shadow_parent)
+
+    def shadow_trigger(self) -> Optional[PdObject]:
         self.shadow_parent.try_ensure_length(self.shadow_i + 1)
         ret = self.shadow_parent.index_stack_or_none(self.shadow_i)
-        self.shadow_i += 1
+        if ret is not None:
+            self.shadow_i += 1
         return ret
+
+class TrackingShadowEnvironment(BracketedShadowEnvironment):
+    def __init__(self, shadow_parent: Environment) -> None:
+        BracketedShadowEnvironment.__init__(self, shadow_parent)
+        self._shadow_acc = []
+
+    def shadow_trigger(self) -> Optional[PdObject]:
+        ret = self.shadow_parent.pop_or_none()
+        if ret is not None:
+            self._shadow_acc.append(ret)
+            self.shadow_i += 1
+        return ret
+
+    @property
+    def popped_objects(self) -> List[PdObject]:
+        return self._shadow_acc[::-1]
 # }}}
 # truthiness {{{
 def pytruth(x: PdValue) -> bool:
@@ -1419,6 +1471,39 @@ def pd_if_then_empty_list(env: Environment, condition: PdObject, body: PdObject,
         env.push_or_eval(body)
     return []
 # }}}
+
+class MemoizedBlock(Block):
+    def __init__(self, block: Block) -> None:
+        self.block = block
+        self.arity = None # type: Optional[int]
+        self.memo = dict() # type: Dict[PdKey, List[PdObject]]
+    def __call__(self, env: 'Environment') -> None:
+        # TODO Lots of X-stack things should be reconsidered.
+        env.push_yx()
+        env.set_yx(self, self)
+        try:
+            if self.arity is None:
+                shadow = env.tracking_shadow()
+                self.block(shadow)
+                self.arity = shadow.shadow_i
+                key = pykey(shadow.popped_objects)
+                self.memo[key] = list(shadow._stack)
+                env.push_env(shadow)
+            else:
+                args = env.pop_n(self.arity)
+                key = pykey(args)
+                if key in self.memo:
+                    env.push(*self.memo[key])
+                else:
+                    shadow = env.bracketed_shadow()
+                    shadow.push(*args)
+                    self.block(shadow)
+                    self.memo[key] = list(shadow._stack)
+                    env.push_env(shadow)
+        finally:
+            env.pop_yx()
+    def code_repr(self) -> str:
+        return self.block.code_repr() + '_memo'
 
 # key/array operations {{{
 def new_array_of_dims(dims: List[int], filler: PdValue) -> list:

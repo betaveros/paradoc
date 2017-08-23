@@ -520,6 +520,12 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('1{2*36%}I'), [[1,2,4,8,16,32,28,20]])
         self.assertEqual(pd_simple_eval('1{2*36%}F'), [4])
 
+    def test_memo(self):
+        self.assertEqual(pd_simple_eval('3{)}Memo~'), [4])
+        self.assertEqual(pd_simple_eval('10{:{(X))}{;1}?}M~', use_cache=False), [21])
+        self.assertEqual(pd_simple_eval('10{:{(:&u&+}{;1}?}Memo.&~', use_cache=False), [1024])
+        self.assertEqual(pd_simple_eval('10{:{(:XuX+}{;1}?}M~', use_cache=False), [1024])
+
 if __name__ == '__main__':
     unittest.main()
 
