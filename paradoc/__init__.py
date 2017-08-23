@@ -189,6 +189,15 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_last",
                 lambda env: apply_pd_list_op(env, b, objects.pd_get_last)), False)
 
+    @put("loop",
+            docs="""Loop this block forever (until an error is thrown).""",
+            stability="alpha")
+
+    def loop_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def loop_b(env: Environment) -> None:
+            objects.pd_forever_then_empty_list(env, b)
+        return (BuiltIn(b.code_repr() + "_loop", loop_b), False)
+
     @put("map", "m",
             docs="""Apply this block to each element of a list (coerces numbers
             to ranges); collect the results into a new list.""",
@@ -715,6 +724,8 @@ block_starters = {
     'χ'   : '_xloop',
     '\x1a': '_zip',
     'ζ'   : '_zip',
+    '\x1c': '_loop',
+    'λ'   : '_loop',
 }
 
 class CodeBlock(Block):
