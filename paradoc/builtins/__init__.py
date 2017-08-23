@@ -562,6 +562,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             Compare {{ 'Range_enumerate_one_or_reject_indices'|b }}.
             """, stability="beta")
 
+    cput('Range_len_keep', ['´'], [
+        Case.number(lambda env, n: [n, range(num.intify(n))]),
+        Case.seq(lambda env, seq: [seq, range(len(seq))]),
+    ],
+            docs="""Range on numbers; range of indices of sequence. Keeps the
+            operand on the stack!""",
+            stability="unstable")
+
     cput('Range_enumerate_one_or_reject_indices', ['J'], [
         range_one_case,
         enumerate_one_case,
