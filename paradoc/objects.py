@@ -882,6 +882,23 @@ def pd_subsequences(seq: PdSeq) -> Iterable[PdSeq]:
 def pd_subsequences_list(seq: PdSeq) -> List[PdSeq]:
     return list(pd_subsequences(seq))
 
+def pd_rectangularize_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
+    n = 0
+    for row0 in pd_iterable(matrix):
+        if isinstance(row0, (str, list, range)):
+            n = max(n, len(row0))
+        else:
+            n = max(n, 1)
+
+    acc = [] # type: List[list]
+    for row0 in pd_iterable(matrix):
+        if isinstance(row0, (str, list, range)):
+            row = list(pd_iterable(row0))
+        else:
+            row = [row0]
+        acc.append(row + [filler] * (n - len(row)))
+    return acc
+
 def pd_transpose(matrix: PdSeq) -> List[list]:
     res = [] # type: List[list]
     for row0 in pd_iterable(matrix):

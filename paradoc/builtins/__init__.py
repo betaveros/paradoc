@@ -1124,6 +1124,18 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             use this to wrap each element of a flat list into a list).
             (Heavily inspired by studying 05AB1E.)""",
             stability="unstable")
+    cput('Rectangularize', ['Qz'], [
+        Case.seq_value(lambda env, a, f: [pd_rectangularize_fill(a, f)]),
+    ],
+            docs="""Rectangularize a matrix: append the filler element as
+            necessary to rows until the matrix is rectangular.""",
+            stability="alpha")
+    cput('Rectangularize_with_space', [' q'], [
+        Case.seq(lambda env, a: [pd_rectangularize_fill(a, Char(' '))]),
+    ],
+            docs="""Rectangularize a matrix with spaces: append the space
+            character as necessary to rows until the matrix is rectangular.""",
+            stability="alpha")
     cput('Transpose', ['Tt', '™'], [
         Case.seq(lambda env, a: [pd_transpose(a)]),
     ],
@@ -1135,6 +1147,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Given a filler element, transpose a matrix, or list of
             lists, with the filler element repeated as necessary until the
             matrix is rectangular.""",
+            stability="alpha")
+    cput('Transpose_fill_with_space', [' t'], [
+        Case.seq(lambda env, a: [pd_transpose_fill(a, Char(' '))]),
+    ],
+            docs="""Transpose a matrix, or list of lists (or of strings),
+            adding the space character as necessary until the matrix is
+            rectangular.""",
             stability="alpha")
     cput('Zip', ['Zp', 'Ž'], [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
