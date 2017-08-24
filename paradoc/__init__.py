@@ -758,8 +758,9 @@ class CodeBlock(Block):
 
         executor = None # type: Optional[BodyExecutor]
         def set_executor(executor0: BodyExecutor) -> None:
-            nonlocal block_level, executor
+            nonlocal block_level, block_prefix_trailer, executor
             block_level = 1
+            block_prefix_trailer = ''
             executor = executor0
         while body_start < len(self.tokens) and (
                 is_trailer(self.tokens[body_start])
