@@ -1511,7 +1511,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             current input trigger.""",
             stability="alpha")
     def read_input(env: Environment) -> None:
-        e = env.input_trigger()
+        e = env.run_input_trigger()
         if e is None:
             raise Exception('No more input!')
         else:

@@ -83,7 +83,7 @@ def x_index(token: str) -> Optional[int]:
 class Environment: # {{{
     def __init__(self,
             evaluator: Callable[['Environment', str], None],
-            input_trigger: Callable[[], Optional[PdObject]] = lambda: None,
+            input_trigger: Optional[Callable[[], Optional[PdObject]]] = None,
             stack_trigger: Callable[[], Optional[PdObject]] = lambda: None,
             stack: Optional[List[PdObject]] = None,
             x_stack: Optional[List[PdObject]] = None,
@@ -104,6 +104,12 @@ class Environment: # {{{
 
     def evaluate(self, code: str) -> None:
         self.evaluator(self, code)
+
+    def run_input_trigger(self) -> Optional[PdObject]:
+        if self.input_trigger is None:
+            return None
+        else:
+            return self.input_trigger()
 
     def index_x(self, index: int) -> PdObject:
         if self.vars_delegate is None:
@@ -130,8 +136,8 @@ class Environment: # {{{
             return self.vars_delegate.pop_x()
 
     def push_yx(self,
-            y='INTERNAL Y FILLER -- YOU SHOULD NOT SEE THIS',
-            x='INTERNAL X FILLER -- YOU SHOULD NOT SEE THIS') -> None:
+            y: str = 'INTERNAL Y FILLER -- YOU SHOULD NOT SEE THIS',
+            x: str = 'INTERNAL X FILLER -- YOU SHOULD NOT SEE THIS') -> None:
         self.push_x(y)
         self.push_x(x)
 
@@ -318,6 +324,12 @@ class Environment: # {{{
         else:
             ret = self._stack[marker:]
             self._stack = self._stack[:marker]
+        return ret
+
+    def pop_stack_ignoring_markers_and_triggers(self) -> List[PdObject]:
+        self.marker_stack = []
+        ret = self._stack
+        self._stack = []
         return ret
 
     def index_stack(self, index: int) -> PdObject:

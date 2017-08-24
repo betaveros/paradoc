@@ -696,13 +696,15 @@ def parse_string_onto(env: Environment, token: str, trailer: str) -> None:
             acc.append(c)
     act_after_trailer_tokens(env, ''.join(acc), lex_trailer(trailer))
 
-def make_for_loop_over(iterable: Iterable[PdObject]) -> BodyExecutor:
+def make_each_loop_over(iterable: Iterable[PdObject],
+        eager_printer: Optional[Callable[[str], None]] = None) -> BodyExecutor:
     def inner(env: Environment, body: Block) -> None:
         for e in iterable:
-            # print("make_for_loop_overpushing", e)
             env.push(e)
-            # print("make_for_loop_overrunning")
             body(env)
+            if eager_printer is not None:
+                eager_printer(env.pd_str(
+                    env.pop_stack_ignoring_markers_and_triggers()))
     return inner
 
 # helping mypy out
@@ -781,21 +783,43 @@ class CodeBlock(Block):
             elif trailer_token == 'c' or trailer_token == '_chars':
                 env.input_trigger = input_triggers.char
 
-            elif trailer_token == 'f' or trailer_token == '_for':
-                set_executor(make_for_loop_over(
+            elif trailer_token == 'e' or trailer_token == '_each':
+                if env.input_trigger is None:
+                    env.input_trigger = input_triggers.line
+                set_executor(make_each_loop_over(
                         env.capture_stack_as_iterable()))
+            elif trailer_token == 'm':
+                # _each_newline, which is kinda like mapping over lines if by
+                # itself
+                if env.input_trigger is None:
+                    env.input_trigger = input_triggers.line
+                env.put('Ñ', '\n')
+                set_executor(make_each_loop_over(
+                        env.capture_stack_as_iterable()))
+            elif trailer_token == 'f' or trailer_token == '_fasteach':
+                if env.input_trigger is None:
+                    env.input_trigger = input_triggers.line
+                set_executor(make_each_loop_over(
+                        env.capture_stack_as_iterable(),
+                        lambda s: print(s, end="")))
+            elif trailer_token == 'p' or trailer_token == '_printeach':
+                if env.input_trigger is None:
+                    env.input_trigger = input_triggers.line
+                set_executor(make_each_loop_over(
+                        env.capture_stack_as_iterable(),
+                        env.print_output_record))
             elif trailer_token == 'z' or trailer_token == '_zerofor':
                 try:
                     n = to_int_for_forloop(env.pop())
-                    set_executor(make_for_loop_over(range(n)))
+                    set_executor(make_each_loop_over(range(n)))
                 except PdEmptyStackException:
-                    set_executor(make_for_loop_over(itertools.count(0)))
+                    set_executor(make_each_loop_over(itertools.count(0)))
             elif trailer_token == 'o' or trailer_token == '_onefor':
                 try:
                     n = to_int_for_forloop(env.pop())
-                    set_executor(make_for_loop_over(range(1, n+1)))
+                    set_executor(make_each_loop_over(range(1, n+1)))
                 except PdEmptyStackException:
-                    set_executor(make_for_loop_over(itertools.count(1)))
+                    set_executor(make_each_loop_over(itertools.count(1)))
             elif trailer_token == 's' or trailer_token == '_space':
                 env.put('Ñ', ' ')
             elif trailer_token == 'n' or trailer_token == '_newline':
@@ -928,7 +952,7 @@ def basic_evaluator(env: Environment, code: str) -> None:
 
 def initialized_environment(sandboxed: bool, debug: bool) -> Environment:
     env = Environment(basic_evaluator,
-            stack_trigger = lambda: env.input_trigger())
+            stack_trigger = lambda: env.run_input_trigger())
     initialize_builtins(env, sandboxed, debug)
     return env
 
