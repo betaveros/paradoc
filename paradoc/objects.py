@@ -934,6 +934,14 @@ def pd_subsequences(seq: PdSeq) -> Iterable[PdSeq]:
 def pd_subsequences_list(seq: PdSeq) -> List[PdSeq]:
     return list(pd_subsequences(seq))
 
+def pd_palindromize(seq: PdSeq) -> PdSeq:
+    if isinstance(seq, range):
+        return list(seq[:-1]) + list(seq[::-1])
+    elif isinstance(seq, str):
+        return seq[:-1] + seq[::-1]
+    else:
+        return seq[:-1] + seq[::-1]
+
 def pd_rectangularize_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
     n = 0
     for row0 in pd_iterable(matrix):

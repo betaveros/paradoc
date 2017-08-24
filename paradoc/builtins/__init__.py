@@ -1184,6 +1184,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             use this to wrap each element of a flat list into a list).
             (Heavily inspired by studying 05AB1E.)""",
             stability="unstable")
+    cput('Palindromize', ['Pz'], [
+        Case.seq_range(lambda env, a: [pd_palindromize(a)]),
+    ],
+            docs="""Concatenate a with the tail of its reverse.""",
+            stability="alpha")
     cput('Rectangularize', ['Qz'], [
         Case.seq_value(lambda env, a, f: [pd_rectangularize_fill(a, f)]),
     ],

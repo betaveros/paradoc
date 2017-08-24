@@ -397,6 +397,8 @@ class TestParadoc(unittest.TestCase):
     def test_reverse(self):
         self.assertEqual(pd_simple_eval('[2 5 3]D'), [[3,5,2]])
         self.assertEqual(pd_simple_eval('[[2 4][6 0 3]]Ð'), [[[4,2],[3,0,6]]])
+        self.assertEqual(pd_simple_eval('[2 5 3]Pz'), [[2,5,3,5,2]])
+        self.assertEqual(pd_simple_eval('4Pz'), [[0,1,2,3,2,1,0]])
 
     def test_ranges(self):
         self.assertEqual(pd_simple_eval('3,[0 1 2]='), [1])
