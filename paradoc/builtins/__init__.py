@@ -269,13 +269,15 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.list2_singleton(lambda env, a, b: [list(a) + list(b) + list(a)]),
         Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b) + env.pd_str(a)]),
     ],
-            docs="""two copies of a with b between: a, b -> a + b + a""",
+            docs="""two copies of a with b between: a, b -> a + b + a. Numbers
+            coerce to single-element lists.""",
             stability="unstable")
     cput('Cat_flank', ['Cf'], [
         Case.list2_singleton(lambda env, a, b: [list(b) + list(a) + list(b)]),
         Case.seq2_singleton(lambda env, a, b: [env.pd_str(b) + env.pd_str(a) + env.pd_str(b)]),
     ],
-            docs="""a with two copies of b flanking: a, b -> b + a + b""",
+            docs="""a with two copies of b flanking: a, b -> b + a + b. Numbers
+            coerce to single-element lists.""",
             stability="unstable")
 
     cput('Minus_or_reject', ['-'], [
@@ -412,7 +414,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Abs_diff', ['Ad', '±'], [
         Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
     ],
-            docs="""Absolute difference.""",
+            docs="""Absolute difference. Mnemonic: + is for "positive" and - is
+            for "difference".""",
             stability="stable")
 
     cput('Plus_ints', ['+i'], [
@@ -590,7 +593,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq(lambda env, seq: [seq, range(len(seq))]),
     ],
             docs="""Range on numbers; range of indices of sequence. Keeps the
-            operand on the stack!""",
+            operand on the stack! Mnemonic: looks like a comma, except it's
+            higher, so the stack will be taller after running it.""",
             stability="unstable")
 
     cput('Range_enumerate_one_or_reject_indices', ['J'], [
@@ -600,7 +604,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Range, inclusive from 1, on numbers. Enumerate from 1 (zip
             with indices from 1) on sequences. On block and sequence, list
-            indices at which block is false.
+            indices at which block is false. Mnemonic: the letter J looks like
+            a big comma.
 
             Compare {{ 'Range_enumerate_or_filter_indices'|b }}.
             """, stability="beta")
@@ -753,6 +758,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.str2(lambda env, a, b: [int(a == b)]),
         Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
     ],
+            docs="Test for value equality.",
             stability="beta")
     cput('Equal_identity', ['Is'], [
         Case.number2(lambda env, a, b: [int(a is b)]),
@@ -852,12 +858,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Array_min', ['<r', 'Œ'], [
         Case.seq(lambda env, e: [min(pd_iterable(e))]),
     ],
-            docs="""Minimum of array""",
+            docs="""Minimum of array. Mnemonic: it's like reducing by minimum
+            of two values.""",
             stability="alpha")
     cput('Array_max', ['>r', 'Æ'], [
         Case.seq(lambda env, e: [max(pd_iterable(e))]),
     ],
-            docs="""Maximum of array""",
+            docs="""Maximum of array. Mnemonic: it's like reducing by maximum
+            of two values.""",
             stability="alpha")
     cput('Array_median', ['=r'], [
         # TODO: True median should try to take the average of two elements
@@ -987,7 +995,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.list_int_range(lambda env, seq: [list(seq[1:]) + list(seq[:1])]),
         Case.str_(lambda env, seq: [seq[1:] + seq[:1]]),
     ],
-            docs="""Left cycle a list or string once: move the first element to
+            docs="""Left cycle a list or string Once: move the first element to
             the last.""",
             stability="unstable")
 
@@ -995,7 +1003,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.list_int_range(lambda env, seq: [list(seq[-1:]) + list(seq[:-1])]),
         Case.str_(lambda env, seq: [seq[-1:] + seq[:-1]]),
     ],
-            docs="""Right cycle a list or string once: move the last element to
+            docs="""Right cycle a list or string Once: move the last element to
             the first.""",
             stability="unstable")
 
@@ -1178,7 +1186,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.block_seq_range(lambda env, b, s: [pd_count(env, b, s)]),
     ],
             docs="""Count factor multiplicity, frequency, or number satisfying
-            predicate. Mnemonic: number sign.""",
+            predicate. Mnemonic: number sign, as in you're counting the number
+            of something""",
             stability="alpha")
     # }}}
     # Down/Do, Transpose, Zip {{{
@@ -1214,18 +1223,22 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq_value(lambda env, a, f: [pd_rectangularize_fill(a, f)]),
     ],
             docs="""Rectangularize a matrix: append the filler element as
-            necessary to rows until the matrix is rectangular.""",
+            necessary to rows until the matrix is rectangular. Mnemonic: Q for
+            Quadrangle.""",
             stability="alpha")
     cput('Rectangularize_with_space', [' q'], [
         Case.seq(lambda env, a: [pd_rectangularize_fill(a, Char(' '))]),
     ],
             docs="""Rectangularize a matrix with spaces: append the space
-            character as necessary to rows until the matrix is rectangular.""",
+            character as necessary to rows until the matrix is rectangular.
+            Mnemonic: Q for Quadrangle.""",
             stability="alpha")
     cput('Transpose', ['Tt', '™'], [
         Case.seq(lambda env, a: [pd_transpose(a)]),
     ],
-            docs="""Transpose a matrix, or list of lists.""",
+            docs="""Transpose a matrix, or list of lists. Mnemonic: matrices
+            are transposed by a superscript T, so Tt is just that "doubled" and
+            ™ is "Transpose Matrix" superscripted.""",
             stability="alpha")
     cput('Rotate', ['Ro'], [
         Case.seq(lambda env, a: [pd_transpose(a)[::-1]]),
@@ -1296,10 +1309,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Group', [], [
         Case.seq(lambda env, seq: [pd_group(seq)]),
     ],
+            docs="Group into runs of equal elements",
             stability="beta")
     cput('Group_by', [], [
         Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
     ],
+            docs="Group into runs of equal elements according to the block",
             stability="beta")
     cput('Gcd', [], [
         Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
@@ -1313,7 +1328,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""GCD; group like elements of a sequence, possibly under a
             mapping.""",
             stability="beta")
-    cput('Lcm', ['µ'], [
+    cput('Lcm', [], [
         Case.number2(lambda env, a, b: [num.pd_lcm(a, b)]),
     ],
             stability="unstable")
@@ -1590,11 +1605,15 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq(lambda env, s: [pd_cartesian_product_seq_matrix(s, s)]),
         Case.block_seq_range(lambda env, block, seq: [pd_map_product(env, block, seq, seq)]),
     ],
+            docs="""Square a number, or compute the Cartesian product of a
+            sequence with itself, or map a block across that.""",
             stability="beta")
     cput('Cube', ['³'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 3)]),
         Case.seq(lambda env, s: [pd_cartesian_product_seq_matrix_3(s, s, s)]),
     ],
+            docs="""Cube a number, or compute the Cartesian product of three
+            copies of a sequence.""",
             stability="beta")
     cput('Power_of_ten', ['€'], [Case.number(lambda env, n: [10 ** num.numerify(n)])],
             stability="alpha")
@@ -1905,6 +1924,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             raise AssertionError("Can't seed random with non-numeric non-string value " + repr(e))
     # }}}
     # Stack functions {{{
+    @put('Pop_stack', ';s',
+            stability="beta")
+    def pop_stack(env: Environment) -> None:
+        env.pop_until_stack_marker()
     @put('Reverse_stack', 'Down_stack', 'Ds',
             stability="beta")
     def reverse_stack(env: Environment) -> None:

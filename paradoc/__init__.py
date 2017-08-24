@@ -85,7 +85,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
     @put("anti", "a",
             docs="""Swap the top two elements of the stack before running this
-            block.""",
+            block. Makes the result reluctant.""",
             stability="beta")
     def anti_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def anti_b(env: Environment) -> None:
@@ -96,7 +96,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
     @put("bind", "b",
             docs="""Right now, pop the top element of this stack; before each
-            time this block is to be executed, push it.""",
+            time this block is to be executed, push it. Makes the result
+            reluctant.""",
             stability="beta")
     def bind_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         e = outer_env.pop()
@@ -166,7 +167,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
     @put("keep", "k",
             docs="""Execute this block in a preservation-shadow, so that any
-            elements it pops aren't actually popped from the stack.
+            elements it pops aren't actually popped from the stack (so, "keep"
+            those elements around).
 
             Compare {{ 'keepunder'|bt }}.
 
@@ -232,6 +234,9 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
             Compare {{ 'keep'|bt }}.
 
+            Mnemonic: "q" and "k" are phonetically similar and "q" is usually
+            followed by a "u".
+
             ex:
             10 Uq => 1 10
             5 6 +q => 11 5 6""",
@@ -267,7 +272,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
             Basically a {{ 'bind'|bt }} followed by a {{ 'map'|bt }};
             you can imagine it as vectorizing an operator if the top element of
-            the stack is a scalar and the one beneath it is a sequence.
+            the stack is a scalar and the one beneath it is a sequence, hence
+            the single-letter name.
 
             ex: [1 2 3] 100+v => [101 102 103]""",
             stability="alpha")
