@@ -591,6 +591,8 @@ def pd_deep_length(obj: PdObject) -> int:
     return pd_deep_stats(obj)[0]
 def pd_deep_sum(obj: PdObject) -> Union[int, float]:
     return pd_deep_stats(obj)[1]
+def pd_deep_hypotenuse(obj: PdObject) -> float:
+    return math.sqrt(pd_deep_stats(obj)[2])
 def pd_deep_average(obj: PdObject) -> float:
     c, s, _ = pd_deep_stats(obj)
     return s / c

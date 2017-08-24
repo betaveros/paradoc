@@ -497,6 +497,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[6 6 6]L'), [3])
         self.assertEqual(pd_simple_eval('[6 6 6]Š'), [18])
         self.assertEqual(pd_simple_eval('[6 6 6]Þ'), [216])
+        self.assertEqual(pd_simple_eval('[5 6 7]Av'), [6.0])
+        self.assertEqual(pd_simple_eval('[3 4]Hy'), [5.0])
         self.assertAlmostEqual(pd_simple_eval('[2 4 5 8 6]Sg')[0], math.sqrt(5))
 
     def test_stack_functions(self):

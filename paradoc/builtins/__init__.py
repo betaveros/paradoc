@@ -1115,6 +1115,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq_range(lambda env, x: [pd_deep_standard_deviation(x)]),
     ],
             docs="Standard deviation (deep). Mnemonic: sigma", stability="alpha")
+    cput('Hypotenuse', ['Hy'], [
+        Case.seq_range(lambda env, x: [pd_deep_hypotenuse(x)]),
+    ],
+            docs="Hypotenuse (square root of sum of squares; deep).",
+            stability="alpha")
     # }}}
     # M for Minus (negate) and Mold {{{
     negate_case = Case.number(lambda env, a: [num.pd_mul_div_const(a, -1, 1)])
