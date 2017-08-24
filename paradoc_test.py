@@ -189,7 +189,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[[2 3]5[7 9]]{7+}w'), [[[9,10],12,[14,16]]])
 
     def test_map_product(self):
-        self.assertEqual(pd_simple_eval('[1 2][3 4]*_%p'), [[[3,4],[6,8]]])
+        self.assertEqual(pd_simple_eval('[1 2][3 4]*_B'), [[[3,4],[6,8]]])
         self.assertEqual(pd_simple_eval('[1 2]*_²'), [[[1,2],[2,4]]])
 
     def test_filter(self):
@@ -293,6 +293,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]{+}Zip'), [[10,9,8]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]Zip'), [[[1,9],[2,7],[3,5]]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 1 2 3 5]Zp'), [[[1,9],[2,7],[3,5]]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 9]+_‰'), [[10,9,8]])
         self.assertEqual(pd_simple_eval('[1 2][9 7 5 1 2 5]Zl'), [[[1,9],[2,7],[5],[1],[2],[5]]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]+z'), [[10,9,8]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 1 2 3 5]2z'), [[[1,9],[2,7],[3,5]]])

@@ -347,14 +347,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             """,
             stability="stable")
 
-    cput('Divmod_or_map_product', ['‰', '%p'], [
-        Case.number2(lambda env, a, b: [num.pd_intdiv(a, b), num.pd_mod(a, b)]),
+    zip_cases = [
+        Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
         Case.seq2_range_block(lambda env, seq1, seq2, block:
-            [pd_map_product(env, block, seq1, seq2)])
-    ],
-            docs="""On integers, integer division and modulus. On a block, map
-            over the Cartesian product of the previous two sequences (numbers
-            coerce to ranges).""",
+                [pd_zip(env, block, seq1, seq2)]),
+    ]
+    cput('Divmod_or_zip', ['‰', '%p'], [
+        Case.number2(lambda env, a, b: [num.pd_intdiv(a, b), num.pd_mod(a, b)]),
+    ] + zip_cases,
+            docs="""On integers, integer division and modulus. On two sequences
+            or a block and two sequences, {{ 'Zip'|b }}.""",
             stability="unstable")
 
     cput('Power', ['ˆ', '*p'], [
@@ -676,16 +678,27 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             env.push_or_eval(c)
     # }}}
     # Base {{{
-    cput('Base', ['B'], [
+    base_cases = [
         Case.number2(lambda env, n, b: [base.to_base_digits(num.intify(b), num.intify(n))]),
         Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), lst)]),
         Case.str_number(lambda env, s, b: [int(s, num.intify(b))]),
-    ],
+    ]
+    cput('Base', [], base_cases,
             docs="""Base. On two numbers, converts the first to a list of
             digits in the radix of the second. On a list or a string and a
             number, interprets the sequence as digits (numbers if a list, digit
             characters if a string) in the radix of the number and converts to
-            a number.""", stability="beta")
+            a number. (See {{ 'B'|b }})""", stability="beta")
+    product_map_case = Case.seq2_range_block(lambda env, seq1, seq2, block:
+            [pd_map_product(env, block, seq1, seq2)])
+    cput('Product_map', [], [product_map_case],
+            docs="""Map over the Cartesian product of two sequences, resulting
+            in a list of lists. (See {{ 'B'|b }})""", stability="alpha")
+    cput('Base_or_product_map', ['B'], base_cases + [product_map_case],
+            docs="""{{ 'Base'|b }} or {{ 'Product_map'|b }} (mnemonic: Bi-map,
+            mapping over two things at once, or creating an m "**by**" n
+            table)""",
+            stability="beta")
     cput('Lower_base', ['Lb'], [
         Case.number2(lambda env, n, b: [base.to_base_digits_lower(num.intify(b), num.intify(n))]),
     ],
@@ -1165,14 +1178,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             adding the space character as necessary until the matrix is
             rectangular.""",
             stability="alpha")
-    cput('Zip', ['Zp', 'Ž'], [
-        Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
-        Case.seq2_range_block(lambda env, a, b, block: [pd_zip(env, block, a, b)]),
-    ],
+    cput('Zip', ['Zp'], zip_cases,
             docs="""Zip two sequences (numbers coerce to ranges), returning a
             list of length-2 lists; or zip them with a block, which operates on
             corresponding pairs of the two lists. Truncates to the length of
-            the shorter input sequence. Also see {{ 'zip'|it }}.""",
+            the shorter input sequence. Also see {{ 'zip'|it }}, and
+            {{ '‰'|b }} for an alias.""",
             stability="alpha")
     cput('Ziplongest', ['Zl'], [
         Case.seq2_range(lambda env, a, b: [pd_ziplongest_as_list(a, b)]),
