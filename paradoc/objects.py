@@ -399,7 +399,7 @@ class KeepShadowEnvironment(BracketedShadowEnvironment):
 class TrackingShadowEnvironment(BracketedShadowEnvironment):
     def __init__(self, shadow_parent: Environment) -> None:
         BracketedShadowEnvironment.__init__(self, shadow_parent)
-        self._shadow_acc = []
+        self._shadow_acc = [] # type: List[PdObject]
 
     def shadow_trigger(self) -> Optional[PdObject]:
         ret = self.shadow_parent.pop_or_none()
@@ -1483,23 +1483,23 @@ class MemoizedBlock(Block):
         env.set_yx(self, self)
         try:
             if self.arity is None:
-                shadow = env.tracking_shadow()
-                self.block(shadow)
-                self.arity = shadow.shadow_i
-                key = pykey(shadow.popped_objects)
-                self.memo[key] = list(shadow._stack)
-                env.push_env(shadow)
+                tshadow = env.tracking_shadow()
+                self.block(tshadow)
+                self.arity = tshadow.shadow_i
+                key = pykey(tshadow.popped_objects)
+                self.memo[key] = list(tshadow._stack)
+                env.push_env(tshadow)
             else:
                 args = env.pop_n(self.arity)
                 key = pykey(args)
                 if key in self.memo:
                     env.push(*self.memo[key])
                 else:
-                    shadow = env.bracketed_shadow()
-                    shadow.push(*args)
-                    self.block(shadow)
-                    self.memo[key] = list(shadow._stack)
-                    env.push_env(shadow)
+                    bshadow = env.bracketed_shadow()
+                    bshadow.push(*args)
+                    self.block(bshadow)
+                    self.memo[key] = list(bshadow._stack)
+                    env.push_env(bshadow)
         finally:
             env.pop_yx()
     def code_repr(self) -> str:
