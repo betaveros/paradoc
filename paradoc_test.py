@@ -346,6 +346,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[[5][6 7][8]][1 2 3 4]M'), [[5,6,7,8]])
         self.assertEqual(pd_simple_eval('[3 1 4 1 5][[0][0 0 0][0]]M'), [[[3],[1,4,1],[5]]])
         self.assertEqual(pd_simple_eval('2[[0][0 0 0][0]]M'), [[[2],[3,4,5],[6]]])
+        self.assertEqual(pd_simple_eval('2[[0][0 0 0][0]]Mf'), [[[2],[2,2,2],[2]]])
 
     def test_group(self):
         self.assertEqual(pd_simple_eval('[3 9 9 9 8 8 9]Group'), [[[3],[9,9,9],[8,8],[9]]])

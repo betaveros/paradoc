@@ -907,6 +907,9 @@ def pd_mold(el_source: PdValue, template: PdSeq) -> PdObject:
                 template)
     else:
         return pd_mold_from(pd_deep_generator(el_source), template)
+def pd_mold_fill(e: PdValue, template: PdSeq) -> PdObject:
+    return pd_mold_from(itertools.repeat(e), template)
+
 def pd_zip_as_list(*seq: PdSeq) -> PdObject:
     return [list(es) for es in zip(*(pd_iterable(s) for s in seq))]
 def pd_ziplongest_as_list(*seq: PdSeq) -> PdObject:

@@ -1153,6 +1153,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="Negate a number.", stability="beta")
     cput('Mold', [], [mold_case],
             docs="Mold the first sequence like the second.", stability="alpha")
+    cput('Mold_fill', ['Mf'], [Case.value_seq(lambda env, x, y: [pd_mold_fill(x, y)])],
+            docs="""Repeat the first element as many times as needed to mold a
+            sequence like the second.""", stability="alpha")
     cput('Memoize', ['Memo'], [memoize_case],
             docs="Memoize a block.", stability="alpha")
     cput('Negate_or_mold_or_memoize', ['M'], [negate_case, memoize_case, mold_case],
