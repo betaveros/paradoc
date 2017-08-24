@@ -447,6 +447,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"+-- <foo>"Vc'), [[1,-1,-1,0,-1,0,0,0,1]])
         self.assertEqual(pd_simple_eval('"([{<!?>}])"Nc'), [[1,1,1,1,0,0,-1,-1,-1,-1]])
 
+    def test_has_prefix_suffix(self):
+        self.assertEqual(pd_simple_eval('"foobar" "fo" <hq>h'), [1, 0])
+        self.assertEqual(pd_simple_eval('"foobar" "ar" <hq>h'), [0, 1])
+        self.assertEqual(pd_simple_eval('"les miserables" "les" <hq>h'), [1, 1])
+        self.assertEqual(pd_simple_eval('10, [0 1] <hq>h'), [1, 0])
+        self.assertEqual(pd_simple_eval('10, [8 9] <hq>h'), [0, 1])
+
     def test_split(self):
         self.assertEqual(pd_simple_eval('"assdfs""s"/'), [["a","","df",""]])
         self.assertEqual(pd_simple_eval('[1 2 3 4 2 3 5 2 3 2 3 3 3 3 3][2 3]/'), [[[1],[4],[5],[],[3,3,3,3]]])

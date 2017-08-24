@@ -983,6 +983,22 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             the first.""",
             stability="unstable")
 
+    cput('Has_prefix', ['<h'], [
+        Case.list2_singleton(lambda env, a, b: [list(a)[:len(b)] == list(b)]),
+        Case.seq2_singleton(lambda env, a, b: [env.pd_str(a).startswith(env.pd_str(b))]),
+    ],
+            docs="""Test if the first argument has a prefix equal to the second
+            argument (numbers coerce to single-element lists; if at least one
+            argument is a string, both coerce to strings).""",
+            stability="unstable")
+    cput('Has_suffix', ['>h'], [
+        Case.list2_singleton(lambda env, a, b: [list(a)[-len(b):] == list(b)]),
+        Case.seq2_singleton(lambda env, a, b: [env.pd_str(a).endswith(env.pd_str(b))]),
+    ],
+            docs="""Test if the first argument has a suffix equal to the second
+            argument (numbers coerce to single-element lists; if at least one
+            argument is a string, both coerce to strings).""",
+            stability="unstable")
     # }}}
     # Incr/Decr/First/Last/Uncons/Unsnoc/Parens: «»‹›() {{{
     def case_add_const(i: int) -> Case:
