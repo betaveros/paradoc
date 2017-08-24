@@ -123,38 +123,32 @@ class Environment: # {{{
         else:
             self.vars_delegate.push_x(obj)
 
-    def push_yx(self) -> None:
+    def pop_x(self) -> PdObject:
         if self.vars_delegate is None:
-            # y
-            self._x_stack.append('INTERNAL Y FILLER -- YOU SHOULD NOT SEE THIS')
-            # x
-            self._x_stack.append('INTERNAL X FILLER -- YOU SHOULD NOT SEE THIS')
+            return self._x_stack.pop()
         else:
-            self.vars_delegate.push_yx()
+            return self.vars_delegate.pop_x()
+
+    def push_yx(self,
+            y='INTERNAL Y FILLER -- YOU SHOULD NOT SEE THIS',
+            x='INTERNAL X FILLER -- YOU SHOULD NOT SEE THIS') -> None:
+        self.push_x(y)
+        self.push_x(x)
 
     def pop_yx(self) -> None:
-        if self.vars_delegate is None:
-            self._x_stack.pop()
-            self._x_stack.pop()
-        else:
-            self.vars_delegate.pop_yx()
+        self.pop_x()
+        self.pop_x()
 
     def set_yx(self, y: PdObject, x: PdObject) -> None:
-        if self.vars_delegate is None:
-            self._x_stack[-1] = x
-            self._x_stack[-2] = y
-        else:
-            self.vars_delegate.set_yx(y, x)
+        self.set_x(0, x)
+        self.set_x(1, y)
 
     def set_x_top(self, obj: PdObject) -> None:
-        if self.vars_delegate is None:
-            self._x_stack[-1] = obj
-        else:
-            self.vars_delegate.set_x_top(obj)
+        self.set_x(0, obj)
 
     def x_stack_repr(self) -> str:
         if self.vars_delegate is None:
-            return repr(self._x_stack[-1])
+            return repr(self._x_stack)
         else:
             return self.vars_delegate.x_stack_repr()
 
@@ -1495,8 +1489,7 @@ class MemoizedBlock(Block):
         self.memo = dict() # type: Dict[PdKey, List[PdObject]]
     def __call__(self, env: 'Environment') -> None:
         # TODO Lots of X-stack things should be reconsidered.
-        env.push_yx()
-        env.set_yx(self, self)
+        env.push_x(self)
         try:
             if self.arity is None:
                 tshadow = env.tracking_shadow()
@@ -1517,7 +1510,7 @@ class MemoizedBlock(Block):
                     self.memo[key] = list(bshadow._stack)
                     env.push_env(bshadow)
         finally:
-            env.pop_yx()
+            env.pop_x()
     def code_repr(self) -> str:
         return self.block.code_repr() + '_memo'
 
