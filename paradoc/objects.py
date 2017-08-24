@@ -69,7 +69,7 @@ def x_index(token: str) -> Optional[int]:
     elif token == 'Y': return 1
     elif token == 'Z': return 2
     # TODO it's pretty unclear if this is actually what we want
-    elif token == 'Xx' or token == '¥': return 3
+    elif token == 'Xx' or token == 'Ž': return 3
     elif token == 'Xy': return 4
     elif token == 'Xz': return 5
     elif token == 'Yx': return 6
@@ -1226,6 +1226,12 @@ def pd_filter(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -
             [e for (i, e) in pd_filter_entries(env, func, seq, negate)])
 def pd_filter_indexes(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> List[int]:
     return [i for (i, e) in pd_filter_entries(env, func, seq, negate)]
+
+def pd_mask(seq1: PdSeq, seq2: PdSeq, negate: bool = False) -> PdObject:
+    return pd_build_like(seq1, [e
+                for (e, p) in zip(pd_iterable(seq1), pd_iterable(seq2))
+                if bool(p) ^ negate])
+
 def pd_count(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> int:
     return len(pd_filter_entries(env, func, seq, negate))
 

@@ -310,6 +310,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ä'), [[3,5,8,14,20]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ë'), [[1,3,5,8,13,16]])
 
+    def test_mask(self):
+        self.assertEqual(pd_simple_eval('8,[1 0 0 1 0 1 1 0]€'), [[0,3,5,6]])
+        self.assertEqual(pd_simple_eval('8,[1 0 0 1 0 1 1 0]¥'), [[1,2,4,7],[0,3,5,6]])
+
     def test_break(self):
         self.assertEqual(pd_simple_eval('8,{:3>{Q}&:}e'), [0,0,1,1,2,2,3,3,4])
 

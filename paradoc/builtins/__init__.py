@@ -1285,6 +1285,34 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             where elements of the longer list are collected unmodified. The
             result has length equal to that of the longest list.""",
             stability="alpha")
+
+    pow10_case = Case.number(lambda env, n: [10 ** num.numerify(n)])
+    cput('Power_of_ten', [], [pow10_case], stability="alpha")
+
+    mask_case = Case.seq2_range(lambda env, seq1, seq2: [pd_mask(seq1, seq2)])
+    cput('Mask', [], [mask_case],
+            docs="""Mask: Zip two sequences and filter for elements of the first
+            where the corresponding elements of the second are truthy.""",
+            stability="alpha")
+    bimask_case = Case.seq2_range(lambda env, seq1, seq2: [
+        pd_mask(seq1, seq2, negate=True), pd_mask(seq1, seq2)])
+    cput('Bimask', [], [bimask_case],
+            docs="""Bimask: Zip two sequences and push two filtered versions of
+            the first sequence, one of   elements where the corresponding
+            elements of the second are falsy, and one of the remaining.""",
+            stability="alpha")
+
+    cput('€', [], [pow10_case, mask_case],
+            docs="""{{ 'Power_of_ten'|b }} or {{ 'Mask'|b }}. Mnemonics: E for
+            exponent, the one in scientific notation, or the powers of ten in
+            the relatively European metric system; or € has the = like
+            indexing; it's indexing by a list of booleans.""",
+            stability="unstable")
+    cput('¥', [], [bimask_case],
+            docs="""{{ 'Bimask'|b }}. Mnemonics: like {{ '\u20ac'|b }} but it
+            "forks" the sequence into two instead of just having the truthy
+            ones.""",
+            stability="unstable")
     # }}}
     # Reduce/join {{{
     cput('Reduce', ['R'], [
@@ -1615,8 +1643,6 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Cube a number, or compute the Cartesian product of three
             copies of a sequence.""",
             stability="beta")
-    cput('Power_of_ten', ['€'], [Case.number(lambda env, n: [10 ** num.numerify(n)])],
-            stability="alpha")
     # }}}
     # Len, abs, loop {{{
     abs_case = Case.number(lambda env, n: [num.pd_abs(n)])
