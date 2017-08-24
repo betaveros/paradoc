@@ -974,10 +974,28 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Split into init and last.
 
             ex: [1 2 3]Uncons => [1 2]3""", stability="beta")
-    cput('Decr_or_uncons', ['('], [decr_case, uncons_case],
-            docs="Decr or Uncons.", stability="beta")
-    cput('Incr_or_unsnoc', [')'], [incr_case, unsnoc_case],
-            docs="Incr or Unsnoc.", stability="beta")
+    modify_first_case = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, seq, 0)])
+    modify_last_case  = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, seq, -1)])
+
+    cput('Modify_first', [], [modify_first_case],
+            docs="""Run a block over the first element of a list, then replace
+            it in the list with the result.""",
+            stability="unstable")
+    cput('Modify_last', [], [modify_last_case],
+            docs="""Run a block over the last element of a list, then replace
+            it in the list with the result.""",
+            stability="unstable")
+
+    cput('Decr_or_uncons_or_modify_first', ['('],
+            [decr_case, uncons_case, modify_first_case],
+            docs="""{{ 'Decr'|b }} or {{ 'Uncons'|b }} or
+            {{ 'Modify_first'|b }}.""",
+            stability="beta")
+    cput('Incr_or_unsnoc_or_modify_last', [')'],
+            [incr_case, unsnoc_case, modify_last_case],
+            docs="""{{ 'Incr'|b }} or {{ 'Unsnoc'|b }} or
+            {{ 'Modify_last'|b }}.""",
+            stability="beta")
 
     first_case = Case.seq(lambda env, a: [pd_index(a,  0)])
     last_case  = Case.seq(lambda env, a: [pd_index(a, -1)])
@@ -1001,23 +1019,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Round',   ['=i'], [round_case], docs="Round to the nearest integer; follows Python's rules.",
             stability="alpha")
 
-    modify_first_case = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, seq, 0)])
-    modify_last_case  = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, seq, -1)])
-
-    cput('Modify_first', [], [modify_first_case],
-            docs="""Run a block over the first element of a list, then replace
-            it in the list with the result.""",
-            stability="unstable")
-    cput('Modify_last', [], [modify_last_case],
-            docs="""Run a block over the last element of a list, then replace
-            it in the list with the result.""",
-            stability="unstable")
-
-    cput('Floor_or_first', ['‹'], [floor_case, first_case, modify_first_case],
+    cput('Floor_or_first', ['‹'], [floor_case, first_case],
             docs="""{{ 'Floor'|b }} or {{ 'First'|b }} of sequence or
             {{ 'Modify_first'|b }}""",
             stability="alpha")
-    cput('Ceiling_or_last', ['›'], [ceil_case, last_case, modify_last_case],
+    cput('Ceiling_or_last', ['›'], [ceil_case, last_case],
             docs="""{{ 'Ceiling'|b }} or {{ 'Last'|b }} of sequence or
             {{ 'Modify_last'|b }}""",
             stability="alpha")
