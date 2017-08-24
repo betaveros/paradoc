@@ -130,9 +130,8 @@ In decreasing order of importance:
     golfability (in terms of number of bytes) should degrade gracefully when
     restricted to being written in UTF-8 or even ASCII.
 
-    In the future, we may emulate Jelly and fill up the control codes in the
-    Windows-1252 code page with custom characters, but we haven't expanded to
-    that point yet.
+    There also exist a few control codes that we have been replaced with custom
+    characters, although this is still quite unstable.
 
 ### Differences from GolfScript/CJam
 
@@ -235,8 +234,18 @@ syntax = """
     has something associated with. Then it applies (or tries to apply) all of
     the trailers following it.
 
-    (Not all trailers for all letters exist for all types. If Paradoc fails to
-    apply a trailer, it does not keep examining shorter identifiers.)
+    More precisely, when Paradoc encounters an identifier, it first tries to
+    look up the entire identifier. While this fails, if the identifier has an
+    underscore, it cuts off the part including and after the last underscore,
+    and if not it cuts off the last (lowercase) letter. It treats the part it
+    cut off as a trailer. It repeats this process, cutting off trailers, until
+    it finds an identifier that it can look up. Then it applies all the
+    trailers it cut off in the order they appear in the source (the reverse of
+    the order in which they were cut off).
+
+    Not all trailers for all letters exist for all types. If Paradoc finds an
+    identifier but fails to apply the trailers following it, it does not keep
+    examining shorter identifiers.
 
 There are also global trailers, which come right at the start of the program.
 These haven't been documented yet, sorry."""
@@ -245,10 +254,10 @@ semantics = """
 Paradoc is stack-based. It starts with an empty stack and just runs each thing
 in the code in sequence. Things run on the stack.
 
-The data types are ints, floats, strings, (heterogeneous) lists, and blocks
-(executable things). When Paradoc sees an identifier, it modifies it with
-trailers, if any, and then executes it if it's a block and the final trailer is
-not **reluctant**.
+The data types are ints, floats, Chars, strings, (heterogeneous) lists, and
+blocks (executable things). When Paradoc sees an identifier, it modifies it
+with trailers, if any, and then executes it if it's a block and the final
+trailer is not **reluctant**.
 
 ### Marks
 
@@ -258,14 +267,14 @@ the last mark into a list. If a mark is at the top of the stack and an element
 is popped, it moves down; if elements are pushed after it, it stays below them.
 
 Note that many higher-order functions and the like will execute a block in a
-"protected" stack that start with a mark in it. Although the protected stack
-"bottoms out" into the underlying stack, so trying to pop from the protected
+protected *"shadow" stack* that start with a mark in it. Although the shadow
+stack "bottoms out" into the underlying stack, so trying to pop from the shadow
 stack when it's empty will pop from the underlying stack instead, the mark will
-not leave the "protected" stack, and its presence or absence won't affect the
+not leave the shadow stack, and its presence or absence won't affect the
 underlying stack when it's destroyed. This way, something like `]z` does the
 right thing.
 
-There are a few variations of protected stacks, but these are kind of
+There are a few variations of shadow stacks, but these are kind of
 implementation details.
 
 ### The X-Stack
@@ -328,7 +337,8 @@ with a stability. Here are my crude definitions of the stabilities:
 -   For unstable features, all bets are off...
 
 -   Of course, until we hit version 1.0, nothing should be considered
-    absolutely fixed.
+    absolutely fixed; if I have a good reason I will still change stable
+    built-ins.
 
 The ids of elements on this page should be considered unstable, so permalinks
 to this page should be considered unstable as well.
