@@ -721,15 +721,31 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             table)""",
             stability="beta")
     cput('Lower_base', ['Lb'], [
-        Case.number2(lambda env, n, b: [base.to_base_digits_lower(num.intify(b), num.intify(n))]),
+        Case.value_number(lambda env, v, b: [pd_deepmap_n2v(
+                lambda e: base.to_base_digits_lower(
+                    num.intify(b), num.intify(e)), v)]),
     ],
             docs="""Converts the first number to a string of digits in the
-            radix of the second, using lowercase digits.""", stability="beta")
+            radix of the second, using lowercase digits. Deeply vectorizes over
+            the first.""", stability="beta")
     cput('Upper_base', ['Ub'], [
-        Case.number2(lambda env, n, b: [base.to_base_digits_upper(num.intify(b), num.intify(n))]),
+        Case.value_number(lambda env, v, b: [pd_deepmap_n2v(
+                lambda e: base.to_base_digits_upper(
+                    num.intify(b), num.intify(e)), v)]),
     ],
             docs="""Converts the first number to a string of digits in the
-            radix of the second, using uppercase digits.""", stability="beta")
+            radix of the second, using uppercase digits. Deeply vectorizes over
+            the first.""", stability="beta")
+    cput('Bin_string', ['Bs'], [
+        Case.value_n2v(lambda e: base.to_base_digits_upper(2, num.intify(e))),
+    ],
+            docs="""Converts numbers to their binary representation as a
+            string. Deeply vectorizes.""", stability="beta")
+    cput('Hex_string', ['Hs'], [
+        Case.value_n2v(lambda e: base.to_base_digits_upper(16, num.intify(e))),
+    ],
+            docs="""Converts numbers to their hexadecimal representation as a
+            string. Deeply vectorizes.""", stability="beta")
     # }}}
     # Comparators <=> Max Min {{{
     cput('Equal', ['Eq'], [

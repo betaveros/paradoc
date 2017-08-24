@@ -437,6 +437,8 @@ class TestParadoc(unittest.TestCase):
     def test_base_string(self):
         self.assertEqual(pd_simple_eval('48762 16 LbqUb'), ['be7a','BE7A'])
         self.assertEqual(pd_simple_eval('233811181 16 LbqUb'), ['defaced', 'DEFACED'])
+        self.assertEqual(pd_simple_eval('42 Bs'), ['101010'])
+        self.assertEqual(pd_simple_eval('233811181 Hs'), ['DEFACED'])
 
     def test_string_transformations(self):
         self.assertEqual(pd_simple_eval('"hElLo :) 123 xD"Uc'), ["HELLO :) 123 XD"])
