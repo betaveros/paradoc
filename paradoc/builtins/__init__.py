@@ -62,8 +62,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     env.put('Aa', str_class('A-Za-z'), docs="Alphabet", stability="alpha")
 
     # Non-breaking space (U+00A0)
-    env.put('\xa0', ' ', docs="Utility constant: space", stability="alpha")
-    env.put('␣', ' ', docs="Utility constant: space", stability="alpha")
+    env.put('\xa0', Char(' '), docs="Utility constant: space", stability="alpha")
+    env.put('␣', Char(' '), docs="Utility constant: space", stability="alpha")
 
     env.put('Å', str_class('A-Z'), docs="Uppercase alphabet alias", stability="alpha")
     env.put('Åa', str_class('a-zA-Z'), stability="alpha")
