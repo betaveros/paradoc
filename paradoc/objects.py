@@ -1291,27 +1291,48 @@ def pd_reduce(env: Environment, func: Block, seq: PdSeq) -> PdObject:
         raise AssertionError('pd_reduce on empty list')
     return acc
 
-def pd_zip(env: Environment,
-        func: Block,
-        *iterables: Iterable[PdObject]) -> PdObject:
-    return [e
-        for es in zip(*iterables)
-        for e in pd_sandbox(env, func, list(es))
-    ]
+def pd_zip(env: Environment, func: Block, *iterables: Iterable[PdObject]) -> List[PdObject]:
+    arity = len(iterables)
+    for i in range(arity + 1):
+        env.push_x("INTERNAL ZIP FILLER -- YOU SHOULD NOT SEE THIS")
+    acc = [] # type: List[PdObject]
+    try:
+        for i, es in enumerate(zip(*iterables)):
+            for j, e in enumerate(es):
+                env.set_x(j, e)
+            env.set_x(arity, i)
+            try:
+                acc.extend(pd_sandbox(env, func, list(es)))
+            except PdContinueException: pass
+    except PdBreakException: pass
+    finally:
+        for i in range(len(iterables) + 1):
+            env.pop_x()
+    return acc
 
 def pd_ziplongest(env: Environment,
         func: Block,
         iterable1: Iterable[PdObject],
         iterable2: Iterable[PdObject]) -> PdObject:
-    def zip_longest_helper(e1: Optional[PdObject], e2: Optional[PdObject]) -> List[PdObject]:
-        if e1 is not None and e2 is not None:
-            return pd_sandbox(env, func, [e1, e2])
-        else:
-            return [e for e in (e1, e2) if e is not None]
-    return [e
-        for e1, e2 in itertools.zip_longest(iterable1, iterable2)
-        for e in zip_longest_helper(e1, e2)
-    ]
+    for i in range(3):
+        env.push_x("INTERNAL ZIP FILLER -- YOU SHOULD NOT SEE THIS")
+    acc = [] # type: List[PdObject]
+    try:
+        for i, (e1, e2) in enumerate(itertools.zip_longest(iterable1, iterable2)):
+            try:
+                if e1 is not None and e2 is not None:
+                    env.set_x(0, e1)
+                    env.set_x(1, e2)
+                    env.set_x(2, i)
+                    acc.extend(pd_sandbox(env, func, [e1, e2]))
+                else:
+                    acc.extend(e for e in (e1, e2) if e is not None)
+            except PdContinueException: pass
+    except PdBreakException: pass
+    finally:
+        for i in range(3):
+            env.pop_x()
+    return acc
 # }}}
 # function iteration {{{
 def pd_iterate(env: Environment, func: Block) -> Tuple[List[PdObject], PdObject]:
