@@ -164,6 +164,27 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Repr', ['`'], [Case.any(lambda env, x: [pd_repr(x)])],
             docs="Push the string Paradoc representation of the top element.",
             stability="beta")
+
+    # Pop-if-boolean variants {{{
+    # TODO: There are almost certainly better block semantics.
+    cput('Pop_if_true', [';t'], [Case.any(lambda env, x: [] if x else [x])],
+            docs="""Look at the top element of the stack. Pop it if it's
+            truthy.""",
+            stability="alpha")
+    cput('Pop_if_false', [';f'], [Case.any(lambda env, x: [x] if x else [])],
+            docs="""Look at the top element of the stack. Pop it if it's
+            falsy.""",
+            stability="alpha")
+    cput('Pop_if', [';i'], [Case.any2(lambda env, x, y: [] if y else [x])],
+            docs="""Pop the top element of the stack. Pop the second element if
+            the first element was truthy.""",
+            stability="alpha")
+    cput('Pop_if_not', [';n'], [Case.any2(lambda env, x, y: [x] if y else [])],
+            docs="""Pop the top element of the stack. Pop the second element if
+            the first element was falsy.""",
+            stability="alpha")
+    # }}}
+
     @put('[', 'Mark', docs="Mark the stack.", stability="stable")
     def mark(env: Environment) -> None:
         env.mark_stack()
