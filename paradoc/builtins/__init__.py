@@ -139,17 +139,17 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
             ex: 1 2 3\\a => 3 2 1""",
             stability="alpha")
-    cput('Rotate', ['Rot', 'Ro'], [Case.any3(lambda env, a, b, c: [b, c, a])],
+    cput('Swap_out', ['\\o'], [Case.any3(lambda env, a, b, c: [b, c, a])],
             docs="""Rotate the top three elements of the stack so that the 3rd
-            from the top is now on top: a b c -> b c a
+            from the top is now on top ("outward" by two): a b c -> b c a
 
-            ex: 1 2 3Ro => 2 3 1""",
+            ex: 1 2 3\\o => 2 3 1""",
             stability="beta")
-    cput('Unrotate', ['Unrot', 'Ur'], [Case.any3(lambda env, a, b, c: [c, a, b])],
+    cput('Swap_in', ['\\i'], [Case.any3(lambda env, a, b, c: [c, a, b])],
             docs="""Rotate the top three elements of the stack so that the
-            top is now on bottom: a b c -> c a b
+            top is now on bottom ("inward" by two): a b c -> c a b
 
-            ex: 1 2 3Ur => 3 1 2""",
+            ex: 1 2 3\\i => 3 1 2""",
             stability="beta")
     cput('Pop', [';'], [Case.any(lambda env, x: [])],
             docs="""Pop the top element of the stack.
@@ -1205,6 +1205,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq(lambda env, a: [pd_transpose(a)]),
     ],
             docs="""Transpose a matrix, or list of lists.""",
+            stability="alpha")
+    cput('Rotate', ['Ro'], [
+        Case.seq(lambda env, a: [pd_transpose(a)[::-1]]),
+    ],
+            docs="""Rotate a matrix, or list of lists, 90 degrees
+            counterclockwise (just by vague mathematical convention of
+            angle).""",
+            stability="alpha")
+    cput('Unrotate', ['Ur'], [
+        Case.seq(lambda env, a: [pd_transpose(a[::-1])]),
+    ],
+            docs="""Rotate a matrix, or list of lists, 90 degrees clockwise
+            (just by vague mathematical convention of angle).""",
             stability="alpha")
     cput('Transpose_fill', ['Tf'], [
         Case.seq_value(lambda env, a, f: [pd_transpose_fill(a, f)]),

@@ -51,7 +51,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('1.aC 2.aC 3.aC .pC .rC C', use_cache=False), [3,[1,2],0])
 
     def test_stack_ops(self):
-        self.assertEqual(pd_simple_eval('1 2 3 \\ 1 2 3 Ro 1 2 3 Ur 1 2 3 : 1 2 3 :p'),
+        self.assertEqual(pd_simple_eval('1 2 3 \\ 1 2 3 \\o 1 2 3 \\i 1 2 3 : 1 2 3 :p'),
                 [1,3,2,2,3,1,3,1,2,1,2,3,3,1,2,3,2,3])
         self.assertEqual(pd_simple_eval('1 2 3 \\a 1 2 3 \\u 1 2 3 :a'),
                 [3,2,1,2,1,3,1,2,3,2])
@@ -507,6 +507,8 @@ class TestParadoc(unittest.TestCase):
 
     def test_rectangularize_transpose(self):
         self.assertEqual(pd_simple_eval('[[1 2][3 4]]Transpose'), [[[1,3],[2,4]]])
+        self.assertEqual(pd_simple_eval('[[1 2][3 4]]Rotate'), [[[2,4],[1,3]]])
+        self.assertEqual(pd_simple_eval('[[1 2][3 4]]Unrotate'), [[[3,1],[4,2]]])
         self.assertEqual(pd_simple_eval('[[1 2][3 4 5]]Transpose'), [[[1,3],[2,4],[5]]])
         self.assertEqual(pd_simple_eval('[[1 2][3 4]]0Qz'), [[[1,2],[3,4]]])
         self.assertEqual(pd_simple_eval('[[1 2][3 4 5]]0Qz'), [[[1,2,0],[3,4,5]]])
