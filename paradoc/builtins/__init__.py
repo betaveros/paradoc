@@ -1444,6 +1444,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="Output a newline.", stability="beta")
     def pd_newline_output(env: Environment) -> None:
         print()
+    @put('Newline_print', '\np', '\\np',
+            docs="Output a newline, followed by an output record separator.",
+            stability="beta")
+    def pd_newline_print(env: Environment) -> None:
+        env.print_output_record("\n")
 
     @put('Dump', 'Pdebug',
             docs="""Print debugging information about the environment and
