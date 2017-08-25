@@ -238,6 +238,7 @@ class TestParadoc(unittest.TestCase):
 
     def test_min_max_of_list(self):
         self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]>rq<r'), [9,2])
+        self.assertEqual(pd_simple_eval('"syzygy">rq<r'), [Char('z'),Char('g')])
 
     def test_sort(self):
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]$'), [[0,1,2,4,6]])

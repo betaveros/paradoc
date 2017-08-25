@@ -53,6 +53,9 @@ def numerify(x: PdNum) -> Union[int, float]:
     else:
         return x
 
+def floatify(x: PdNum) -> float:
+    return float(numerify(x))
+
 def intify(x: PdNum) -> int:
     if isinstance(x, Char):
         return x.ord

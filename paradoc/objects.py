@@ -491,6 +491,52 @@ def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObj
     # func(temp_env)
     # return temp_env.stack
 # }}}
+# comparisons {{{
+def to_comparable_list(a: PdValue) -> list:
+    if isinstance(a, list): return a
+    elif isinstance(a, (Char, int, float)): return [a]
+    else: return list(pd_iterable(a))
+
+def pd_less_than(a: PdObject, b: PdObject) -> PdObject:
+    if isinstance(a, (Char, int)) and isinstance(b, (Char, int)):
+        return num.intify(a) < num.intify(b)
+    elif isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
+        return num.floatify(a) < num.floatify(b)
+    elif isinstance(a, (list, range)) and isinstance(b, (list, range)):
+        al = list(a); bl = list(b)
+        return al < bl
+    elif isinstance(a, str) and isinstance(b, str):
+        return a < b
+    elif isinstance(a, (Char, str)) and isinstance(b, (Char, str)):
+        return basic_pd_str(a) < basic_pd_str(b)
+    elif isinstance(a, Block) or isinstance(b, Block):
+        raise TypeError('cannot compare blocks')
+    else:
+        return to_comparable_list(a) < to_comparable_list(b)
+
+def pd_min(a: PdObject, b: PdObject) -> PdObject:
+    return a if pd_less_than(a, b) else b
+def pd_max(a: PdObject, b: PdObject) -> PdObject:
+    return b if pd_less_than(a, b) else a
+def pd_min_of_seq(a: PdSeq) -> PdObject:
+    if isinstance(a, str): return min(pd_iterable(a))
+    cur = None
+    for e in pd_iterable(a):
+        if cur is None: cur = e
+        else: cur = pd_min(cur, e)
+    if cur is None:
+        raise ValueError("Cannot take min of empty sequence")
+    return cur
+def pd_max_of_seq(a: PdSeq) -> PdObject:
+    if isinstance(a, str): return max(pd_iterable(a))
+    cur = None
+    for e in pd_iterable(a):
+        if cur is None: cur = e
+        else: cur = pd_max(cur, e)
+    if cur is None:
+        raise ValueError("Cannot take max of empty sequence")
+    return cur
+# }}}
 # deep actions {{{
 # copy a thing recursively, fully structured as mutable lists
 def pd_deep_copy_to_list(obj: PdValue) -> PdValue:

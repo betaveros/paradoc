@@ -846,23 +846,23 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             epsilon""",
             stability="alpha")
     cput('Min', ['<m', 'Õ'], [
-        Case.any2(lambda env, a, b: [min(a, b)]), # TODO
+        Case.value2(lambda env, a, b: [pd_min(a, b)]),
     ],
             docs="""Minimum of two values""",
             stability="beta")
     cput('Max', ['>m', 'Ã'], [
-        Case.any2(lambda env, a, b: [max(a, b)]), # TODO
+        Case.value2(lambda env, a, b: [pd_max(a, b)]),
     ],
             docs="""Maximum of two values""",
             stability="beta")
     cput('Array_min', ['<r', 'Œ'], [
-        Case.seq(lambda env, e: [min(pd_iterable(e))]),
+        Case.seq(lambda env, e: [pd_min_of_seq(e)]),
     ],
             docs="""Minimum of array. Mnemonic: it's like reducing by minimum
             of two values.""",
             stability="alpha")
     cput('Array_max', ['>r', 'Æ'], [
-        Case.seq(lambda env, e: [max(pd_iterable(e))]),
+        Case.seq(lambda env, e: [pd_max_of_seq(e)]),
     ],
             docs="""Maximum of array. Mnemonic: it's like reducing by maximum
             of two values.""",

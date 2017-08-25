@@ -628,7 +628,10 @@ def build_char_trailer_dict() -> Dict[str, Trailer[Char]]: # {{{
         def char_x_b(env: Environment) -> None:
             v = env.pop()
             s = c.chr
-            env.push(objects.pd_deepmap_n2v(lambda e: s * num.intify(e), v))
+            if isinstance(v, Block):
+                raise TypeError('Cannot replicate character by block')
+            else:
+                env.push(objects.pd_deepmap_n2v(lambda e: s * num.intify(e), v))
         return (BuiltIn(objects.pd_repr(c) + "_x", char_x_b), False)
 
     return ret
