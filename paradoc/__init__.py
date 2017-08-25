@@ -25,6 +25,7 @@ from paradoc.builtins.acutegrave import ag_convert, ag_document
 import paradoc.assign as assign
 import sys
 import argparse
+import codecs
 
 def simple_interpolate(env: Environment, content: str, target: str) -> str:
     literal_fragments = [] # type: List[str]
@@ -724,10 +725,10 @@ block_starters = {
     '{'   : '',
     'µ'   : '_map',
     'μ'   : '_map',
-    '\x04': '_filter',
-    'φ'   : '_filter',
     '\x05': '_each',
     'ε'   : '_each',
+    '\x06': '_filter',
+    'φ'   : '_filter',
     '\x18': '_xloop',
     'χ'   : '_xloop',
     '\x1a': '_zip',
@@ -1014,6 +1015,8 @@ def main() -> None:
     parser.add_argument('--no-debug', default=True, action='store_false',
             dest='debug')
     parser.add_argument('--sandboxed', default=False, action='store_true')
+    parser.add_argument('--decode', nargs='?', const='')
+    parser.add_argument('--encode', nargs='?', const='')
     args = parser.parse_args()
 
     try:
@@ -1034,11 +1037,42 @@ def main() -> None:
             ])
         elif args.e is not None:
             main_with_code(args.e, sandboxed=args.sandboxed, debug=args.debug)
+        elif args.decode is not None:
+            import paradoc.codepage
+            if args.decode == '':
+                sys.stdout.write(
+                        codecs.decode(sys.stdin.buffer.read(), 'paradoc'))
+            else:
+                assert args.decode.endswith('.enc.prdc')
+                src_filename = args.decode
+                tgt_filename = args.decode[:-10] + '.prdc'
+                with codecs.open(src_filename, 'rb') as dec_src_file:
+                    with codecs.open(tgt_filename, 'w', 'utf8') as dec_tgt_file:
+                        dec_tgt_file.write(
+                                codecs.decode(dec_src_file.read(), 'paradoc')) # type: ignore
+        elif args.encode is not None:
+            import paradoc.codepage
+            if args.encode == '':
+                sys.stdout.buffer.write(
+                        codecs.encode(sys.stdin.read(), 'paradoc'))
+            else:
+                assert args.encode.endswith('.prdc')
+                src_filename = args.encode
+                tgt_filename = args.encode[:-5] + '.enc.prdc'
+                with codecs.open(src_filename, 'r', 'utf8') as enc_src_file:
+                    with codecs.open(tgt_filename, 'wb') as enc_tgt_file:
+                        enc_tgt_file.write( # type: ignore
+                                codecs.encode(enc_src_file.read(), 'paradoc'))
         elif args.prog_file is not None:
             if args.prog_file.endswith('.cp1252.prdc'):
-                import codecs
                 with codecs.open(args.prog_file, 'r', 'cp1252') as cp1252_prog_file:
                     main_with_code(cp1252_prog_file.read(),
+                            sandboxed=args.sandboxed, debug=args.debug)
+            elif args.prog_file.endswith('.enc.prdc'):
+                import paradoc.codepage
+                with codecs.open(args.prog_file, 'rb') as prdc_prog_file:
+                    main_with_code(
+                            codecs.decode(prdc_prog_file.read(), 'paradoc'), # type: ignore
                             sandboxed=args.sandboxed, debug=args.debug)
             else:
                 with open(args.prog_file, 'r') as prog_file:
