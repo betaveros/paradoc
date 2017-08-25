@@ -440,6 +440,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('5 D 10 B'), [43210])
         self.assertEqual(pd_simple_eval('"be7a" 16 B'), [48762])
         self.assertEqual(pd_simple_eval('"DeFaCeD" 16 B'), [233811181])
+        self.assertEqual(pd_simple_eval('314159 Dr'), [23])
 
     def test_base_string(self):
         self.assertEqual(pd_simple_eval('48762 16 LbqUb'), ['be7a','BE7A'])

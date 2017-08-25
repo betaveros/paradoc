@@ -751,6 +751,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Converts numbers to their hexadecimal representation as a
             string. Deeply vectorizes.""", stability="beta")
+    cput('Digit_sum', ['Dr'], [
+        Case.value_n2v(lambda e: sum(base.to_base_digits(10, num.intify(e)))),
+    ],
+            docs="""Digit sum of integers. Deeply vectorizes. Mnemonic: r for
+            reduce as always, since this is a reduction over the digits, and
+            probably the most natural one.""",
+            stability="alpha")
     # }}}
     # Comparators <=> Max Min {{{
     cput('Equal', ['Eq'], [
