@@ -292,6 +292,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2] 3 °'), [[[1,2],[1,2],[1,2]]])
         self.assertEqual(pd_simple_eval('\'y \'x 3 Sr'), ["xxx"])
         self.assertEqual(pd_simple_eval('\'y \'x 4m Sr'), ["yyyy"])
+        self.assertEqual(pd_simple_eval('3 \'ax'), ["aaa"])
 
     def test_zip(self):
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]{+}Zip'), [[10,9,8]])

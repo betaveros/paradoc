@@ -617,6 +617,23 @@ def build_float_trailer_dict() -> Dict[str, Trailer[float]]: # {{{
     return ret
 float_trailer_dict = build_float_trailer_dict()
 # }}}
+def build_char_trailer_dict() -> Dict[str, Trailer[Char]]: # {{{
+    ret = dict() # type: Dict[str, Trailer[Char]]
+    def put(*names: str, docs: Optional[str] = None,
+            stability: str = "unknown") -> TrailerPutter[Char]:
+        return trailer_putter(ret, names, docs=docs, stability=stability)
+
+    @put("x", docs="Replicate, to get a string.", stability="alpha")
+    def char_x_trailer(outer_env: Environment, c: Char) -> Tuple[Block, bool]:
+        def char_x_b(env: Environment) -> None:
+            v = env.pop()
+            s = c.chr
+            env.push(objects.pd_deepmap_n2v(lambda e: s * num.intify(e), v))
+        return (BuiltIn(objects.pd_repr(c) + "_x", char_x_b), False)
+
+    return ret
+char_trailer_dict = build_char_trailer_dict()
+# }}}
 
 def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tuple[PdObject, bool]:
     # print("act_on_trailer_token", token, b0)
@@ -650,6 +667,13 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             return float_trailer_dict[token](outer_env, f)
         except KeyError:
             raise NotImplementedError("unknown trailer token " + token + " on float " + repr(f))
+
+    elif isinstance(b0, Char):
+        c = b0 # type: Char
+        try:
+            return char_trailer_dict[token](outer_env, c)
+        except KeyError:
+            raise NotImplementedError("unknown trailer token " + token + " on char " + repr(c))
 
     raise NotImplementedError("unknown trailer token " + token + " on unknown thing " + repr(b0))
 
@@ -880,7 +904,8 @@ class CodeBlock(Block):
                     elif token.startswith('"'):
                         parse_string_onto(env, token, trailer)
                     elif token.startswith("'"):
-                        env.push(Char(ord(token[1])))
+                        act_after_trailer_tokens(env, Char(ord(token[1])),
+                                lex_trailer(trailer))
                     elif is_numeric_literal_token(token):
                         r_token = token.replace('—', '-')
                         try:
