@@ -144,6 +144,10 @@ class TestParadoc(unittest.TestCase):
     def test_if(self):
         self.assertEqual(pd_simple_eval('0 2 3? 1 2 3? 2 2 3?'), [3,2,2])
         self.assertEqual(pd_simple_eval('[0 1]{100X{2*}{5+}?}x'), [105,200])
+        self.assertEqual(pd_simple_eval('1 2 &p'), [2])
+        self.assertEqual(pd_simple_eval('0 2 &p'), [0])
+        self.assertEqual(pd_simple_eval('1 2 |p'), [1])
+        self.assertEqual(pd_simple_eval('0 2 |p'), [2])
 
     def test_single_branch_if(self):
         self.assertEqual(pd_simple_eval('0{6}&1{7}&0{8}|1{9}|'), [7,8])

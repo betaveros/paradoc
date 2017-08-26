@@ -679,6 +679,18 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Binary XOR on numbers. Symmetric difference on sequences.
             Find last on block and sequence.
             """, stability="beta")
+    cput('Boolean_and', ['&p'], [
+        Case.value2(lambda env, a, b: [b if a else a]),
+    ],
+            docs="""Takes two arguments, leaves the first if the first is
+            truthy and the second if the first is falsy.""",
+            stability="beta")
+    cput('Boolean_or', ['|p'], [
+        Case.value2(lambda env, a, b: [a if a else b]),
+    ],
+            docs="""Takes two arguments, leaves the first if the first is
+            falsy and the second if the first is truthy.""",
+            stability="beta")
     cput('If', [], [
         Case.any2(lambda env, cond, body:
             pd_if_then_empty_list(env, cond, body)),
