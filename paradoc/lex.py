@@ -12,7 +12,7 @@ def is_nop_or_comment(token: str) -> bool:
             token.startswith('..') or
             token.startswith('——') or
             token.startswith('#!'))
-lowers = string.ascii_lowercase + "àáâãäåæçèéêëìíîïñòóôõöøùúûüýþÿœšžªºƒ"
+lowers = string.ascii_lowercase + "àáâãäåæçèéêëìíîïñòóôõöøùúûüýþßÿœšžªºƒ"
 lower_underscore_set = set(lowers + "_")
 def is_trailer(char_or_token: str) -> bool:
     return char_or_token[0] in lower_underscore_set

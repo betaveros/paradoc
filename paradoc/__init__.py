@@ -288,6 +288,29 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
                     BuiltIn(b.code_repr() + "_bind", bind_b),
                     objects.pd_map)), False)
 
+    @put("mapbind", "ß",
+            docs="""Right now, pop the second-to-top element of the stack.
+            Then, apply this block to each element of the top element
+            of the stack (coerces numbers to ranges), pushing what was the
+            second-to-top element underneath the top element before each
+            application; collect the results into a new list.
+
+            Sort of a reversed {{ 'bindmap'|bt }}.""",
+            stability="alpha")
+    def mapbind_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        x = outer_env.pop()
+        e = outer_env.pop()
+        outer_env.push(x)
+        def underbind_b(env: Environment) -> None:
+            y = env.pop()
+            env.push(e)
+            env.push(y)
+            b(env)
+        return (BuiltIn(b.code_repr() + "_mapbind",
+                lambda env: apply_pd_list_op(env,
+                    BuiltIn(b.code_repr() + "_underbind", underbind_b),
+                    objects.pd_map)), False)
+
     @put("deepmap", "walk", "w",
             docs="""Apply this block to each element of a possibly multi-level
             list (coerces numbers to ranges), as deeply as possible; collect
