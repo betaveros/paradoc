@@ -266,50 +266,52 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_under", under_b), False)
 
     @put("vectorize", "bindmap", "v",
-            docs="""Right now, pop the top element of this stack. Then, apply
-            this block to each element of the next element of the stack
-            (coerces numbers to ranges), pushing that top element before each
-            application; collect the results into a new list.
+            docs="""Pop the top element of the stack. Then, apply this block to
+            each element of the next element of the stack (coerces numbers to
+            ranges), pushing that top element before each application; collect
+            the results into a new list.
 
             Basically a {{ 'bind'|bt }} followed by a {{ 'map'|bt }};
             you can imagine it as vectorizing an operator if the top element of
             the stack is a scalar and the one beneath it is a sequence, hence
-            the single-letter name.
+            the single-letter name. But note that it isn't as eager as bind.
 
             ex: [1 2 3] 100+v => [101 102 103]""",
             stability="alpha")
     def vectorize_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
-        e = outer_env.pop()
-        def bind_b(env: Environment) -> None:
-            env.push(e)
-            b(env)
-        return (BuiltIn(b.code_repr() + "_bindmap",
-                lambda env: apply_pd_list_op(env,
-                    BuiltIn(b.code_repr() + "_bind", bind_b),
-                    objects.pd_map)), False)
+        def bindmap_b(env: Environment) -> None:
+            e = env.pop()
+            def bind_b(inner_env: Environment) -> None:
+                inner_env.push(e)
+                b(inner_env)
+            apply_pd_list_op(env,
+                BuiltIn(b.code_repr() + "_bind", bind_b),
+                objects.pd_map)
+        return (BuiltIn(b.code_repr() + "_bindmap", bindmap_b), False)
 
     @put("mapbind", "ß",
-            docs="""Right now, pop the second-to-top element of the stack.
-            Then, apply this block to each element of the top element
-            of the stack (coerces numbers to ranges), pushing what was the
-            second-to-top element underneath the top element before each
-            application; collect the results into a new list.
+            docs="""Pop the second-to-top element of the stack. Then, apply
+            this block to each element of the top element of the stack (coerces
+            numbers to ranges), pushing what was the second-to-top element
+            underneath the top element before each application; collect the
+            results into a new list.
 
             Sort of a reversed {{ 'bindmap'|bt }}.""",
             stability="alpha")
     def mapbind_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
-        x = outer_env.pop()
-        e = outer_env.pop()
-        outer_env.push(x)
-        def underbind_b(env: Environment) -> None:
-            y = env.pop()
-            env.push(e)
-            env.push(y)
-            b(env)
-        return (BuiltIn(b.code_repr() + "_mapbind",
-                lambda env: apply_pd_list_op(env,
-                    BuiltIn(b.code_repr() + "_underbind", underbind_b),
-                    objects.pd_map)), False)
+        def mapbind_b(env: Environment) -> None:
+            x = env.pop()
+            e = env.pop()
+            env.push(x)
+            def underbind_b(inner_env: Environment) -> None:
+                y = inner_env.pop()
+                inner_env.push(e)
+                inner_env.push(y)
+                b(inner_env)
+            apply_pd_list_op(env,
+                BuiltIn(b.code_repr() + "_underbind", underbind_b),
+                objects.pd_map)
+        return (BuiltIn(b.code_repr() + "_mapbind", mapbind_b), False)
 
     @put("deepmap", "walk", "w",
             docs="""Apply this block to each element of a possibly multi-level
