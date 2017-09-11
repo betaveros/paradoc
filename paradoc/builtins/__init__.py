@@ -79,6 +79,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     env.put('Åp', str_class(' -~'), stability="alpha")
     env.put('Åq', case_double('QWERTYUIOP'), stability="alpha")
     env.put('Ås', case_double('ASDFGHJKL'), stability="alpha")
+    env.put('Åt', str_class('0-9A-Z'), stability="alpha")
     env.put('Åu', str_class('Z-A'), stability="alpha")
     env.put('Åv', case_double('AEIOU'), stability="alpha")
     env.put('Åx', case_double('ZXCVBNM'), stability="alpha")
