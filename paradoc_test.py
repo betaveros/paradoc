@@ -553,6 +553,8 @@ class TestParadoc(unittest.TestCase):
     def test_string_trailers(self):
         self.assertEqual(pd_simple_eval('1 2 3"% % %"i'), ["1 2 3"])
         self.assertEqual(pd_simple_eval('1 2 3"%2d + %2d = %02d"f'), [" 1 +  2 = 03"])
+        self.assertEqual(pd_simple_eval('3"hello"t'), ["hello"])
+        self.assertEqual(pd_simple_eval('0"hello"t'), [""])
 
     def test_loops(self):
         self.assertEqual(pd_simple_eval('5:_(k_W'), [5,4,3,2,1,0])

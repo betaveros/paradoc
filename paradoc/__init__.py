@@ -484,6 +484,16 @@ def build_string_trailer_dict() -> Dict[str, Trailer[str]]: # {{{
             env.push(format_res)
         return (BuiltIn(objects.pd_repr(s) + "_format", format_s), False)
 
+    @put("iftrue", "t",
+            docs="""Pop an element; push this string if it's truthy, and an
+            empty string if not.""",
+            stability="unstable")
+    def iftrue_trailer(outer_env: Environment, s: str) -> Tuple[PdObject, bool]:
+        def iftrue_s(env: Environment) -> None:
+            e = env.pop()
+            env.push(s if e else "")
+        return (BuiltIn(objects.pd_repr(s) + "_iftrue", iftrue_s), False)
+
     @put("debug",
             docs="""Print debugging information about the contents of the
             stack.""",
