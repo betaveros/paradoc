@@ -1740,6 +1740,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: num.nest_dict.get(e, 0), x)])
     ],
             stability="alpha")
+    cput('Int_of_alpha', ['Ia'], [Case.value(lambda env, x: [pd_deepmap_s2v(num.int_of_alpha, x)])], stability="unstable")
+    cput('Lower_of_int', ['Li'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: num.lower_of_int(num.intify(e)), x)])], stability="unstable")
+    cput('Upper_of_int', ['Ui'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: num.upper_of_int(num.intify(e)), x)])], stability="unstable")
     # }}}
     # Replicate, fill/pad {{{
 

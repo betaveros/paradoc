@@ -196,4 +196,17 @@ value_dict = {
     '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
 }
 
+def int_of_alpha(s: str) -> int:
+    if 'A' <= s <= 'Z': return ord(s) - ord('A') + 1
+    if 'a' <= s <= 'z': return ord(s) - ord('a') + 1
+    return 0
+
+def lower_of_int(n: int) -> Char:
+    if 1 <= n <= 26: return Char(ord('a') - 1 + n)
+    return Char(' ')
+
+def upper_of_int(n: int) -> Char:
+    if 1 <= n <= 26: return Char(ord('A') - 1 + n)
+    return Char(' ')
+
 # vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

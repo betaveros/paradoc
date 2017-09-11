@@ -467,6 +467,9 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"B3 t@"ApqUpqLpqWp'), [[1,0,0,1,0],[1,0,0,0,0],[0,0,0,1,0],[0,0,1,0,0]])
         self.assertEqual(pd_simple_eval('"+-- <foo>"Vc'), [[1,-1,-1,0,-1,0,0,0,1]])
         self.assertEqual(pd_simple_eval('"([{<!?>}])"Nc'), [[1,1,1,1,0,0,-1,-1,-1,-1]])
+        self.assertEqual(pd_simple_eval('"bar"Ia'), [[2,1,18]])
+        self.assertEqual(pd_simple_eval('[1 2 3]Li'), [[Char('a'), Char('b'), Char('c')]])
+        self.assertEqual(pd_simple_eval('26 3,ÀUi'), [[Char('Z'), Char('Y'), Char('X')]])
 
     def test_has_prefix_suffix(self):
         self.assertEqual(pd_simple_eval('"foobar" "fo" <hq>hq=h'), [1, 0, 1])
