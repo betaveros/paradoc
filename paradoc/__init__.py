@@ -28,7 +28,7 @@ import argparse
 import codecs
 
 def simple_interpolate(env: Environment, content: str, target: str) -> str:
-    literal_fragments = [] # type: List[str]
+    literal_fragments: List[str] = []
     i = 0
     while True:
         ti = content.find(target, i)
@@ -36,10 +36,10 @@ def simple_interpolate(env: Environment, content: str, target: str) -> str:
         literal_fragments.append(content[i:ti])
         i = ti + len(target)
     # note the double inversion
-    vals = [] # type: List[PdObject]
+    vals: List[PdObject] = []
     for _ in literal_fragments:
         vals.append(env.pop())
-    res = [] # type: List[str]
+    res: List[str] = []
     for frag in literal_fragments:
         res.append(frag)
         res.append(env.pd_str(vals.pop()))
@@ -72,7 +72,7 @@ def trailer_putter(d: Dict[str, Trailer[T]],
     return inner
 
 def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
-    ret = dict() # type: Dict[str, Trailer[Block]]
+    ret: Dict[str, Trailer[Block]] = dict()
     def put(*names: str, docs: Optional[str] = None,
             stability: str = "unknown") -> TrailerPutter[Block]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
@@ -425,7 +425,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 block_trailer_dict = build_block_trailer_dict()
 # }}}
 def build_string_trailer_dict() -> Dict[str, Trailer[str]]: # {{{
-    ret = dict() # type: Dict[str, Trailer[str]]
+    ret: Dict[str, Trailer[str]] = dict()
     def put(*names: str, docs: Optional[str] = None,
             stability: str = "unknown") -> TrailerPutter[str]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
@@ -498,7 +498,7 @@ def build_string_trailer_dict() -> Dict[str, Trailer[str]]: # {{{
 string_trailer_dict = build_string_trailer_dict()
 # }}}
 def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
-    ret = dict() # type: Dict[str, Trailer[int]]
+    ret: Dict[str, Trailer[int]] = dict()
     def put(*names: str, docs: Optional[str] = None,
             stability: str = "unknown") -> TrailerPutter[int]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
@@ -623,7 +623,7 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
 int_trailer_dict = build_int_trailer_dict()
 # }}}
 def build_float_trailer_dict() -> Dict[str, Trailer[float]]: # {{{
-    ret = dict() # type: Dict[str, Trailer[float]]
+    ret: Dict[str, Trailer[float]] = dict()
     def put(*names: str, docs: Optional[str] = None,
             stability: str = "unknown") -> TrailerPutter[int]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
@@ -643,7 +643,7 @@ def build_float_trailer_dict() -> Dict[str, Trailer[float]]: # {{{
 float_trailer_dict = build_float_trailer_dict()
 # }}}
 def build_char_trailer_dict() -> Dict[str, Trailer[Char]]: # {{{
-    ret = dict() # type: Dict[str, Trailer[Char]]
+    ret: Dict[str, Trailer[Char]] = dict()
     def put(*names: str, docs: Optional[str] = None,
             stability: str = "unknown") -> TrailerPutter[Char]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
@@ -670,34 +670,34 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
     if token.startswith("_"): token = token[1:]
 
     if isinstance(b0, Block):
-        b = b0 # type: Block
+        b: Block = b0
         try:
             return block_trailer_dict[token](outer_env, b)
         except KeyError:
             raise NotImplementedError("unknown trailer token " + token + " on blocklike " + b.code_repr())
     elif isinstance(b0, str):
-        s = b0 # type: str
+        s: str = b0
         try:
             return string_trailer_dict[token](outer_env, s)
         except KeyError:
             raise NotImplementedError("unknown trailer token " + token + " on string " + repr(s))
 
     elif isinstance(b0, int):
-        i = b0 # type: int
+        i: int = b0
         try:
             return int_trailer_dict[token](outer_env, i)
         except KeyError:
             raise NotImplementedError("unknown trailer token " + token + " on int " + repr(i))
 
     elif isinstance(b0, float):
-        f = b0 # type: float
+        f: float = b0
         try:
             return float_trailer_dict[token](outer_env, f)
         except KeyError:
             raise NotImplementedError("unknown trailer token " + token + " on float " + repr(f))
 
     elif isinstance(b0, Char):
-        c = b0 # type: Char
+        c: Char = b0
         try:
             return char_trailer_dict[token](outer_env, c)
         except KeyError:
@@ -737,7 +737,7 @@ def act_after_trailer_tokens(env: Environment,
 def parse_string_onto(env: Environment, token: str, trailer: str) -> None:
     assert(token[0] == token[-1] == '"')
     backslashed = False
-    acc = [] # type: List[str]
+    acc: List[str] = []
     for c in token[1:-1]:
         if backslashed:
             if c not in '\\"': acc.append('\\')
@@ -809,9 +809,9 @@ class CodeBlock(Block):
 
         body_start = 0
         block_level = 0
-        block_prefix_trailer = None # type: Optional[str]
+        block_prefix_trailer: Optional[str] = None
 
-        executor = None # type: Optional[BodyExecutor]
+        executor: Optional[BodyExecutor] = None
         def set_executor(executor0: BodyExecutor) -> None:
             nonlocal block_level, block_prefix_trailer, executor
             block_level = 1
@@ -881,8 +881,8 @@ class CodeBlock(Block):
                 raise NotImplementedError('unknown global trailer token ' + repr(trailer_token))
 
         # This is not None when assignment is active:
-        active_assign_token_trailer = None # type: Optional[Tuple[str, str]]
-        block_acc = [] # type: List[str]
+        active_assign_token_trailer: Optional[Tuple[str, str]] = None
+        block_acc: List[str] = []
 
         for token0 in self.tokens[body_start:]:
             token, trailer = break_trailer(token0)
@@ -907,7 +907,7 @@ class CodeBlock(Block):
                                 repr(active_assign_token_trailer) + ", " + repr(token))
                     else:
                         a_token, a_trailer = active_assign_token_trailer
-                        a_trailer_tokens = None # type: Optional[Iterable[str]]
+                        a_trailer_tokens: Optional[Iterable[str]] = None
                         for v_name, ts in name_trailer_dissections(a_token, a_trailer):
                             variant = assign.variant_dict.get(v_name)
                             if variant is not None:
@@ -937,7 +937,7 @@ class CodeBlock(Block):
                     elif is_numeric_literal_token(token):
                         r_token = token.replace('—', '-')
                         try:
-                            parsed_num = int(r_token) # type: Union[int, float]
+                            parsed_num: Union[int, float] = int(r_token)
                         except ValueError:
                             try:
                                 parsed_num = float(r_token)
@@ -947,7 +947,7 @@ class CodeBlock(Block):
                     elif token.startswith('.') or token.startswith('—'):
                         active_assign_token_trailer = (token, trailer)
                     else:
-                        val = None # type: Optional[PdObject]
+                        val: Optional[PdObject] = None
                         trailer_tokens = None
                         for name, ts in name_trailer_dissections(token, trailer):
                             # print('name:', name, 'ts:', ts)

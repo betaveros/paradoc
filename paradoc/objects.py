@@ -32,7 +32,7 @@ class BuiltIn(Block):
             docs: Optional[str] = None,
             stability: str = "unknown") -> None:
         self.name = name
-        self.aliases = aliases or [name] # type: List[str]
+        self.aliases: List[str] = aliases or [name]
         self.func = func
         self.docs = docs
         self.stability = stability
@@ -92,15 +92,15 @@ class Environment: # {{{
         self.evaluator = evaluator
         self.input_trigger = input_trigger
         self.stack_trigger = stack_trigger
-        self.vars = dict() # type: Dict[str, PdObject]
-        self.var_docs = dict() # type: Dict[str, str]
-        self.var_stability = dict() # type: Dict[str, str]
-        self._stack   =   stack or [] # type: List[PdObject]
-        self._x_stack = x_stack or [0, [], ''] # type: List[PdObject]
+        self.vars:          Dict[str, PdObject] = dict()
+        self.var_docs:      Dict[str, str]      = dict()
+        self.var_stability: Dict[str, str]      = dict()
+        self._stack:   List[PdObject] =   stack or []
+        self._x_stack: List[PdObject] = x_stack or [0, [], '']
         self.STACK_TRIGGER_X = 2 # ???
         self.vars_delegate = vars_delegate
-        self.lazy_var_triggers = lazy_var_triggers or [] # type: List[Callable[[str], Optional[PdObject]]]
-        self.marker_stack = [] # type: List[int]
+        self.lazy_var_triggers: List[Callable[[str], Optional[PdObject]]] = lazy_var_triggers or []
+        self.marker_stack: List[int] = []
 
     def evaluate(self, code: str) -> None:
         self.evaluator(self, code)
@@ -247,7 +247,7 @@ class Environment: # {{{
             return res
 
     def pop_n(self, n: int) -> List[PdObject]:
-        acc = [] # type: List[PdObject]
+        acc: List[PdObject] = []
         for _ in range(n):
             acc.append(self.pop())
         return acc[::-1]
@@ -405,7 +405,7 @@ class KeepShadowEnvironment(BracketedShadowEnvironment):
 class TrackingShadowEnvironment(BracketedShadowEnvironment):
     def __init__(self, shadow_parent: Environment) -> None:
         BracketedShadowEnvironment.__init__(self, shadow_parent)
-        self._shadow_acc = [] # type: List[PdObject]
+        self._shadow_acc: List[PdObject] = []
 
     def shadow_trigger(self) -> Optional[PdObject]:
         ret = self.shadow_parent.pop_or_none()
@@ -543,7 +543,7 @@ def pd_deep_copy_to_list(obj: PdValue) -> PdValue:
     if isinstance(obj, (Char, int, float)):
         return obj
     else:
-        acc = [] # type: List[PdValue]
+        acc: List[PdValue] = []
         for e in pd_iterable(obj):
             if isinstance(e, Block):
                 raise AssertionError("can't deep copy Block")
@@ -609,10 +609,10 @@ def pd_deepvectorize_nn2v(func: Callable[[PdNum, PdNum], PdValue],
     else:
         n = max(pd_len_singleton(obj1), pd_len_singleton(obj2))
 
-        acc = [pd_deepvectorize_nn2v(func, e1, e2)
+        acc: List[PdObject] = [pd_deepvectorize_nn2v(func, e1, e2)
                 for e1, e2
                 in zip(pd_cycle_to_len(n, obj1), pd_cycle_to_len(n, obj2))
-        ] # type: List[PdObject] # !?
+        ]
         if ((isinstance(obj1, str) or isinstance(obj2, str)) and
                 isinstance(obj1, (Char, int, str)) and
                 isinstance(obj2, (Char, int, str))):
@@ -629,9 +629,9 @@ def pd_deep_stats(obj: PdObject) -> Tuple[int, Union[int, float], Union[int, flo
         v = num.numerify(obj)
         return (1, v, v**2)
     else:
-        c = 0 # type: int
-        s = 0 # type: Union[int, float]
-        q = 0 # type: Union[int, float]
+        c: int               = 0
+        s: Union[int, float] = 0
+        q: Union[int, float] = 0
         for e in pd_iterable(obj):
             c1, s1, q1 = pd_deep_stats(e)
             c += c1
@@ -659,7 +659,7 @@ def pd_deep_product(obj: PdObject) -> Union[int, float]:
     if isinstance(obj, (Char, int, float)):
         return num.numerify(obj)
     else:
-        p = 1 # type: Union[int, float]
+        p: Union[int, float] = 1
         for e in pd_iterable(obj):
             p *= pd_deep_product(e) # type: ignore
         return p
@@ -756,7 +756,7 @@ def pd_modify_index(env: Environment, func: Block, seq: PdSeq, n: int) -> PdObje
     return before + pd_sandbox(env, func, [seq[n]]) + after
 def pd_join(env: Environment, seq: PdSeq, joiner: PdSeq) -> PdObject:
     if isinstance(seq, (list, range)) and isinstance(joiner, (list, range)):
-        acc = [] # type: List[PdObject]
+        acc: List[PdObject] = []
         started = False
         for e in seq:
             if started:
@@ -870,7 +870,7 @@ def pd_flatten_once(val: PdValue) -> PdValue:
                     for e in val
                     )
         else:
-            acc = [] # type: List[PdObject]
+            acc: List[PdObject] = []
             for e in val:
                 if isinstance(e, str):
                     acc.extend(Char(c) for c in e)
@@ -897,7 +897,7 @@ def pd_flatten(val: PdValue) -> PdValue:
     if isinstance(val, (Char, int, float, str, range)):
         return val
     else: # list
-        acc = [] # type: List[PdObject]
+        acc: List[PdObject] = []
         for e in val:
             if isinstance(e, str):
                 acc.extend(Char(c) for c in e)
@@ -1007,7 +1007,7 @@ def pd_rectangularize_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
         else:
             n = max(n, 1)
 
-    acc = [] # type: List[list]
+    acc: List[list] = []
     for row0 in pd_iterable(matrix):
         if isinstance(row0, (str, list, range)):
             row = list(pd_iterable(row0))
@@ -1017,7 +1017,7 @@ def pd_rectangularize_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
     return acc
 
 def pd_transpose(matrix: PdSeq) -> List[list]:
-    res = [] # type: List[list]
+    res: List[list] = []
     for row0 in pd_iterable(matrix):
         if isinstance(row0, (str, list, range)):
             row = pd_iterable(row0)
@@ -1031,7 +1031,7 @@ def pd_transpose(matrix: PdSeq) -> List[list]:
     return res
 
 def pd_transpose_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
-    res = [] # type: List[list]
+    res: List[list] = []
     for ri, row0 in py_enumerate(matrix):
         if isinstance(row0, (str, list, range)):
             row = pd_iterable(row0)
@@ -1102,7 +1102,7 @@ def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
 
 def pd_map_iterable(env: Environment, func: Block, it: Iterable[PdObject]) -> List[PdObject]:
     env.push_yx()
-    acc = [] # type: List[PdObject]
+    acc: List[PdObject] = []
     try:
         for i, element in enumerate(it):
             env.set_yx(i, element)
@@ -1122,7 +1122,7 @@ def pd_map_fold_into(env: Environment, func: Block, seq: PdSeq,
     # be helpful for f to be stateful, and it should return a non-None answer
     # when given None.
     env.push_yx()
-    ret = None # type: Optional[T]
+    ret: Optional[T] = None
     try:
         for i, element in enumerate(pd_iterable(seq)):
             env.set_yx(i, element)
@@ -1144,7 +1144,7 @@ def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
         pd_map_iterable(env, func, pd_iterable(seq)))
 
 def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
-    acc = [] # type: List[PdObject]
+    acc: List[PdObject] = []
     for e in pd_iterable(seq):
         if isinstance(e, Block):
             raise TypeError("Can't map reverse over block")
@@ -1159,13 +1159,13 @@ def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
 def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq) -> list:
     # Approximately: (f : a -> b -> c) -> (seq1 : [a]) -> (seq2 : [b]) -> [[c]]
     env.push_yx()
-    outer = [] # type: list
+    outer: list = []
     try:
         for i, e1 in py_enumerate(seq1):
             env.set_yx(i, e1)
 
             env.push_yx()
-            inner = [] # type: List[PdObject]
+            inner: List[PdObject] = []
             try:
                 for j, e2 in py_enumerate(seq2):
                     env.set_yx(j, e2)
@@ -1186,7 +1186,7 @@ def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq) -> l
 
 def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     env.push_yx()
-    acc = [] # type: List[PdObject]
+    acc: List[PdObject] = []
     try:
         for i, element in py_enumerate(seq):
             env.set_yx(i, element)
@@ -1199,7 +1199,7 @@ def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     return sum(acc)
 
 def pd_translate_entries(source: PdSeq, target: PdSeq) -> Generator[Tuple[PdKey, PdObject], None, None]:
-    t0 = None # type: Optional[PdObject]
+    t0: Optional[PdObject] = None
     for s, t in itertools.zip_longest(pd_iterable(source), pd_iterable(target)):
         if t is not None:
             t0 = t # loop the last element of the target
@@ -1266,7 +1266,7 @@ def pd_run_with_probability_then_empty_list(env: Environment, func: Block, prob:
 def pd_filter_entries(env: Environment, func: Block, seq: PdSeq,
         negate: bool = False) -> List[Tuple[int, PdObject]]:
     env.push_yx()
-    acc = [] # type: List[Tuple[int, PdObject]]
+    acc: List[Tuple[int, PdObject]] = []
     try:
         for i, element in enumerate(pd_iterable(seq)):
             env.set_yx(i, element)
@@ -1342,7 +1342,7 @@ def pd_while_then_empty_list(env: Environment, cond: Block, body: Block,
 # }}}
 # reduce, zip {{{
 def pd_reduce(env: Environment, func: Block, seq: PdSeq) -> PdObject:
-    acc = None # type: Optional[PdObject]
+    acc: Optional[PdObject] = None
     for element in pd_iterable(seq):
         if acc is None:
             acc = element
@@ -1356,7 +1356,7 @@ def pd_zip(env: Environment, func: Block, *iterables: Iterable[PdObject]) -> Lis
     arity = len(iterables)
     for i in range(arity + 1):
         env.push_x("INTERNAL ZIP FILLER -- YOU SHOULD NOT SEE THIS")
-    acc = [] # type: List[PdObject]
+    acc: List[PdObject] = []
     try:
         for i, es in enumerate(zip(*iterables)):
             for j, e in enumerate(es):
@@ -1377,7 +1377,7 @@ def pd_ziplongest(env: Environment,
         iterable2: Iterable[PdObject]) -> PdObject:
     for i in range(3):
         env.push_x("INTERNAL ZIP FILLER -- YOU SHOULD NOT SEE THIS")
-    acc = [] # type: List[PdObject]
+    acc: List[PdObject] = []
     try:
         for i, (e1, e2) in enumerate(itertools.zip_longest(iterable1, iterable2)):
             try:
@@ -1400,8 +1400,8 @@ def pd_iterate(env: Environment, func: Block) -> Tuple[List[PdObject], PdObject]
     """Iterate a block, peeking at the stack top at the start and after each
     iteration, until a value repeats. Pop that value. Returns the list of (all
     distinct) elements peeked along the way and the final repeated value."""
-    acc = [] # type: List[PdObject]
-    seen = set() # type: Set[PdKey]
+    acc: List[PdObject] = []
+    seen: Set[PdKey] = set()
     while True:
         obj = env.peek()
         key = pykey(obj)
@@ -1493,14 +1493,14 @@ def pd_to_int(val: PdValue) -> int:
 # collection & | ^ {{{
 def pd_seq_intersection(a: PdSeq, b: PdSeq) -> PdSeq:
     counter = collections.Counter(pd_iterable(b))
-    acc = [] # type: List[PdObject]
+    acc: List[PdObject] = []
     for element in pd_iterable(a):
         if counter[element] > 0:
             acc.append(element)
             counter[element] -= 1
     return pd_build_like(a, acc)
 def pd_seq_union(a: PdSeq, b: PdSeq) -> PdSeq:
-    acc = list(pd_iterable(a)) # type: List[PdObject]
+    acc: List[PdObject] = list(pd_iterable(a))
     counter = collections.Counter(pd_iterable(a))
     for element in pd_iterable(b):
         if counter[element] > 0:
@@ -1510,7 +1510,7 @@ def pd_seq_union(a: PdSeq, b: PdSeq) -> PdSeq:
     return pd_build_like(a, acc)
 def pd_seq_difference(a: PdSeq, b: PdSeq) -> PdSeq:
     set_b = collections.Counter(pd_iterable(b))
-    acc = [] # type: List[PdObject]
+    acc: List[PdObject] = []
     for element in pd_iterable(a):
         if element in set_b and set_b[element]:
             set_b[element] -= 1
@@ -1520,7 +1520,7 @@ def pd_seq_difference(a: PdSeq, b: PdSeq) -> PdSeq:
 def pd_seq_symmetric_difference(a: PdSeq, b: PdSeq) -> PdSeq:
     set_a = collections.Counter(pd_iterable(a))
     set_b = collections.Counter(pd_iterable(b))
-    acc = [] # type: List[PdObject]
+    acc: List[PdObject] = []
     for element in pd_iterable(a):
         if element not in set_b:
             acc.append(element)
@@ -1530,8 +1530,8 @@ def pd_seq_symmetric_difference(a: PdSeq, b: PdSeq) -> PdSeq:
     return pd_build_like(a, acc)
 
 def pd_seq_uniquify(a: PdSeq) -> PdSeq:
-    s = set() # type: Set[PdKey]
-    acc = [] # type: List[PdObject]
+    s: Set[PdKey] = set()
+    acc: List[PdObject] = []
     for element in pd_iterable(a):
         key = pykey(element)
         if key not in s:
@@ -1549,7 +1549,7 @@ def pd_seq_is_identical(a: PdSeq) -> bool:
     return True
 
 def pd_seq_is_unique(a: PdSeq) -> bool:
-    s = set() # type: Set[PdKey]
+    s: Set[PdKey] = set()
     for element in pd_iterable(a):
         key = pykey(element)
         if key in s:
@@ -1567,8 +1567,8 @@ def pd_if_then_empty_list(env: Environment, condition: PdObject, body: PdObject,
 class MemoizedBlock(Block):
     def __init__(self, block: Block) -> None:
         self.block = block
-        self.arity = None # type: Optional[int]
-        self.memo = dict() # type: Dict[PdKey, List[PdObject]]
+        self.arity: Optional[int] = None
+        self.memo: Dict[PdKey, List[PdObject]] = dict()
     def __call__(self, env: 'Environment') -> None:
         # TODO Lots of X-stack things should be reconsidered.
         env.push_x(self)
@@ -1617,7 +1617,7 @@ def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> PdV
     arr_new = pd_deep_copy_to_list(arr)
     for key in ks:
         try:
-            target = arr_new # type: PdObject
+            target: PdObject = arr_new
             for i in key[:-1]:
                 if isinstance(target, (str, list, range)):
                     target = pd_index(target, i)

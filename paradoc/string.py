@@ -7,7 +7,7 @@ def str_class(s: str) -> str:
     """
     i = 0
     n = len(s)
-    ret = [] # type: List[str]
+    ret: List[str] = []
     while i < n:
         if i + 2 < n and s[i+1] == '-':
             start = ord(s[i])

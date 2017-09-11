@@ -1426,7 +1426,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
                 return None
         return f
     def make_unique_fold_f() -> Callable[[Optional[List[PdObject]]], Optional[bool]]:
-        s = set() # type: Set[PdObject]
+        s: Set[PdObject] = set()
         def f(es: Optional[List[PdObject]]) -> Optional[bool]:
             if es is None:
                 return True
@@ -1437,7 +1437,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
                 return None
         return f
     def make_identical_fold_f() -> Callable[[Optional[List[PdObject]]], Optional[bool]]:
-        obj = None # type: Optional[PdObject]
+        obj: Optional[PdObject] = None
         def f(es: Optional[List[PdObject]]) -> Optional[bool]:
             nonlocal obj
             if es is None:

@@ -275,13 +275,13 @@ class CasedBuiltIn(Block):
             assert c1.arity <= c2.arity
 
         self.name = name
-        self.aliases = aliases or [name] # type: List[str]
+        self.aliases: List[str] = aliases or [name]
         self.cases = cases
         self.docs = docs
         self.stability = stability
 
     def __call__(self, env: 'Environment') -> None:
-        collected_args = [] # type: List[PdObject]
+        collected_args: List[PdObject] = []
         for case in self.cases:
             assert len(collected_args) <= case.arity
             try:

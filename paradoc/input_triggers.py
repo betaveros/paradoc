@@ -27,7 +27,7 @@ def word(file: IO[str] = sys.stdin) -> Optional[str]:
         # Skip space
         while c.isspace(): c = file.read(1)
 
-        res = [] # type: List[str]
+        res: List[str] = []
 
         while not c.isspace():
             res.append(c)

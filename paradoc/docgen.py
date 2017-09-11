@@ -456,7 +456,7 @@ p.stable { color: #0a0; }
 
 safe_id_chars = string.ascii_letters + string.digits
 def mangle_to_id(id_prefix: str, name: str) -> str:
-    acc = [id_prefix, '_'] # type: List[str]
+    acc: List[str] = [id_prefix, '_']
     for c in name:
         if c in safe_id_chars:
             acc.append(c)
@@ -483,7 +483,7 @@ def document(env: Environment,
     id_referenced_names = set()
 
     def link_name(id_prefix: str, name: str, is_trailer: bool) -> Markup:
-        chars = [] # type: List[dict]
+        chars: List[dict] = []
         if is_trailer: chars.append({'text': '_'})
         for c in name:
             if c == "\r":
