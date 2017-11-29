@@ -427,7 +427,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Plus_lengths', ['+l'], [
         Case.number2_len(lambda env, a, b: [num.pd_add(a, b)]),
     ],
-            docs="""Subtract two things after coercing both to ints or floats,
+            docs="""Add two things after coercing both to ints or floats,
             sequences by taking their length.""",
             stability="unstable")
     cput('Minus_ints', ['-i'], [
