@@ -144,6 +144,8 @@ def pd_mul_div_const(a: PdNum, mul: int, div: int, to_int: bool = False) -> PdNu
         return Char(a.ord * mul // div)
     elif to_int:
         return int(a * mul // div)
+    elif div == 1:
+        return a * mul
     else:
         return a * mul / div
 
