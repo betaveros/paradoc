@@ -309,7 +309,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]Zip'), [[[1,9],[2,7],[3,5]]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 1 2 3 5]Zp'), [[[1,9],[2,7],[3,5]]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 9]+_‰'), [[10,9,8]])
+        self.assertEqual(pd_simple_eval('[9 7 5 1 2]Az'), [[[9,7],[7,5],[5,1],[1,2]]])
+        self.assertEqual(pd_simple_eval('[9 7 5 1 2]2W'), [[[9,7],[7,5],[5,1],[1,2]]])
+        self.assertEqual(pd_simple_eval('[9 7 5 1 2 1]4W'), [[[9,7,5,1],[7,5,1,2],[5,1,2,1]]])
         self.assertEqual(pd_simple_eval('[1 2][9 7 5 1 2 5]Zl'), [[[1,9],[2,7],[5],[1],[2],[5]]])
+        self.assertEqual(pd_simple_eval('[1 2][9 7 5 1 2]Oz'), [[[1,9],[2,7],[1,5],[2,1],[1,2]]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]+z'), [[10,9,8]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 1 2 3 5]2z'), [[[1,9],[2,7],[3,5]]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]{+}2z'), [[10,9,8]])
@@ -320,6 +324,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 4 4 4]+y'), [[10,9,8,4,4,4]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ä'), [[3,5,8,14,20]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ë'), [[1,3,5,8,13,16]])
+        self.assertEqual(pd_simple_eval('[1 2 3 5 9][1 2]+ö'), [[2,4,4,7,10]])
 
     def test_mask(self):
         self.assertEqual(pd_simple_eval('8,[1 0 0 1 0 1 1 0]€'), [[0,3,5,6]])

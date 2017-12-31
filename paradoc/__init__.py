@@ -398,8 +398,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="beta")
     def autozip_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def autozip_b(env: Environment) -> None:
-            lst_a = objects.pd_to_list_range(env.pop())
-            env.push(objects.pd_zip(env, b, lst_a, lst_a[1:]))
+            env.push(objects.pd_autozip(env, b, env.pop()))
         return (BuiltIn(b.code_repr() + "_autozip", autozip_b), False)
 
     @put("enumap", "ë",
@@ -412,6 +411,21 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             lst_a = objects.pd_to_list_range(env.pop())
             env.push(objects.pd_zip(env, b, range(len(lst_a)), lst_a))
         return (BuiltIn(b.code_repr() + "_enumap", enumap_b), False)
+
+    @put("loopzip", "ö",
+            docs="""Execute this block once for each corresponding pair of
+            elements from two lists (coerces numbers to ranges). Both elements
+            are pushed onto the stack. Collect the results into a list, which
+            has the same length as the longer of the arguments; if one list is
+            shorter, that list's elements are cycled until it is the same
+            length as the longer list.""",
+            stability="alpha")
+    def loopzip_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def loopzip_b(env: Environment) -> None:
+            lst_b = objects.pd_to_list_range(env.pop())
+            lst_a = objects.pd_to_list_range(env.pop())
+            env.push(objects.pd_loopzip(env, b, lst_a, lst_b))
+        return (BuiltIn(b.code_repr() + "_loopzip", loopzip_b), False)
 
     @put("mapsum", "š",
             docs="""Apply this block to each element of a list (coerces numbers

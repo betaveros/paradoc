@@ -1318,6 +1318,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             where elements of the longer list are collected unmodified. The
             result has length equal to that of the longest list.""",
             stability="alpha")
+    cput('Autozip', ['Az'], [
+        Case.seq_range(lambda env, seq: [pd_sliding_window_seq(seq, 2)]),
+        Case.block_seq_range(lambda env, block, a: [pd_autozip(env, block, a)]),
+    ],
+            docs="""Collect the list of adjacent pairs of elements of a list
+            (coerces numbers to ranges); or map a block across these pairs,
+            which is equivalent to zipping the list with its own tail.""",
+            stability="alpha")
+    cput('Loopzip', ['Oz'], [
+        Case.seq2_range(lambda env, a, b: [pd_loopzip_as_list(a, b)]),
+        Case.seq2_range_block(lambda env, a, b, block: [pd_loopzip(env, block, a, b)]),
+    ],
+            docs="""Zip two sequences (numbers coerce to ranges), returning a
+            list of length-2 lists; or zip them with a block, which operates on
+            corresponding pairs of the two lists. The result has length equal
+            to that of the longest list; the shorter list, if one exists, is
+            looped until it is the right length. Mnemonic: O looks like a
+            loop.""",
+            stability="alpha")
 
     pow10_case = Case.number(lambda env, n: [10 ** num.numerify(n)])
     cput('Power_of_ten', [], [pow10_case], stability="alpha")

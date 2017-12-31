@@ -831,7 +831,7 @@ def pd_split_seq_by(seq: PdSeq, tok: PdSeq) -> List[PdSeq]:
     return list(pd_split_seq_by_gen(seq, tok))
 
 def pd_sliding_window_seq_int_gen(seq: PdSeq, n: int) -> Generator[PdSeq, None, None]:
-    for i in range(n + 1 - len(seq)):
+    for i in range(len(seq) + 1 - n):
         yield seq[i:i+n]
 
 def pd_sliding_window_seq(seq: PdSeq, n: PdNum) -> List[PdSeq]:
@@ -961,6 +961,21 @@ def pd_zip_as_list(*seq: PdSeq) -> PdObject:
 def pd_ziplongest_as_list(*seq: PdSeq) -> PdObject:
     return [[e for e in es if e is not None] for es in itertools.zip_longest(
         *(pd_iterable(s) for s in seq))]
+
+def tagged_cycle(iterable: Iterable[T]) -> Iterable[Tuple[bool, T]]:
+    saved = []
+    for element in iterable:
+        yield (False, element)
+        saved.append(element)
+    while saved:
+        for element in saved: yield (True, element)
+def loopzip(*iterables: Iterable[T]) -> Iterable[Tuple[T, ...]]:
+    for values in zip(*(tagged_cycle(iterable) for iterable in iterables)):
+        if all(tag for tag, _ in values): break
+        yield tuple(val for _, val in values)
+
+def pd_loopzip_as_list(*seq: PdSeq) -> PdObject:
+    return [list(es) for es in loopzip(*(pd_iterable(s) for s in seq))]
 
 def pd_str_subsequences_gen(seq: str) -> Generator[str, None, None]:
     if not seq:
@@ -1371,6 +1386,10 @@ def pd_zip(env: Environment, func: Block, *iterables: Iterable[PdObject]) -> Lis
             env.pop_x()
     return acc
 
+def pd_autozip(env: Environment, func: Block, obj: PdObject) -> List[PdObject]:
+    lst = pd_to_list_range(obj)
+    return pd_zip(env, func, lst, lst[1:])
+
 def pd_ziplongest(env: Environment,
         func: Block,
         iterable1: Iterable[PdObject],
@@ -1388,6 +1407,27 @@ def pd_ziplongest(env: Environment,
                     acc.extend(pd_sandbox(env, func, [e1, e2]))
                 else:
                     acc.extend(e for e in (e1, e2) if e is not None)
+            except PdContinueException: pass
+    except PdBreakException: pass
+    finally:
+        for i in range(3):
+            env.pop_x()
+    return acc
+
+def pd_loopzip(env: Environment,
+        func: Block,
+        iterable1: Iterable[PdObject],
+        iterable2: Iterable[PdObject]) -> PdObject:
+    for i in range(3):
+        env.push_x("INTERNAL ZIP FILLER -- YOU SHOULD NOT SEE THIS")
+    acc: List[PdObject] = []
+    try:
+        for i, (e1, e2) in enumerate(loopzip(iterable1, iterable2)):
+            try:
+                env.set_x(0, e1)
+                env.set_x(1, e2)
+                env.set_x(2, i)
+                acc.extend(pd_sandbox(env, func, [e1, e2]))
             except PdContinueException: pass
     except PdBreakException: pass
     finally:
