@@ -518,6 +518,11 @@ def pd_min(a: PdObject, b: PdObject) -> PdObject:
     return a if pd_less_than(a, b) else b
 def pd_max(a: PdObject, b: PdObject) -> PdObject:
     return b if pd_less_than(a, b) else a
+def pd_median_of_three(a: PdObject, b: PdObject, c: PdObject) -> PdObject:
+    if pd_less_than(a, b): a, b = b, a
+    if pd_less_than(b, c): b, c = c, b
+    if pd_less_than(a, b): a, b = b, a
+    return b
 def pd_min_of_seq(a: PdSeq) -> PdObject:
     if isinstance(a, str): return min(pd_iterable(a))
     cur = None

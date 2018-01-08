@@ -883,6 +883,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Maximum of two values""",
             stability="beta")
+    cput('Median_of_three', ['=m'], [
+        Case.value3(lambda env, a, b, c: [pd_median_of_three(a, b, c)]),
+    ],
+            docs="""Median of three values.""",
+            stability="unstable")
     cput('Array_min', ['<r', 'Œ'], [
         Case.seq(lambda env, e: [pd_min_of_seq(e)]),
     ],
