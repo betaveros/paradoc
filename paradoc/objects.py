@@ -1226,6 +1226,21 @@ def pd_translate(operand: PdSeq, source: PdSeq, target: PdSeq) -> PdSeq:
     td = dict(pd_translate_entries(source, target))
     return pd_build_like(operand, [td.get(pykey(e), e) for e in pd_iterable(operand)])
 
+def pd_one_time_translate(operand: PdSeq, source: PdSeq, target: PdSeq) -> PdSeq:
+    td: Dict[PdKey, List[PdObject]] = dict()
+    for k, v in pd_translate_entries(source, target):
+        if k not in td: td[k] = []
+        td[k].append(v)
+    for k in td:
+        td[k].reverse()
+    def translate(k: PdObject) -> PdObject:
+        v = td.get(pykey(k))
+        if v is None or len(v) == 0:
+            return k
+        else:
+            return v.pop()
+    return pd_build_like(operand, [translate(e) for e in pd_iterable(operand)])
+
 def pd_foreach(env: Environment, func: Block, seq: PdSeq) -> None:
     env.push_yx()
     try:

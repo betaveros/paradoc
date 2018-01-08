@@ -557,6 +557,7 @@ class TestParadoc(unittest.TestCase):
 
     def test_translate(self):
         self.assertEqual(pd_simple_eval('"1234321" "123" "ab" Tr'), ["abb4bba"])
+        self.assertEqual(pd_simple_eval('"1234321" "123" "ab" Ot'), ["abb4321"])
 
     def test_string_trailers(self):
         self.assertEqual(pd_simple_eval('1 2 3"% % %"i'), ["1 2 3"])

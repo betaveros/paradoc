@@ -446,8 +446,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq3_singleton(lambda env, seq, src, tgt: [pd_translate(seq, src, tgt)]),
     ],
             docs="""Translate the first argument using a mapping obtained by
-            zipping the second and third, repeading the last element of the
+            zipping the second and third, repeating the last element of the
             third as necessary.""",
+            stability="alpha")
+    cput('One_time_translate', ['Ot'], [
+        Case.seq3_singleton(lambda env, seq, src, tgt: [pd_one_time_translate(seq, src, tgt)]),
+    ],
+            docs="""Translate the first argument using a mapping obtained by
+            zipping the second and third, repeating the last element of the
+            third as necessary. Each entry in the mapping is used at most once,
+            in the order they appear.""",
             stability="alpha")
     # }}}
     # Acute/grave vowels {{{
