@@ -1744,32 +1744,51 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Log_two', ['Lg'], [Case.value_n2v(math.log2 )], stability="alpha")
     # }}}
     # Character conversion and predicates (letter-case etc) {{{
-    cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower() , x)])], stability="beta")
-    cput('Uppercase', ['Uc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.upper() , x)])], stability="beta")
-    cput('Exchange_case', ['Xc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.swapcase(), x)])], stability="alpha")
+    cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower(), x)])], docs="Converts all characters to lowercase. Deeply vectorizes.", stability="beta")
+    cput('Uppercase', ['Uc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.upper(), x)])], docs="Converts all characters to uppercase. Deeply vectorizes.", stability="beta")
+    cput('Exchange_case', ['Xc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.swapcase(), x)])], docs="Swaps the case of all characters. Deeply vectorizes.", stability="alpha")
     # TODO: this doesn't work on, say, lists of chars
-    cput('Title_case', ['Tc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.title(), x)])], stability="alpha")
+    cput('Title_case', ['Tc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.title(), x)])], docs="Title-cases all strings?", stability="alpha")
     cput('Matching_character', ['Mc'], [
         Case.value(lambda env, x: [pd_deepmap_s2s(
             lambda e: num.matching_dict.get(e, e), x, whole_str_ok=False)])
     ],
-        stability="alpha")
+            docs="""Finds the matching character for one of the characters
+            ()[]{}<>, or returns the character itself. Deeply vectorizes.""",
+            stability="alpha")
 
-    cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isalpha()), x)])], stability="beta")
-    cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.islower()), x)])], stability="beta")
-    cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isupper()), x)])], stability="beta")
-    cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])], stability="alpha")
+    cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isalpha()), x)])], docs="Tests if characters are letters. Deeply vectorizes.", stability="beta")
+    cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.islower()), x)])], docs="Tests if characters are lowercase. Deeply vectorizes.", stability="beta")
+    cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isupper()), x)])], docs="Tests if characters are uppercase. Deeply vectorizes.", stability="beta")
+    cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])], docs="Tests if characters are whitespace. Deeply vectorizes.", stability="alpha")
     cput('Value_of_character', ['Vc'], [
         Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: num.value_dict.get(e, 0), x)])
     ],
+            docs="""Finds the "value" of a character: digits give their numeric
+            value, - and < give -1, + and > give +1, everything else gives 0.
+            Deeply vectorizes.""",
             stability="alpha")
     cput('Nest_of_character', ['Nc'], [
         Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: num.nest_dict.get(e, 0), x)])
     ],
+            docs="""Finds the amount by which a character affects "nestedness":
+            ([{< give +1, >}]) give -1, everything else gives 0. Deeply vectorizes.""",
             stability="alpha")
-    cput('Int_of_alpha', ['Ia'], [Case.value(lambda env, x: [pd_deepmap_s2v(num.int_of_alpha, x)])], stability="unstable")
-    cput('Lower_of_int', ['Li'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: num.lower_of_int(num.intify(e)), x)])], stability="unstable")
-    cput('Upper_of_int', ['Ui'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: num.upper_of_int(num.intify(e)), x)])], stability="unstable")
+    cput('Int_of_alpha', ['Ia'], [Case.value(lambda env, x: [pd_deepmap_s2v(num.int_of_alpha, x)])],
+            docs="""Convert a letter to an integer starting with A = 1;
+            non-letters (or letters outside the Latin alphabet) give 0. Deeply
+            vectorizes.""",
+            stability="unstable")
+    cput('Lower_of_int', ['Li'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: num.lower_of_int(num.intify(e)), x)])],
+            docs="""Convert an integer to a lowercase letter starting with a =
+            1; things outside the range 1 to 26 give spaces. Deeply
+            vectorizes.""",
+            stability="unstable")
+    cput('Upper_of_int', ['Ui'], [Case.value(lambda env, x: [pd_deepmap_n2v(lambda e: num.upper_of_int(num.intify(e)), x)])],
+            docs="""Convert an integer to an uppercase letter starting with A =
+            1; things outside the range 1 to 26 give spaces. Deeply
+            vectorizes.""",
+            stability="unstable")
     # }}}
     # Replicate, fill/pad {{{
 
