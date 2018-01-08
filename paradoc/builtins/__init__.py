@@ -9,6 +9,7 @@ import sys, math
 import time, datetime
 import random
 import operator, functools
+import re
 from paradoc.builtins.case import Case, CasedBuiltIn
 from paradoc.builtins.lazy_vars import arithmetic_literal_trigger
 from paradoc.string import str_class, case_double
@@ -2035,6 +2036,34 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             random.seed(e)
         else:
             raise AssertionError("Can't seed random with non-numeric non-string value " + repr(e))
+    # }}}
+    # Regular expressions {{{
+    cput('Regex_search', ['Rs'], [
+        Case.value2(lambda env, s, regex: [match_to_pd(re.search(env.pd_str(regex), env.pd_str(s)))]),
+    ],
+            docs="""Take a string and a regex, and perform a regex search
+            through the string. Returns a list consisting of the string matched
+            by the regex followed by all of the regex's groups, or an empty
+            list if no match is found (so the truthiness of the result is
+            whether a match is found).""",
+            stability="unstable")
+    cput('Regex_match', ['Rm'], [
+        Case.value2(lambda env, s, regex: [match_to_pd(re.fullmatch(env.pd_str(regex), env.pd_str(s)))]),
+    ],
+            docs="""Take a string and a regex, and attempt to match the regex
+            exactly against the entire string.  Returns a list consisting of
+            the string matched by the regex followed by all of the regex's
+            groups, or an empty list if no match is found (so the truthiness of
+            the result is whether a match is found).""",
+            stability="unstable")
+    cput('Regex_list', ['Rl'], [
+        Case.value2(lambda env, s, regex: [[match_to_pd(m) for m in re.finditer(env.pd_str(regex), env.pd_str(s))]]),
+    ],
+            docs="""Take a string and a regex, and find all matches (this is
+            Python's re.finditer, and its caveats apply.) Returns a list with
+            one list for each match; each list consists of the string matched
+            by the regex followed by all of the regex's groups.""",
+            stability="unstable")
     # }}}
     # Stack functions {{{
     @put('Pop_stack', ';s',

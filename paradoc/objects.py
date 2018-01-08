@@ -1,8 +1,8 @@
 # coding: utf-8
 import typing
 from typing import (
-        Callable, Dict, Generator, Iterable, Iterator, List, Optional, Set,
-        Tuple, TypeVar, Union, overload,
+        Callable, Dict, Generator, Match, Iterable, Iterator, List, Optional,
+        Set, Tuple, TypeVar, Union, overload,
         )
 import sys
 import math
@@ -1701,5 +1701,11 @@ def pd_array_key_get(arr: Union[list, range], k: Union[list, range]) -> PdObject
         target = target[sk]
     return target
 # }}}
-
+# regex {{{
+def match_to_pd(m: Optional[Match]) -> PdObject:
+    if m is None:
+        return []
+    else:
+        return [m.group(0)] + [g for g in m.groups() if g is not None]
+# }}}
 # vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:

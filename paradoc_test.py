@@ -579,6 +579,15 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10{:{(:&u&+}{;1}?}Memo.&~', use_cache=False), [1024])
         self.assertEqual(pd_simple_eval('10{:{(:XuX+}{;1}?}M~', use_cache=False), [1024])
 
+    def test_regex(self):
+        self.assertEqual(pd_simple_eval('"l33t""\\d"Rs'), [["3"]])
+        self.assertEqual(pd_simple_eval('"normal""\\d"Rs'), [[]])
+        self.assertEqual(pd_simple_eval('"12c456""\\d(\\d)\\d"Rs'), [["456", "5"]])
+        self.assertEqual(pd_simple_eval('"253""\\d"Rm'), [[]])
+        self.assertEqual(pd_simple_eval('"253""\\d+"Rm'), [["253"]])
+        self.assertEqual(pd_simple_eval('"253""\\d"Rl'), [[["2"], ["5"], ["3"]]])
+        self.assertEqual(pd_simple_eval('"2x5y3x""(\\d)x"Rl'), [[["2x", "2"], ["3x", "3"]]])
+
 if __name__ == '__main__':
     unittest.main()
 
