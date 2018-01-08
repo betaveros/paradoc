@@ -192,6 +192,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 3 5]:m'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]:_%'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]{:}_map'), [[2,2,3,3,5,5]])
+
+    def test_map_on(self):
+        self.assertEqual(pd_simple_eval('"chopping block"»_ m'), ["hopping lock"])
+        self.assertEqual(pd_simple_eval('"words\nare hard"L_\nm'), ["5\n8"])
+
     def test_deepmap(self):
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}w'), [[9,10,12]])
         self.assertEqual(pd_simple_eval('[[2 3]5[7 9]]{7+}w'), [[[9,10],12,[14,16]]])

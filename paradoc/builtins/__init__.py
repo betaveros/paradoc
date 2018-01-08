@@ -1896,6 +1896,21 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             pd_while_then_empty_list(env, cond, body))
     cput('Window', [], [window_case], stability="alpha")
     cput('Space_split', ['Words'], [words_case, window_case], stability="alpha")
+
+    def map_on_case(delim: str) -> Case:
+        return Case.block_value(lambda env, block, value:
+                [delim.join(env.pd_str(w) for w in pd_map_iterable(env, block, env.pd_str(value).split(delim)))])
+    cput('Map_on_words', [' m'], [map_on_case(' ')],
+            docs="""Map on words: takes a block and a string, split the string
+            by spaces, map the block over the tokens, then join the tokens with
+            a space.""",
+            stability="unstable")
+    cput('Map_on_lines', ['\nm', '\\nm'], [map_on_case('\n')],
+            docs="""Map on lines: takes a block and a string, split the string
+            into lines, map the block over the tokens, then join the tokens
+            with a linebreak.""",
+            stability="unstable")
+
     cput('While', [], [while_case],
             docs="""While loop: Execute first block, pop, break if false, execute
             second block, repeat.""",
