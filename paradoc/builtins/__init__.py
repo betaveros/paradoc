@@ -1972,7 +1972,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="Unstable alias for {{ 'Binomial_coefficient'|b }}.",
             stability="unstable")
     # TODO: choose
-    cput('Subsequences', ['¿'], [
+    cput('Subsequences', ['¿', 'Ss'], [
         Case.number(lambda env, n: [2 ** num.numerify(n)]),
         Case.seq(lambda env, seq: [pd_subsequences_list(seq)]),
         Case.block_seq_range(lambda env, block, seq:
