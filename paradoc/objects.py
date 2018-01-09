@@ -1400,6 +1400,17 @@ def pd_reduce(env: Environment, func: Block, seq: PdSeq) -> PdObject:
         raise AssertionError('pd_reduce on empty list')
     return acc
 
+def pd_scan(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
+    acc: Optional[PdObject] = None
+    res: List[PdObject] = []
+    for element in pd_iterable(seq):
+        if acc is None:
+            acc = element
+        else:
+            acc = pd_sandbox(env, func, [acc, element])[-1]
+        res.append(acc)
+    return res
+
 def pd_zip(env: Environment, func: Block, *iterables: Iterable[PdObject]) -> List[PdObject]:
     arity = len(iterables)
     for i in range(arity + 1):

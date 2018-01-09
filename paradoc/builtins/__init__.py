@@ -2079,7 +2079,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             raise AssertionError("Can't seed random with non-numeric non-string value " + repr(e))
     # }}}
     # Regular expressions {{{
-    cput('Regex_search', ['Rs'], [
+    cput('Regex_search', ['Es'], [
         Case.value2(lambda env, s, regex: [match_to_pd(re.search(env.pd_str(regex), env.pd_str(s)))]),
     ],
             docs="""Take a string and a regex, and perform a regex search
@@ -2088,7 +2088,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             list if no match is found (so the truthiness of the result is
             whether a match is found).""",
             stability="unstable")
-    cput('Regex_match', ['Rm'], [
+    cput('Regex_match', ['Em'], [
         Case.value2(lambda env, s, regex: [match_to_pd(re.fullmatch(env.pd_str(regex), env.pd_str(s)))]),
     ],
             docs="""Take a string and a regex, and attempt to match the regex
@@ -2097,7 +2097,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             groups, or an empty list if no match is found (so the truthiness of
             the result is whether a match is found).""",
             stability="unstable")
-    cput('Regex_list', ['Rl'], [
+    cput('Regex_list', ['El'], [
         Case.value2(lambda env, s, regex: [[match_to_pd(m) for m in re.finditer(env.pd_str(regex), env.pd_str(s))]]),
     ],
             docs="""Take a string and a regex, and find all matches (this is

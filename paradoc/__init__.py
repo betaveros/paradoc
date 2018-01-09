@@ -230,6 +230,21 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_reduce",
                 lambda env: apply_pd_list_op(env, b, objects.pd_reduce)), False)
 
+    @put("scan", "s",
+            docs="""Combine all elements in a list into one by repeatedly
+            applying a binary block (coerces numbers to 1-indexed ranges), and
+            push the list of all intermediate results.
+
+            ex:
+            [10 20 30] +s => [10 30 60]
+            [10 20 30] -s => [10 -10 -40]
+            [10 20 30] -as => [10 10 20]
+            """,
+            stability="alpha")
+    def scan_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_scan",
+                lambda env: apply_pd_list_op(env, b, objects.pd_scan)), False)
+
     @put("keepunder", "q",
             docs="""Execute this block in a preservation-shadow, so that any
             elements it pops aren't actually popped from the stack. Then push

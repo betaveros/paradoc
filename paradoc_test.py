@@ -238,6 +238,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10,+r'), [45])
         self.assertEqual(pd_simple_eval('10,*r'), [0])
         self.assertEqual(pd_simple_eval('10J*r'), [3628800])
+        self.assertEqual(pd_simple_eval('[5 7 8]+_scan'), [[5,12,20]])
+        self.assertEqual(pd_simple_eval('5,+s'), [[0,1,3,6,10]])
 
     def test_square_map(self):
         self.assertEqual(pd_simple_eval('5²m'), [[0,1,4,9,16]])
@@ -604,13 +606,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10{:{(:XuX+}{;1}?}M~', use_cache=False), [1024])
 
     def test_regex(self):
-        self.assertEqual(pd_simple_eval('"l33t""\\d"Rs'), [["3"]])
-        self.assertEqual(pd_simple_eval('"normal""\\d"Rs'), [[]])
-        self.assertEqual(pd_simple_eval('"12c456""\\d(\\d)\\d"Rs'), [["456", "5"]])
-        self.assertEqual(pd_simple_eval('"253""\\d"Rm'), [[]])
-        self.assertEqual(pd_simple_eval('"253""\\d+"Rm'), [["253"]])
-        self.assertEqual(pd_simple_eval('"253""\\d"Rl'), [[["2"], ["5"], ["3"]]])
-        self.assertEqual(pd_simple_eval('"2x5y3x""(\\d)x"Rl'), [[["2x", "2"], ["3x", "3"]]])
+        self.assertEqual(pd_simple_eval('"l33t""\\d"Es'), [["3"]])
+        self.assertEqual(pd_simple_eval('"normal""\\d"Es'), [[]])
+        self.assertEqual(pd_simple_eval('"12c456""\\d(\\d)\\d"Es'), [["456", "5"]])
+        self.assertEqual(pd_simple_eval('"253""\\d"Em'), [[]])
+        self.assertEqual(pd_simple_eval('"253""\\d+"Em'), [["253"]])
+        self.assertEqual(pd_simple_eval('"253""\\d"El'), [[["2"], ["5"], ["3"]]])
+        self.assertEqual(pd_simple_eval('"2x5y3x""(\\d)x"El'), [[["2x", "2"], ["3x", "3"]]])
 
 if __name__ == '__main__':
     unittest.main()
