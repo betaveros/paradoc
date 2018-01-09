@@ -576,6 +576,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"foo"9=f'), ["   foo   "])
         self.assertEqual(pd_simple_eval('"foo"9«f'), ["         foo"])
         self.assertEqual(pd_simple_eval('"foo"9»f'), ["foo         "])
+        self.assertEqual(pd_simple_eval('"foo"9\'*[f'), ["******foo"])
+        self.assertEqual(pd_simple_eval('"foo"9\'*]f'), ["foo******"])
+        self.assertEqual(pd_simple_eval('[1 3 5]6 8[f'), [[8,8,8,1,3,5]])
+        self.assertEqual(pd_simple_eval('[1 3 5]6 8]f'), [[1,3,5,8,8,8]])
 
     def test_translate(self):
         self.assertEqual(pd_simple_eval('"1234321" "123" "ab" Tr'), ["abb4bba"])

@@ -268,6 +268,9 @@ class Case:
     @staticmethod
     def seq2_range_block(func: Callable[[Environment, PdSeq, PdSeq, Block], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(3, [seq_range, seq_range, just_block], func, commutative=commutative)
+    @staticmethod
+    def list_range_number_any(func: Callable[[Environment, PdSeq, PdNum, PdObject], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(3, [seq_range, just_number, just_any], func, commutative=commutative)
 
 class CasedBuiltIn(Block):
     def __init__(self,

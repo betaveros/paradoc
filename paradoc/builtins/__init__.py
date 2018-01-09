@@ -262,8 +262,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     strcat_list_case = Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)])
     filter_case = Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq)])
     cput('Plus', [], [add_case], docs="Add numbers.", stability="stable")
-    cput('Cat', [], [cat_list_case], docs="Concatenate lists (numbers coerce to single-element lists).", stability="stable")
-    cput('Strcat', [], [strcat_list_case], docs="Concatenate strings (numbers coerce to strings).", stability="stable")
+    cput('Cat', [], [cat_list_case], docs="Concatenate two lists (numbers coerce to single-element lists).", stability="stable")
+    cput('Strcat', [], [strcat_list_case], docs="Concatenate two strings (numbers coerce to strings).", stability="stable")
     cput('Filter', [], [filter_case], docs="Filter a list by a block (numbers coerce to ranges).", stability="stable")
     cput('Plus_or_filter', ['+'], [add_case, cat_list_case, strcat_list_case, filter_case],
             docs="""Addition on numbers. Concatenation on lists and strings
@@ -636,9 +636,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="beta")
     flatten_once_case = Case.seq(lambda env, seq: [pd_flatten_once(seq)])
     flatten_case      = Case.seq(lambda env, seq: [pd_flatten(seq)])
-    cput('Flatten_once', ['[f'], [flatten_once_case],
+    cput('Flatten_once', ['Fo'], [flatten_once_case],
             stability="beta")
-    cput('Flatten',      [']f'], [flatten_case],
+    cput('Flatten',      ['Fl'], [flatten_case],
             stability="beta")
     # Note: The dots are the opposite convention of Ruby, where .. is inclusive
     # and ... is exclusive. I don't particularly like that convention. The
@@ -1841,19 +1841,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             if necessary and left-pad it with zeroes until at least the
             length.""",
             stability="unstable")
-    cput('Left_fill',  ['<f'],
+    cput('Left_fill_with_spaces',  ['<f'],
         char_biased_pad_cases(lambda s, n: s.rjust(n)),
             docs="""Given a value and a length, convert the value to a string
             if necessary and left-pad it with spaces until at least the
             length.""",
             stability="unstable")
-    cput('Right_fill', ['>f'],
+    cput('Right_fill_with_spaces', ['>f'],
         char_biased_pad_cases(lambda s, n: s.ljust(n)),
             docs="""Given a value and a length, convert the value to a string
             if necessary and right-pad it with spaces until at least the
             length.""",
             stability="unstable")
-    cput('Center_fill', ['=f'],
+    cput('Center_fill_with_spaces', ['=f'],
         char_biased_pad_cases(lambda s, n: s.center(n)),
             docs="""Given a value and a length, convert the value to a string
             if necessary and pad it with equally many spaces on either side
@@ -1868,6 +1868,23 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         char_biased_pad_cases(lambda s, n: s + ' ' * n),
             docs="""Given a value and a length, convert the value to a string
             if necessary and append that many spaces.""",
+            stability="unstable")
+
+    cput('Left_fill', ['[f'], [
+        Case.list_range_number_any(lambda env, s, n, fill:
+            [pd_build_like(s, [fill] * (num.intify(n) - len(s)) + list(pd_iterable(s)))]),
+    ],
+            docs="""Given a list (numbers coerce to ranges), a length, and a
+            filler object, left-pad the list with the filler object until at
+            least the length.""",
+            stability="unstable")
+    cput('Right_fill', [']f'], [
+        Case.list_range_number_any(lambda env, s, n, fill:
+            [pd_build_like(s, list(pd_iterable(s)) + [fill] * (num.intify(n) - len(s)))]),
+    ],
+            docs="""Given a list (numbers coerce to ranges), a length, and a
+            filler object, right-pad the list with the filler object until at
+            least the length.""",
             stability="unstable")
 
     cput('Space_repeat', [' x'], [
