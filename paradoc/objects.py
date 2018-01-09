@@ -1163,6 +1163,15 @@ def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     return pd_build_like(seq,
         pd_map_iterable(env, func, pd_iterable(seq)))
 
+def pd_map_singleton(seq: PdSeq) -> List[PdObject]:
+    acc: List[PdObject] = []
+    for e in pd_iterable(seq):
+        if isinstance(e, Char):
+            acc.append(e.chr)
+        else:
+            acc.append([e])
+    return acc
+
 def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
     acc: List[PdObject] = []
     for e in pd_iterable(seq):

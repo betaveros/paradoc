@@ -207,7 +207,9 @@ class TestParadoc(unittest.TestCase):
 
     def test_bind(self):
         self.assertEqual(pd_simple_eval('10,3%bf'), [[1,2,4,5,7,8]])
+        self.assertEqual(pd_simple_eval('[1 2 3] 100 +v'), [[101,102,103]])
         self.assertEqual(pd_simple_eval('10,3%v'), [[0,1,2,0,1,2,0,1,2,0]])
+        self.assertEqual(pd_simple_eval('[[1 2][3 4]] [100 200] +vz'), [[[101,102],[203,204]]])
         self.assertEqual(pd_simple_eval('9 5J%ß'), [[0,1,0,1,4]])
 
     def test_filter(self):

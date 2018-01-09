@@ -112,7 +112,9 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             on what's underneath. In essence, applies this block to two
             disjoint sets of arguments on the stack.
 
-            ex: 1 2 8 9 +d => 3 17""",
+            ex:
+            1 8 )d => 2 9
+            1 2 8 9 +d => 3 17""",
             stability="alpha")
     def double_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def double_b(env: Environment) -> None:
@@ -274,9 +276,18 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             Basically a {{ 'bind'|bt }} followed by a {{ 'map'|bt }};
             you can imagine it as vectorizing an operator if the top element of
             the stack is a scalar and the one beneath it is a sequence, hence
-            the single-letter name. But note that it isn't as eager as bind.
+            the single-letter name. But, for the purposes of attaching further
+            trailers, note that it isn't as eager as bind in popping the top
+            element immediately.
 
-            ex: [1 2 3] 100+v => [101 102 103]""",
+            ex: [1 2 3] 100+v => [101 102 103]
+
+            Below is an example where +bm would not work, as the bind would
+            already have bound the [100 200] rather than only bind anything
+            inside the zip.
+
+            ex: [[1 2][3 4]] [100 200] +vz => [[101 102][203 204]]
+            """,
             stability="alpha")
     def vectorize_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def bindmap_b(env: Environment) -> None:

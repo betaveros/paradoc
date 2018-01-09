@@ -256,12 +256,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # }}}
     # "Arithmetic" {{{
 
-    cput('Plus_or_filter', ['+'], [
-        Case.number2(lambda env, a, b: [num.pd_add(a, b)]),
-        Case.list2_singleton(lambda env, a, b: [list(a) + list(b)]),
-        Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)]),
-        Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq)]),
-    ],
+
+    add_case = Case.number2(lambda env, a, b: [num.pd_add(a, b)])
+    cat_list_case = Case.list2_singleton(lambda env, a, b: [list(a) + list(b)])
+    strcat_list_case = Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)])
+    filter_case = Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq)])
+    cput('Plus', [], [add_case], docs="Add numbers.", stability="stable")
+    cput('Cat', [], [cat_list_case], docs="Concatenate lists (numbers coerce to single-element lists).", stability="stable")
+    cput('Strcat', [], [strcat_list_case], docs="Concatenate strings (numbers coerce to strings).", stability="stable")
+    cput('Filter', [], [filter_case], docs="Filter a list by a block (numbers coerce to ranges).", stability="stable")
+    cput('Plus_or_filter', ['+'], [add_case, cat_list_case, strcat_list_case, filter_case],
             docs="""Addition on numbers. Concatenation on lists and strings
             (numbers coerce to single-element lists or to strings). Filter on
             block and list (numbers coerce to ranges).""",
@@ -282,11 +286,15 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             coerce to single-element lists.""",
             stability="unstable")
 
-    cput('Minus_or_reject', ['-'], [
-        Case.number2(lambda env, a, b: [num.pd_sub(a, b)]),
-        Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(a, b)]),
-        Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)]),
-    ],
+    minus_case = Case.number2(lambda env, a, b: [num.pd_sub(a, b)])
+    reject_in_case = Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(a, b)])
+    reject_case = Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)])
+    cput('Minus', [], [minus_case], docs="Subtract numbers.", stability="stable")
+    cput('Filter_not_in', ['Reject_in'], [reject_in_case],
+            docs="Filter-not-in on lists and strings (numbers coerce to single-element lists).", stability="stable")
+    cput('Filter_not', ['Reject'], [reject_case],
+            docs="Filter-not a list by a block (numbers coerce to ranges).", stability="stable")
+    cput('Minus_or_reject', ['-'], [minus_case, reject_in_case, reject_case],
             docs="""Subtraction on numbers. Filter-not-in on lists and strings
             (numbers coerce to single-element lists). Filter-not on block and
             list (numbers coerce to ranges). See also {{ 'Antiminus'|b }}.""",
@@ -571,20 +579,20 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # Range/enumerate/flatten; Comma, J {{{
     range_case = Case.number(lambda env, n: [range(num.intify(n))])
     cput('Range', [], [range_case],
-            docs="Range (half-open from 0)", stability="beta")
+            docs="Range (half-open from 0). Short: {{ ','|b }}", stability="beta")
     range_one_case = Case.number(lambda env, n: [range(1, num.intify(n) + 1)])
     cput('Range_one', [], [range_one_case],
-            docs="Range, inclusive from 1", stability="beta")
+            docs="Range, inclusive from 1. Short: {{ 'J'|b }}", stability="beta")
 
     enumerate_case = Case.seq(lambda env, seq: [pd_enumerate(seq)])
     cput('Enumerate', [], [enumerate_case],
-            docs="Zip with indices from 0", stability="beta")
+            docs="Zip with indices from 0. Short: {{ ','|b }}", stability="beta")
     enumerate_one_case = Case.seq(lambda env, seq: [pd_enumerate(seq, start=1)])
     cput('Enumerate_one', [], [enumerate_one_case],
-            docs="Zip with indices from 1", stability="beta")
+            docs="Zip with indices from 1. Short: {{ 'J'|b }}", stability="beta")
     filter_indexes_case = Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq)])
     cput('Filter_indexes', [], [filter_indexes_case],
-            docs="List indices at which block is true", stability="beta")
+            docs="List indices at which block is true. Short: {{ ','|b }}", stability="beta")
 
     cput('Range_enumerate_or_filter_indices', [','], [
         range_case,
@@ -628,9 +636,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="beta")
     flatten_once_case = Case.seq(lambda env, seq: [pd_flatten_once(seq)])
     flatten_case      = Case.seq(lambda env, seq: [pd_flatten(seq)])
-    cput('Flatten_once', [], [flatten_once_case],
+    cput('Flatten_once', ['[f'], [flatten_once_case],
             stability="beta")
-    cput('Flatten',      [], [flatten_case],
+    cput('Flatten',      [']f'], [flatten_case],
             stability="beta")
     # Note: The dots are the opposite convention of Ruby, where .. is inclusive
     # and ... is exclusive. I don't particularly like that convention. The
@@ -906,7 +914,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.list_(lambda env, x: [sorted(x)[len(x)//2]]),
         Case.str_(lambda env, s: [Char(sorted(s)[len(s)//2])]),
     ], docs="Median of array", stability="alpha")
-    cput('Compare', ['˜'], [
+    cput('Compare', ['=c', '˜'], [
         Case.number2(lambda env, a, b: [num.pd_cmp(a, b)]),
         Case.str2(lambda env, a, b: [num.any_cmp(a, b)]),
         Case.list2(lambda env, a, b: [num.any_cmp(list(a), list(b))]),
@@ -1123,8 +1131,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     cput('First',    [], [first_case], docs="First of sequence", stability="stable")
     cput('Last',     [], [last_case],  docs="Last of sequence",  stability="stable")
-    cput('Butlast',  [], [butlast_case],  docs="All but last of sequence",  stability="beta")
-    cput('Butfirst', [], [butfirst_case], docs="All but first of sequence", stability="beta")
+    cput('Butlast',  ['(s'], [butlast_case],  docs="All but last of sequence",  stability="beta")
+    cput('Butfirst', [')s'], [butfirst_case], docs="All but first of sequence", stability="beta")
     cput('First_and_last', [], [first_and_last_case], docs="First and last of sequence",
             stability="alpha")
 
@@ -1163,14 +1171,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     # }}}
     # Sum, Product, etc {{{
-    cput('Sum', ['Š'], [
+    cput('Sum', ['Š', '+w'], [
         Case.seq_range(lambda env, x: [pd_deep_sum(x)]),
     ],
-            docs="Sum (coerces numbers to range).", stability="beta")
-    cput('Product', ['Þ'], [
+            docs="(Deep) sum (coerces numbers to range).", stability="beta")
+    cput('Product', ['Þ', '*w'], [
         Case.seq_range(lambda env, x: [pd_deep_product(x)]),
     ],
-            docs="Product (coerces numbers to range!?).", stability="alpha")
+            docs="(Deep) product (coerces numbers to range!?).", stability="alpha")
     cput('Deep_length', ['Dl'], [
         Case.value(lambda env, x: [pd_deep_length(x)]),
     ],
@@ -1256,10 +1264,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq_range(lambda env, a: [pd_map_reverse_singleton(a)]),
     ],
             docs="""On numbers, reverse inclusive range from that number to
-            1. On sequences, reverse each element (numbers coerce to length-1
-            lists, and characters coerce to length-1 strings, so you can also
-            use this to wrap each element of a flat list into a list).
-            (Heavily inspired by studying 05AB1E.)""",
+            1 (i.e. {{ 'Range_one_down'|b }}). On sequences, reverse each element
+            (numbers coerce to length-1 lists, and characters coerce to
+            length-1 strings, so you can also use this to wrap each element of
+            a flat list into a list).  (Heavily inspired by studying
+            05AB1E.)""",
             stability="unstable")
     cput('Palindromize', ['Pz'], [
         Case.seq_range(lambda env, a: [pd_palindromize(a)]),
