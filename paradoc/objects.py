@@ -497,22 +497,26 @@ def to_comparable_list(a: PdValue) -> list:
     elif isinstance(a, (Char, int, float)): return [a]
     else: return list(pd_iterable(a))
 
-def pd_less_than(a: PdObject, b: PdObject) -> PdObject:
+def pd_cmp(a: PdObject, b: PdObject) -> int:
     if isinstance(a, (Char, int)) and isinstance(b, (Char, int)):
-        return num.intify(a) < num.intify(b)
+        return num.any_cmp(num.intify(a), num.intify(b))
     elif isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
-        return num.floatify(a) < num.floatify(b)
+        return num.any_cmp(num.floatify(a), num.floatify(b))
     elif isinstance(a, (list, range)) and isinstance(b, (list, range)):
-        al = list(a); bl = list(b)
-        return al < bl
+        return num.any_cmp(list(a), list(b))
     elif isinstance(a, str) and isinstance(b, str):
-        return a < b
+        return num.any_cmp(a, b)
     elif isinstance(a, (Char, str)) and isinstance(b, (Char, str)):
-        return basic_pd_str(a) < basic_pd_str(b)
+        return num.any_cmp(basic_pd_str(a), basic_pd_str(b))
     elif isinstance(a, Block) or isinstance(b, Block):
         raise TypeError('cannot compare blocks')
     else:
-        return to_comparable_list(a) < to_comparable_list(b)
+        return num.any_cmp(to_comparable_list(a), to_comparable_list(b))
+
+def pd_less_than(a: PdObject, b: PdObject) -> bool:
+    return pd_cmp(a, b) < 0
+def pd_lte(a: PdObject, b: PdObject) -> bool:
+    return pd_cmp(a, b) <= 0
 
 def pd_min(a: PdObject, b: PdObject) -> PdObject:
     return a if pd_less_than(a, b) else b

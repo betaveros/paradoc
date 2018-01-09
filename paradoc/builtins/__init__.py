@@ -400,7 +400,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             exponentiate the list by making a list of all lists of that length
             composed of elements from the original list (possibly repeating).
             """,
-            stability="alpha")
+            stability="beta")
 
     cput('Int_sqrt', ['Si'], [
         Case.number(lambda env, a: [int(num.numerify(a) ** 0.5)]),
@@ -567,14 +567,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.str_number(lambda env, s, i: [Char(sorted(s)[num.intify(i)])]),
     ], docs="Order statistic (zero-indexed)", stability="alpha")
     cput('Is_sorted', ['$p'], [
-        Case.seq(lambda env, s: [int(all(a <= b for a, b in zip(s, s[1:])))]),
-    ], docs="Test if sorted", stability="alpha")
+        Case.seq(lambda env, s: [int(all(pd_lte(a, b) for a, b in zip(s, s[1:])))]),
+    ], docs="Test if sorted", stability="beta")
     cput('Is_strictly_increasing', ['<p'], [
-        Case.seq(lambda env, s: [int(all(a < b for a, b in zip(s, s[1:])))]),
-    ], docs="Test if strictly increasing", stability="alpha")
+        Case.seq(lambda env, s: [int(all(pd_less_than(a, b) for a, b in zip(s, s[1:])))]),
+    ], docs="Test if strictly increasing", stability="beta")
     cput('Is_strictly_decreasing', ['>p'], [
-        Case.seq(lambda env, s: [int(all(a > b for a, b in zip(s, s[1:])))]),
-    ], docs="Test if strictly decreasing", stability="alpha")
+        Case.seq(lambda env, s: [int(all(pd_less_than(b, a) for a, b in zip(s, s[1:])))]),
+    ], docs="Test if strictly decreasing", stability="beta")
     # }}}
     # Range/enumerate/flatten; Comma, J {{{
     range_case = Case.number(lambda env, n: [range(num.intify(n))])
@@ -816,7 +816,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             block and a sequence (numbers coerce to ranges), find the first
             element satisfying the block.""", stability="beta")
     cput('Lt_or_slice', ['<'], [
-        Case.number2(lambda env, a, b: [int(num.pd_cmp(a, b) < 0)]),
+        Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) < 0)]),
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
@@ -831,7 +831,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             block.""",
             stability="beta")
     cput('Gt_or_slice', ['>'], [
-        Case.number2(lambda env, a, b: [int(num.pd_cmp(a, b) > 0)]),
+        Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) > 0)]),
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
@@ -846,7 +846,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             fails to satisfy the block.""",
             stability="beta")
     cput('Leq_or_slice', ['<e'], [
-        Case.number2(lambda env, a, b: [int(num.pd_cmp(a, b) <= 0)]),
+        Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) <= 0)]),
         Case.str2(lambda env, a, b: [int(a <= b)]),
         Case.list2(lambda env, a, b: [int(list(a) <= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)+1]]),
@@ -854,7 +854,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Less than or equal to.""",
             stability="beta")
     cput('Geq_or_slice', ['>e'], [
-        Case.number2(lambda env, a, b: [int(num.pd_cmp(a, b) >= 0)]),
+        Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) >= 0)]),
         Case.str2(lambda env, a, b: [int(a >= b)]),
         Case.list2(lambda env, a, b: [int(list(a) >= list(b))]),
         Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]), # TODO: ?
@@ -896,40 +896,40 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.value3(lambda env, a, b, c: [pd_median_of_three(a, b, c)]),
     ],
             docs="""Median of three values.""",
-            stability="unstable")
+            stability="alpha")
     cput('Array_min', ['<r', 'Œ'], [
         Case.seq(lambda env, e: [pd_min_of_seq(e)]),
     ],
             docs="""Minimum of array. Mnemonic: it's like reducing by minimum
             of two values.""",
-            stability="alpha")
+            stability="beta")
     cput('Array_max', ['>r', 'Æ'], [
         Case.seq(lambda env, e: [pd_max_of_seq(e)]),
     ],
             docs="""Maximum of array. Mnemonic: it's like reducing by maximum
             of two values.""",
-            stability="alpha")
+            stability="beta")
     cput('Array_median', ['=r'], [
         # TODO: True median should try to take the average of two elements
         Case.list_(lambda env, x: [sorted(x)[len(x)//2]]),
         Case.str_(lambda env, s: [Char(sorted(s)[len(s)//2])]),
     ], docs="Median of array", stability="alpha")
     cput('Compare', ['=c', '˜'], [
-        Case.number2(lambda env, a, b: [num.pd_cmp(a, b)]),
+        Case.number2(lambda env, a, b: [num.pd_num_cmp(a, b)]),
         Case.str2(lambda env, a, b: [num.any_cmp(a, b)]),
         Case.list2(lambda env, a, b: [num.any_cmp(list(a), list(b))]),
     ],
             docs="""Compare (-1, 0, or 1)""",
-            stability="unstable")
+            stability="alpha")
 
     cput('Lt_length', ['<l'], [
-        Case.number2_len(lambda env, a, b: [int(num.pd_cmp(a, b) < 0)]),
+        Case.number2_len(lambda env, a, b: [int(num.pd_num_cmp(a, b) < 0)]),
     ],
             docs="""Less than, after coercing two arguments to ints or floats,
             sequences by taking their length.""",
             stability="unstable")
     cput('Gt_length', ['>l'], [
-        Case.number2_len(lambda env, a, b: [int(num.pd_cmp(a, b) > 0)]),
+        Case.number2_len(lambda env, a, b: [int(num.pd_num_cmp(a, b) > 0)]),
     ],
             docs="""Greater than, after coercing two arguments to ints or
             floats, sequences by taking their length.""",
@@ -941,13 +941,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             sequences by taking their length.""",
             stability="unstable")
     cput('Leq_length', ['<el'], [
-        Case.number2_len(lambda env, a, b: [int(num.pd_cmp(a, b) <= 0)]),
+        Case.number2_len(lambda env, a, b: [int(num.pd_num_cmp(a, b) <= 0)]),
     ],
             docs="""Less than or equal to, after coercing two arguments to
             ints or floats, sequences by taking their length.""",
             stability="unstable")
     cput('Geq_length', ['>el'], [
-        Case.number2_len(lambda env, a, b: [int(num.pd_cmp(a, b) >= 0)]),
+        Case.number2_len(lambda env, a, b: [int(num.pd_num_cmp(a, b) >= 0)]),
     ],
             docs="""Greater than or equal to, after coercing two arguments to
             ints or floats, sequences by taking their length.""",
@@ -1269,7 +1269,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             length-1 strings, so you can also use this to wrap each element of
             a flat list into a list).  (Heavily inspired by studying
             05AB1E.)""",
-            stability="unstable")
+            stability="alpha")
     cput('Palindromize', ['Pz'], [
         Case.seq_range(lambda env, a: [pd_palindromize(a)]),
     ],
@@ -1913,12 +1913,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Map on words: takes a block and a string, split the string
             by spaces, map the block over the tokens, then join the tokens with
             a space.""",
-            stability="unstable")
+            stability="alpha")
     cput('Map_on_lines', ['\nm', '\\nm'], [map_on_case('\n')],
             docs="""Map on lines: takes a block and a string, split the string
             into lines, map the block over the tokens, then join the tokens
             with a linebreak.""",
-            stability="unstable")
+            stability="alpha")
 
     cput('While', [], [while_case],
             docs="""While loop: Execute first block, pop, break if false, execute

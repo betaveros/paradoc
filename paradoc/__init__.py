@@ -288,7 +288,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
             ex: [[1 2][3 4]] [100 200] +vz => [[101 102][203 204]]
             """,
-            stability="alpha")
+            stability="beta")
     def vectorize_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def bindmap_b(env: Environment) -> None:
             e = env.pop()

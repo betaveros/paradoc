@@ -93,7 +93,7 @@ def lift_intify(f: Callable[[int, int], int]) -> Callable[[PdNum, PdNum], PdNum]
 def any_cmp(a: Any, b: Any) -> int:
     return int(a > b) - int(a < b)
 
-def pd_cmp(a0: PdNum, b0: PdNum) -> int:
+def pd_num_cmp(a0: PdNum, b0: PdNum) -> int:
     a = a0.ord if isinstance(a0, Char) else a0
     b = b0.ord if isinstance(b0, Char) else b0
     if isinstance(a, int) and isinstance(b, int):
