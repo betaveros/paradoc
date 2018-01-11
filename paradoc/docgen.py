@@ -488,7 +488,7 @@ def document(env: Environment,
         for c in name:
             if c == "\r":
                 chars.append({'sp': True, 'text': 'RETURN'})
-            if c == "\n":
+            elif c == "\n":
                 chars.append({'sp': True, 'text': 'NEWLINE'})
             elif c == " ":
                 chars.append({'sp': True, 'text': 'SPACE'})
