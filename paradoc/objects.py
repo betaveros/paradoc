@@ -518,33 +518,73 @@ def pd_less_than(a: PdObject, b: PdObject) -> bool:
 def pd_lte(a: PdObject, b: PdObject) -> bool:
     return pd_cmp(a, b) <= 0
 
-def pd_min(a: PdObject, b: PdObject) -> PdObject:
-    return a if pd_less_than(a, b) else b
-def pd_max(a: PdObject, b: PdObject) -> PdObject:
-    return b if pd_less_than(a, b) else a
-def pd_median_of_three(a: PdObject, b: PdObject, c: PdObject) -> PdObject:
-    if pd_less_than(a, b): a, b = b, a
-    if pd_less_than(b, c): b, c = c, b
-    if pd_less_than(a, b): a, b = b, a
+def pd_minmax(a: PdObject, b: PdObject, ef: Optional[Tuple[Environment, Block]] = None) -> Tuple[PdObject, PdObject]:
+    if ef is None:
+        ar = a
+        br = b
+    else:
+        e, f = ef
+        ar = pd_sandbox(e, f, [a])
+        br = pd_sandbox(e, f, [b])
+    return (a, b) if pd_less_than(ar, br) else (b, a)
+def pd_min(a: PdObject, b: PdObject, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
+    return pd_minmax(a, b, ef)[0]
+def pd_max(a: PdObject, b: PdObject, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
+    return pd_minmax(a, b, ef)[1]
+def pd_median_of_three(a: PdObject, b: PdObject, c: PdObject, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
+    if ef is None:
+        ar = a
+        br = b
+        cr = c
+    else:
+        e, f = ef
+        ar = pd_sandbox(e, f, [a])
+        br = pd_sandbox(e, f, [b])
+        cr = pd_sandbox(e, f, [c])
+    if pd_less_than(ar, br): a, b, ar, br = b, a, br, ar
+    if pd_less_than(br, cr): b, c, br, cr = c, b, cr, br
+    if pd_less_than(ar, br): a, b = b, a
     return b
-def pd_min_of_seq(a: PdSeq) -> PdObject:
-    if isinstance(a, str): return min(pd_iterable(a))
-    cur = None
+def pd_min_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
+    if isinstance(a, str) and ef is None: return min(pd_iterable(a))
+    cur: Optional[PdObject] = None
+    cur_key: Optional[PdObject] = None
     for e in pd_iterable(a):
-        if cur is None: cur = e
-        else: cur = pd_min(cur, e)
+        if ef is None:
+            e_key = e
+        else:
+            env, f = ef
+            e_key = pd_sandbox(env, f, [e])
+        if cur_key is None or pd_less_than(e_key, cur_key):
+            cur, cur_key = e, e_key
     if cur is None:
         raise ValueError("Cannot take min of empty sequence")
     return cur
-def pd_max_of_seq(a: PdSeq) -> PdObject:
-    if isinstance(a, str): return max(pd_iterable(a))
-    cur = None
+def pd_max_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
+    if isinstance(a, str) and ef is None: return max(pd_iterable(a))
+    cur: Optional[PdObject] = None
+    cur_key: Optional[PdObject] = None
     for e in pd_iterable(a):
-        if cur is None: cur = e
-        else: cur = pd_max(cur, e)
+        if ef is None:
+            e_key = e
+        else:
+            env, f = ef
+            e_key = pd_sandbox(env, f, [e])
+        if cur_key is None or not pd_less_than(e_key, cur_key):
+            cur, cur_key = e, e_key
     if cur is None:
         raise ValueError("Cannot take max of empty sequence")
     return cur
+def pd_sort(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
+    if ef is None:
+        if isinstance(a, str):
+            return ''.join(sorted(a))
+        else:
+            return list(sorted(a))
+    else:
+        env, f = ef
+        keyed = [(pd_sandbox(env, f, [elt]), elt) for elt in pd_iterable(a)]
+        return pd_build_like(a, [se for sk, se in sorted(keyed)])
 # }}}
 # deep actions {{{
 # copy a thing recursively, fully structured as mutable lists

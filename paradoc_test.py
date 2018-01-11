@@ -255,13 +255,16 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('2 3<m4 5>m9 8<m7 6>m'), [2,5,8,7])
         self.assertEqual(pd_simple_eval('[1 2][3 1]<m[1 3][2 1]>m'), [[1,2],[2,1]])
         self.assertEqual(pd_simple_eval('2 3 5=m 2 5 3=m 3 2 5=m 3 5 2=m 5 2 3=m 5 3 2=m'), [3,3,3,3,3,3])
+        self.assertEqual(pd_simple_eval('2 3M_<m 4 5 M_>m'), [3,4])
 
     def test_min_max_of_list(self):
         self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]>rq<r'), [9,2])
+        self.assertEqual(pd_simple_eval('[1 2 3m 4m]²_>rq<r'), [-4,1])
         self.assertEqual(pd_simple_eval('"syzygy">rq<r'), [Char('z'),Char('g')])
 
     def test_sort(self):
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]$'), [[0,1,2,4,6]])
+        self.assertEqual(pd_simple_eval('[2 4 6 0 1]4.2±b$'), [[4,6,2,1,0]])
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]3¢'), [4])
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]=r'), [2])
 

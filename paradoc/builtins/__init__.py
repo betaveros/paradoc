@@ -554,13 +554,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # }}}
     # Sort, $; test for sortedness; order_statistic {{{
     cput('Sort', [], [
-        Case.str_(lambda env, s: [''.join(sorted(s))]),
-        Case.list_(lambda env, x: [list(sorted(x))]),
+        Case.seq(lambda env, s: [pd_sort(s)]),
+        Case.block_seq_range(lambda env, f, s: [pd_sort(s, (env, f))]),
     ], docs="Sort", stability="stable")
     cput('Sort_or_stack_select', ['$'], [
         Case.number(lambda env, n: [env.index_stack(int(n))]),
-        Case.str_(lambda env, s: [''.join(sorted(s))]),
-        Case.list_(lambda env, x: [list(sorted(x))]),
+        Case.seq(lambda env, s: [pd_sort(s)]),
+        Case.block_seq_range(lambda env, f, s: [pd_sort(s, (env, f))]),
     ], docs="Sort or select from stack", stability="beta")
     cput('Order_statistic', ['¢'], [
         Case.list_number(lambda env, x, i: [sorted(x)[num.intify(i)]]),
@@ -884,30 +884,37 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     cput('Min', ['<m', 'Õ'], [
         Case.value2(lambda env, a, b: [pd_min(a, b)]),
+        Case.value2_block(lambda env, a, b, f: [pd_min(a, b, (env, f))]),
     ],
-            docs="""Minimum of two values""",
+            docs="""Minimum of two values, optionally by a block""",
             stability="beta")
     cput('Max', ['>m', 'Ã'], [
         Case.value2(lambda env, a, b: [pd_max(a, b)]),
+        Case.value2_block(lambda env, a, b, f: [pd_max(a, b, (env, f))]),
     ],
-            docs="""Maximum of two values""",
+            docs="""Maximum of two values, optionally by a block""",
             stability="beta")
     cput('Median_of_three', ['=m'], [
         Case.value3(lambda env, a, b, c: [pd_median_of_three(a, b, c)]),
+        Case.value3_block(lambda env, a, b, c, f: [pd_median_of_three(a, b, c, (env, f))]),
     ],
-            docs="""Median of three values.""",
+            docs="""Median of three values, optionally by a block""",
             stability="alpha")
     cput('Array_min', ['<r', 'Œ'], [
         Case.seq(lambda env, e: [pd_min_of_seq(e)]),
+        Case.block_seq_range(lambda env, f, e: [pd_min_of_seq(e, (env, f))]),
     ],
-            docs="""Minimum of array. Mnemonic: it's like reducing by minimum
-            of two values.""",
+            docs="""Minimum of array, optionally by a block (numbers will
+            coerce to ranges if you supply a block). Mnemonic: it's like
+            reducing by minimum of two values.""",
             stability="beta")
     cput('Array_max', ['>r', 'Æ'], [
         Case.seq(lambda env, e: [pd_max_of_seq(e)]),
+        Case.block_seq_range(lambda env, f, e: [pd_max_of_seq(e, (env, f))]),
     ],
-            docs="""Maximum of array. Mnemonic: it's like reducing by maximum
-            of two values.""",
+            docs="""Maximum of array, optionally by a block (numbers will
+            coerce to ranges if you supply a block). Mnemonic: it's like
+            reducing by maximum of two values.""",
             stability="beta")
     cput('Array_median', ['=r'], [
         # TODO: True median should try to take the average of two elements
