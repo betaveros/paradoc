@@ -881,8 +881,10 @@ class CodeBlock(Block):
                 env.input_trigger = input_triggers.line
             elif trailer_token == 'w' or trailer_token == '_words':
                 env.input_trigger = input_triggers.word
-            elif trailer_token == 'v' or trailer_token == '_value':
+            elif trailer_token == 'v' or trailer_token == '_values':
                 env.input_trigger = input_triggers.value
+            elif trailer_token == 'r' or trailer_token == '_records':
+                env.input_trigger = input_triggers.record
             elif trailer_token == 'c' or trailer_token == '_chars':
                 env.input_trigger = input_triggers.char
 

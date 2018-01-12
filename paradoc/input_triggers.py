@@ -63,6 +63,17 @@ def line(file: IO[str] = sys.stdin) -> Optional[str]:
             return None
     except ValueError: return None
 
+def record(file: IO[str] = sys.stdin) -> Optional[Union[str, int, float]]:
+    w = line(file)
+    if w is None: return w
+    try:
+        return int(w)
+    except ValueError:
+        try:
+            return float(w)
+        except ValueError:
+            return w
+
 def all(file: IO[str] = sys.stdin) -> Optional[str]:
     try:
         ret = file.read()
