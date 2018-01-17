@@ -77,7 +77,7 @@ def factorial(n: Union[int, float]) -> Union[int, float]:
     except ModuleNotFoundError:
         if isinstance(n, int):
             p = 1
-            for i in range(1, n + 1): p *= n
+            for i in range(1, n + 1): p *= i
             return p
         else:
             return math.gamma(n + 1)
