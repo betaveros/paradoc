@@ -1930,6 +1930,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Window', [], [window_case], stability="alpha")
     cput('Space_split', ['Words'], [words_case, window_case], stability="alpha")
 
+    lines_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, '\n')])
+    cput('Lines_split', ['Lines'], [lines_case], stability="alpha")
+
     def map_on_case(delim: str) -> Case:
         return Case.block_value(lambda env, block, value:
                 [delim.join(env.pd_str(w) for w in pd_map_iterable(env, block, env.pd_str(value).split(delim)))])
