@@ -1923,15 +1923,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     # }}}
     # W for Window and W for Words {{{
-    words_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
+    words_case = Case.seq(lambda env, seq: [pd_split_seq_by_spaces(seq)])
     window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
     while_case = Case.block2(lambda env, cond, body:
             pd_while_then_empty_list(env, cond, body))
+    cput('Words', [], [words_case], stability="alpha")
     cput('Window', [], [window_case], stability="alpha")
-    cput('Space_split', ['Words'], [words_case, window_case], stability="alpha")
+
+    space_split_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
+    cput('Space_split', ['Space_break', ' b'], [space_split_case],
+            docs="""Split by a single space. Note that this returns empty
+            strings between adjacent spaces, as well as at the start or end if
+            the string starts or ends with spaces, and it does not split by
+            other whitespace. Use {{ 'Words'|b }} if you don't want that.""",
+            stability="alpha")
 
     lines_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, '\n')])
-    cput('Lines_split', ['Lines'], [lines_case], stability="alpha")
+    cput('Line_split', ['Lines', 'Line_break', '\nb', '\\nb'], [lines_case],
+            docs="""Split by a single newline.""",
+            stability="alpha")
 
     def map_on_case(delim: str) -> Case:
         return Case.block_value(lambda env, block, value:

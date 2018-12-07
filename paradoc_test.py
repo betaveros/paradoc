@@ -520,6 +520,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"assdfs""s"%'), [["a","df"]])
         self.assertEqual(pd_simple_eval('[2 3 2 3][2 3]%'), [[]])
         self.assertEqual(pd_simple_eval('"pair of doc"W'), [["pair","of","doc"]])
+        self.assertEqual(pd_simple_eval('" x  tra   \nspaces\n  "W'), [["x","tra","spaces"]])
+        self.assertEqual(pd_simple_eval('" x  tra   \nspaces\n  " b'), [["","x","","tra","","","\nspaces\n","",""]])
 
     def test_random(self):
         self.assertEqual(pd_simple_eval('0 Random_seed RfRfRf'),

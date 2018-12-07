@@ -879,6 +879,39 @@ def pd_split_seq_by(seq: PdSeq, tok: PdSeq) -> List[PdSeq]:
         # TODO: Special case for list of Chars?
     return list(pd_split_seq_by_gen(seq, tok))
 
+# Emulate str.split(). Never returns any empty sequences.
+def pd_split_seq_by_pred(seq: PdSeq, pred: Callable[[PdObject], bool]) -> Generator[PdSeq, None, None]:
+    i = 0
+    cur_start = 0
+    seqlen = len(seq)
+    while True:
+        if i >= seqlen:
+            # No more breaks are possible.
+            if cur_start < seqlen:
+                yield seq[cur_start:]
+            return
+        elif pred(seq[i]):
+            if cur_start < i:
+                yield seq[cur_start:i]
+            i += 1
+            cur_start = i
+        else:
+            i += 1
+
+def pd_is_space(obj: PdObject) -> bool:
+    if isinstance(obj, str):
+        return obj.isspace()
+    elif isinstance(obj, Char):
+        return obj.chr.isspace()
+    else:
+        return False
+
+def pd_split_seq_by_spaces(seq: PdSeq) -> List[PdSeq]:
+    if isinstance(seq, str):
+        # Ignoring types to pretend List is covariant
+        return seq.split() # type: ignore
+    return list(pd_split_seq_by_pred(seq, pd_is_space))
+
 def pd_sliding_window_seq_int_gen(seq: PdSeq, n: int) -> Generator[PdSeq, None, None]:
     for i in range(len(seq) + 1 - n):
         yield seq[i:i+n]
