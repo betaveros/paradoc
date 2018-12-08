@@ -157,6 +157,14 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('0{6}If 1{7}If 0{8}Unless 1{9}Unless'), [7,8])
         self.assertEqual(pd_simple_eval('0 6 If 1 7 If 0 8 Unless 1 9 Unless'), [7,8])
 
+    def test_set_operations(self):
+        self.assertEqual(pd_simple_eval('[2 5][5 8]&'), [[5]])
+        self.assertEqual(pd_simple_eval('[2 5][5 8]|'), [[2,5,8]])
+        self.assertEqual(pd_simple_eval('[2 5][5 8]^'), [[2,8]])
+        self.assertEqual(pd_simple_eval('[2 5][5 8]-'), [[2]])
+        self.assertEqual(pd_simple_eval('[[4 5][6 7]][[6 7][5 4]]&'), [[[6,7]]])
+        self.assertEqual(pd_simple_eval('[[4 5][6 7]][[5 4][6 7]]|'), [[[4,5],[6,7],[5,4]]])
+
     def test_indexing(self):
         self.assertEqual(pd_simple_eval('[3 7 2 5]0=q;1=q;3=q;1m='), [3,7,5,5])
 

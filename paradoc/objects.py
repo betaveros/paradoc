@@ -1649,40 +1649,43 @@ def pd_to_int(val: PdValue) -> int:
 # }}}
 # collection & | ^ {{{
 def pd_seq_intersection(a: PdSeq, b: PdSeq) -> PdSeq:
-    counter = collections.Counter(pd_iterable(b))
+    counter = collections.Counter(pykey(e) for e in pd_iterable(b))
     acc: List[PdObject] = []
     for element in pd_iterable(a):
-        if counter[element] > 0:
+        key = pykey(element)
+        if counter[key] > 0:
             acc.append(element)
-            counter[element] -= 1
+            counter[key] -= 1
     return pd_build_like(a, acc)
 def pd_seq_union(a: PdSeq, b: PdSeq) -> PdSeq:
     acc: List[PdObject] = list(pd_iterable(a))
-    counter = collections.Counter(pd_iterable(a))
+    counter = collections.Counter(pykey(e) for e in pd_iterable(a))
     for element in pd_iterable(b):
-        if counter[element] > 0:
-            counter[element] -= 1
+        key = pykey(element)
+        if counter[key] > 0:
+            counter[key] -= 1
         else:
             acc.append(element)
     return pd_build_like(a, acc)
 def pd_seq_difference(a: PdSeq, b: PdSeq) -> PdSeq:
-    set_b = collections.Counter(pd_iterable(b))
+    set_b = collections.Counter(pykey(e) for e in pd_iterable(b))
     acc: List[PdObject] = []
     for element in pd_iterable(a):
-        if element in set_b and set_b[element]:
-            set_b[element] -= 1
+        key = pykey(element)
+        if key in set_b and set_b[key]:
+            set_b[key] -= 1
         else:
             acc.append(element)
     return pd_build_like(a, acc)
 def pd_seq_symmetric_difference(a: PdSeq, b: PdSeq) -> PdSeq:
-    set_a = collections.Counter(pd_iterable(a))
-    set_b = collections.Counter(pd_iterable(b))
+    set_a = collections.Counter(pykey(e) for e in pd_iterable(a))
+    set_b = collections.Counter(pykey(e) for e in pd_iterable(b))
     acc: List[PdObject] = []
     for element in pd_iterable(a):
-        if element not in set_b:
+        if pykey(element) not in set_b:
             acc.append(element)
     for element in pd_iterable(b):
-        if element not in set_a:
+        if pykey(element) not in set_a:
             acc.append(element)
     return pd_build_like(a, acc)
 
