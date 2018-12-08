@@ -1780,6 +1780,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
 
     cput('Is_alpha', ['Ap'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isalpha()), x)])], docs="Tests if characters are letters. Deeply vectorizes.", stability="beta")
+    cput('Is_digit', ['Dp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isdigit()), x)])], docs="Tests if characters are digits. Deeply vectorizes.", stability="alpha")
     cput('Is_lower', ['Lp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.islower()), x)])], docs="Tests if characters are lowercase. Deeply vectorizes.", stability="beta")
     cput('Is_upper', ['Up'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isupper()), x)])], docs="Tests if characters are uppercase. Deeply vectorizes.", stability="beta")
     cput('Is_space', ['Wp'], [Case.value(lambda env, x: [pd_deepmap_s2v(lambda e: int(e.isspace()), x)])], docs="Tests if characters are whitespace. Deeply vectorizes.", stability="alpha")
