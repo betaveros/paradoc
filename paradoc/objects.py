@@ -80,6 +80,20 @@ def x_index(token: str) -> Optional[int]:
     elif token == 'Zz': return 8
     else: return None
 # }}}
+# short_repr {{{
+def short_repr(obj: PdObject, length_guide: int = 8) -> str:
+    """Constructs a shortened representation of a PdObject."""
+    if isinstance(obj, list):
+        lower_length_guide = (length_guide + 1) // 2
+        if len(obj) > 2 * length_guide:
+            return "[{}, ({} more), {}]".format(
+                    ", ".join(short_repr(e, lower_length_guide) for e in obj[:length_guide]),
+                    len(obj) - 2 * length_guide,
+                    ", ".join(short_repr(e, lower_length_guide) for e in obj[-length_guide:]))
+        else:
+            return "[{}]".format(", ".join(short_repr(e, lower_length_guide) for e in obj))
+    return repr(obj)
+# }}}
 class Environment: # {{{
     def __init__(self,
             evaluator: Callable[['Environment', str], None],
@@ -154,7 +168,7 @@ class Environment: # {{{
 
     def x_stack_repr(self) -> str:
         if self.vars_delegate is None:
-            return repr(self._x_stack)
+            return short_repr(self._x_stack)
         else:
             return self.vars_delegate.x_stack_repr()
 
@@ -345,7 +359,7 @@ class Environment: # {{{
 
     def debug_dump(self) -> str:
         return '\n  Stack dump: {}\n  X-stack: {}\n  Markers: {}'.format(
-                repr(self._stack), repr(self.x_stack_repr()), repr(self.marker_stack))
+                short_repr(self._stack), self.x_stack_repr(), short_repr(self.marker_stack))
 
     def bracketed_shadow(self) -> 'BracketedShadowEnvironment':
         return BracketedShadowEnvironment(self)
