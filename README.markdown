@@ -38,6 +38,15 @@ Evaluate a command:
 
     python3 -m paradoc -e "sE2pm"
 
+Why another golfing language?
+=============================
+
+I started working on Paradoc in April 2017, out of dissatisfaction with all the hyper-optimized code golf languages I saw on [Programming Puzzles & Code Golf](https://codegolf.stackexchange.com/) with what I considered unintuitively named built-ins or unergonomic design. (The worst offenders off the top of my head are probably 05AB1E's ½, ¼, and ¾.)
+
+I was probably also motivated by my 42-byte GolfScript solution losing to a 26-byte Pyth solution and 38-byte CJam solution on [Tidy Numbers](https://www.go-hero.net/jam/17/problems/0/2#by-language), Google Code Jam 2017 Qualifications Round B, and knowing that [CJam and Pyth themselves were not even particularly competitive](https://codegolf.meta.stackexchange.com/questions/16561/what-happened-to-languages-like-cjam-and-pyth?cb=1) by PPCG standards any more.
+
+As a result, my original end-goal was to use Paradoc to golf the Qualification Round of the 2018 Google Code Jam. Unfortunately, 2018 was also the year that Google decided to server-side Code Jam and make competitors submit programs, instead of allowing us to run programs on our own computers. It also turned out that I enjoyed optimizing my code golf language a lot more than actually golfing, which is philosophically not really the point of code golf or of PPCG, so Paradoc kind of just sat here doing nothing for a while.
+
 Design Philosophy
 =================
 

@@ -303,8 +303,10 @@ You can also explicitly read input with `V`.
 mnemonics = """
 -   Mostly we pretend Python lists are called **Arrays** and use the letter A.
 -   **D** is for Down, which is all sorts of Reversing.
--   **A** is for **max** and **O** is for **min**. You can think l**A**rge and
-    sm**O**l.
+-   **A** is for **max** and **O** is for **min**. There are several ways to
+    remember this: obviously "max" has an A in it; you could think l**A**rge
+    and sm**O**l, or **A**lpha (first, highest ranking, etc.) and **O**mega
+    (the opposite).
 -   **R** is for **Reduce**, which covers the higher-order function called
     reduce or fold as well as joining strings/lists together with something in
     between.
