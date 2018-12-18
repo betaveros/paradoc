@@ -485,6 +485,15 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_count",
                 lambda env: apply_pd_list_op(env, b, objects.pd_count)), False)
 
+    @put("organize", "ø",
+            docs="""Apply this block to each element of a list (coerces
+            numbers to ranges), and then organize the elements into groups
+            based on which ones yield the same block outputs.""",
+            stability="alpha")
+    def organize_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_organize",
+                lambda env: apply_pd_list_op(env, b, objects.pd_organize_by)), False)
+
     return ret
 block_trailer_dict = build_block_trailer_dict()
 # }}}

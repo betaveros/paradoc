@@ -410,6 +410,7 @@ class TestParadoc(unittest.TestCase):
     def test_organize(self):
         self.assertEqual(pd_simple_eval('[3 9 9 9 8 8 9]Organize'), [[[3],[9,9,9,9],[8,8]]])
         self.assertEqual(pd_simple_eval('"paradocical"Ø'), [["p","aaa","r","d","o","cc","i","l"]])
+        self.assertEqual(pd_simple_eval('10Êø'), [[[0,2,4,6,8],[1,3,5,7,9]]])
 
     def test_uniquify(self):
         self.assertEqual(pd_simple_eval('[1 2 3]U'), [[1,2,3]])
