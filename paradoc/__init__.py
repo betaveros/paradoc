@@ -461,6 +461,22 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_mapsum",
                 lambda env: apply_pd_list_op(env, b, objects.pd_mapsum)), False)
 
+    @put("max", "æ",
+            docs="""Apply this block to each element of a list and return the
+            element for which the block's result is maximum.""",
+            stability="alpha")
+    def max_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_max",
+                lambda env: apply_pd_list_op(env, b, objects.pd_max_of_seq_list_op)), False)
+
+    @put("min", "œ",
+            docs="""Apply this block to each element of a list and return the
+            element for which the block's result is minimum.""",
+            stability="alpha")
+    def min_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_min",
+                lambda env: apply_pd_list_op(env, b, objects.pd_min_of_seq_list_op)), False)
+
     return ret
 block_trailer_dict = build_block_trailer_dict()
 # }}}

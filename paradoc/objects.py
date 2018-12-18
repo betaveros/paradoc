@@ -574,6 +574,8 @@ def pd_min_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> P
     if cur is None:
         raise ValueError("Cannot take min of empty sequence")
     return cur
+def pd_min_of_seq_list_op(env: Environment, func: Block, seq: PdSeq) -> PdObject:
+    return pd_min_of_seq(seq, (env, func))
 def pd_max_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
     if isinstance(a, str) and ef is None: return max(pd_iterable(a))
     cur: Optional[PdObject] = None
@@ -589,6 +591,8 @@ def pd_max_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> P
     if cur is None:
         raise ValueError("Cannot take max of empty sequence")
     return cur
+def pd_max_of_seq_list_op(env: Environment, func: Block, seq: PdSeq) -> PdObject:
+    return pd_max_of_seq(seq, (env, func))
 def pd_sort(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
     if ef is None:
         if isinstance(a, str):

@@ -269,6 +269,9 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[7 2 5 9 3 5 8]>rq<r'), [9,2])
         self.assertEqual(pd_simple_eval('[1 2 3m 4m]²_>rq<r'), [-4,1])
         self.assertEqual(pd_simple_eval('"syzygy">rq<r'), [Char('z'),Char('g')])
+        self.assertEqual(pd_simple_eval('[[1 1 1][2 2][3]]L_Æ'), [[1,1,1]])
+        self.assertEqual(pd_simple_eval('[[1 1 1][2 2][3]]L_Œ'), [[3]])
+        self.assertEqual(pd_simple_eval('[[1 1 1][2 2][3]]LæqLœ'), [[1,1,1], [3]])
 
     def test_sort(self):
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]$'), [[0,1,2,4,6]])
