@@ -1036,6 +1036,25 @@ def pd_group_by(env: Environment, func: Block, seq: PdSeq) -> list:
     # Should we use the entire sandbox as the key?
     return pd_group_by_function(seq, lambda x: pd_sandbox(env, func, [x]))
 
+def pd_organize_by_function(seq: PdSeq, proj: Callable[[PdObject], PdObject]) -> list:
+    result: List[List[PdObject]] = []
+    groups: Dict[PdKey, List[PdObject]] = dict()
+    for e in pd_iterable(seq):
+        e_proj = pykey(proj(e))
+        if e_proj in groups:
+            groups[e_proj].append(e)
+        else:
+            group = [e]
+            result.append(group)
+            groups[e_proj] = group
+    return [pd_build_like(seq, group) for group in result]
+
+def pd_organize(seq: PdSeq) -> list:
+    return pd_organize_by_function(seq, lambda x: x)
+
+def pd_organize_by(env: Environment, func: Block, seq: PdSeq) -> list:
+    return pd_organize_by_function(seq, lambda x: pd_sandbox(env, func, [x]))
+
 def pd_mold_from(value_iterable: Iterator[PdValue], template: PdObject) -> PdObject:
     if isinstance(template, (Char, int, float)): return next(value_iterable)
     elif isinstance(template, (str, list, range)):

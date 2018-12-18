@@ -1419,7 +1419,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Group', [], [
         Case.seq(lambda env, seq: [pd_group(seq)]),
     ],
-            docs="Group into runs of equal elements",
+            docs="""Group into runs of equal elements.
+
+            ex: [3 1 2 2 1 1 1]G => [[3][1][2 2][1 1 1]]""",
             stability="beta")
     cput('Group_by', [], [
         Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
@@ -1442,6 +1444,26 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.number2(lambda env, a, b: [num.pd_lcm(a, b)]),
     ],
             stability="unstable")
+
+    cput('Organize', [], [
+        Case.seq(lambda env, seq: [pd_organize(seq)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_organize_by(env, block, seq)]),
+    ],
+            docs="""Group into lists of equal elements; like {{ 'Group'|b }},
+            but the equal elements don't need to be consecutive. The lists come
+            in the same order that their elements' first appearances did in the
+            original list.
+
+            ex: [3 1 2 2 1 1 1]Organize => [[3][1 1 1 1][2 2]]""",
+            stability="alpha")
+    cput('Organize_or_totient', ['Ø'], [
+        Case.number(lambda env, a: [discrete.totient(a)]),
+        Case.seq(lambda env, seq: [pd_organize(seq)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_organize_by(env, block, seq)]),
+    ],
+            docs="""On numbers, Euler's {{ 'Totient'|b }} function (does not
+            vectorize). On sequences or blocks with sequences, {{ 'Organize'|b }}.""",
+            stability="alpha")
     # }}}
     # Circumflexed vowels {{{
     even_case = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 0)])
@@ -2037,11 +2059,6 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.value_n2v(discrete.totient),
     ],
             docs="Euler's totient function", stability="alpha")
-    cput('Ø', [], [
-        Case.value_n2v(discrete.totient),
-    ],
-            docs="Euler's {{ 'Totient'|b }} function (unstable alias)",
-            stability="unstable")
     cput('Jacobi_symbol', ['Js'], [
         Case.number2(lambda env, m, n: [discrete.jacobi_symbol(num.numerify(m), num.numerify(n))]),
     ],
