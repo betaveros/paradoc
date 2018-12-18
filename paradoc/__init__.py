@@ -26,6 +26,7 @@ import paradoc.assign as assign
 import sys
 import argparse
 import codecs
+import random
 
 def simple_interpolate(env: Environment, content: str, target: str) -> str:
     literal_fragments: List[str] = []
@@ -696,6 +697,22 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             assert isinstance(e, (str, list, range))
             env.push(objects.pd_index(e, -1-i))
         return (BuiltIn(str(i) + "_last", last_i), False)
+
+    @put("quarter", "q",
+            docs="""Let X be this number over four. For numbers, multiply by X.
+            For lists, take floor of the first X elements. For blocks, run with
+            probability X.""",
+            stability="unstable")
+    def quarter_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def quarter_i(env: Environment) -> None:
+            e = env.pop()
+            if isinstance(e, (Char, int, float)):
+                env.push(num.pd_mul_div_const(e, i, 4))
+            elif isinstance(e, (str, list, range)):
+                env.push(e[:len(e)*i//4])
+            elif random.random() < i/4:
+                e(env)
+        return (BuiltIn(str(i) + "_quarter", quarter_i), False)
 
     for agchar in 'áéíóúàèìòùý':
         @put(agchar, docs=ag_document(agchar), stability="unstable")

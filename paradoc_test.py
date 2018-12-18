@@ -126,8 +126,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('0 4χ10*)'), [1111])
 
     def test_constant_fractions(self):
+        self.assertEqual(pd_simple_eval('3 2q 7 3q 9 1q 11 8q'), [1.5,5.25,2.25,22])
         self.assertEqual(pd_simple_eval('3½7¾9¼11×'), [1.5,5.25,2.25,22])
         self.assertEqual(pd_simple_eval('["""foobar""zfoobar"]½e'), ["","foo","zfo"])
+        self.assertEqual(pd_simple_eval('["""foobar""zfoobar"]3qe'), ["","foob","zfoob"])
         self.assertEqual(pd_simple_eval('"foobar"×'), ["foobarfoobar"])
 
     def test_bits(self):
