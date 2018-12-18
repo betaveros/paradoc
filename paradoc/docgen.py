@@ -346,6 +346,108 @@ The ids of elements on this page should be considered unstable, so permalinks
 to this page should be considered unstable as well.
 """
 
+overview = r"""
+<p>A brief, incomplete categorized list of built-ins and trailers, useful for golf, and related golf tips.</p>
+
+<ul>
+<li><strong>Stack manipulation</strong>: There are lots of built-ins. Note that there is no single-character built-in for GolfScript's <code>@</code>, but all permutations of the top three elements of the stack are accessible in one or two characters. In addition, the trailers {{ 'a'|bt }}, {{ 'd'|bt }}, {{ 'k'|bt }}, {{ 'q'|bt }}, {{ 'u'|bt }} can often reduce or eliminate the need for stack manipulation.
+    <ul>
+        <li>Popping: {{ ';'|b }}, {{ '¸'|b }}</li>
+        <li>Duplicating: {{ ':'|b }}, {{ ':p'|b }} or {{ '¦'|b }}, {{ ':a'|b }}</li>
+        <li>Conditional popping (not stable): {{ ';i'|b }}, {{ ';f'|b }}, {{ ';n'|b }}, {{ ';t'|b }}</li>
+        <li>Swapping: {{ '\\'|b }} (and {{ '\\'|b }}{{ 'u'|bt }}), {{ '\\a'|b }}, {{ '\\o'|b }}, {{ '\\i'|b }}</li>
+    </ul>
+</li>
+<li><strong>(Finite-arity) Math</strong>: The usual.
+    <ul>
+        <li>Expressing literals: {{ 'h'|it }}, {{ 'k'|it }}, {{ 'm'|it }}</li>
+        <li>Two-operand arithmetic: {{ '+'|b }}, {{ '-'|b }}, {{ '¯'|b }}, {{ '±'|b }}, {{ '*'|b }}, {{ '/'|b }}, {{ '÷'|b }}, {{ '%'|b }}, {{ '‰'|b }}</li>
+        <li>One-operand arithmetic:
+        {{ '('|b }}, {{ ')'|b }}, {{ '‹'|b }} or {{ '<i'|b }}, {{ '=i'|b }}, {{ '›'|b }} or {{ '>i'|b }}, {{ '«'|b }}, {{ '»'|b }}, {{ 'L'|b }}, {{ 'M'|b }}, {{ 'U'|b }}, {{ '×'|b }}, {{ '½'|b }}, {{ '¼'|b }}, {{ '¾'|b }}, {{ '²'|b }}, {{ '³'|b }}, {{ 'Si'|b }}</li>
+        <li>Bit operations: {{ '&'|b }}, {{ '|'|b }}, {{ '^'|b }}, {{ '<s'|b }}, {{ '>s'|b }}, {{ '~'|b }}</li>
+        <li>Comparisons and min/max:
+        {{ '<'|b }}, {{ '='|b }}, {{ '>'|b }},
+        {{ '<a'|b }}, {{ '=a'|b }}, {{ '>a'|b }},
+        {{ '<e'|b }}, {{ '>e'|b }},
+        {{ '<m'|b }} or {{ 'Õ'|b }}, {{ '>m'|b }} or {{ 'Ã'|b }}
+        {{ '=c'|b }} or {{ '˜'|b }}
+        </li>
+        <li>Powers, exponentials, and logarithms: {{ 'ˆ'|b }} or {{ '*p'|b }}, {{ 'p'|it }}, {{ 'r'|it }}, {{ 'Ln'|b }}, {{ 'Lg'|b }}, {{ 'Lt'|b }}</li>
+        <li>Number theory: {{ '#'|b }}, {{ 'G'|b }}, {{ 'Lcm'|b }}, {{ '¡'|b }} or {{ '!p'|b }}, {{ '¿'|b }} or {{ 'Ss'|b }}, {{ '(p'|b }}, {{ ')p'|b }}, {{ 'Bc'|b }}, {{ 'Et'|b }}, {{ 'Fb'|b }}, {{ 'Fc'|b }}, {{ 'Ff'|b }}, {{ 'Js'|b }}, {{ '¶'|b }} or {{ 'Pp'|b }}</li>
+        <li>Predicates: {{ 'Â'|b }} or {{ '+p'|b }}, {{ 'Ê'|b }} or {{ 'Ev'|b }}, {{ 'Î'|b }}, {{ 'Ô'|b }} or {{ 'Od'|b }}, {{ 'Û'|b }} or {{ '-p'|b }}, {{ '+o'|b }}, {{ '-o'|b }}</li>
+    </ul>
+</li>
+<li><strong>List operations</strong>:
+    <ul>
+        <li>General construction: {{ '['|b }}, {{ ']'|b }}, {{ '¬'|b }}, integer{{ 'a'|it }}, {{ '†'|b }}, {{ '‡'|b }}, {{ '°'|b }}</li>
+        <li>Range construction: {{ ','|b }}, {{ 'D'|b }}, {{ 'J'|b }}, {{ 'Ð'|b }}, {{ 'Tl'|b }} or {{ '¨'|b }}, {{ 'To'|b }} or {{ '…'|b }}. Note that many built-ins and trailers implicitly convert numbers to the half-open ranges ending at them, which can be taken advantage of with e.g. {{ '+'|b }}{{ 'v'|bt }} and {{ '+'|b }}{{ 'ß'|bt }}. <code>3 5 +v</code> just gives <code>[3 4 5 6 7]</code>.</li>
+        <li>Length: {{ 'L'|b }}</li>
+        <li>Indexing: {{ '='|b }}, {{ '‹'|b }}, {{ '›'|b }}</li>
+        <li>Slicing: {{ '<'|b }}, {{ '>'|b }}, {{ '«'|b }} or {{ '(s'|b }}, {{ '»'|b }} or {{ ')s'|b }}, {{ '½'|b }}, {{ '¼'|b }}, {{ '¾'|b }}</li>
+        <li>Indexing and slicing: {{ '('|b }}, {{ ')'|b }}</li>
+        <li>Reductions/folds: Of course you can reduce with {{ 'r'|bt }}. Common folds include {{ 'Š'|b }}, {{ 'Þ'|b }}, {{ 'Œ'|b }} or {{ '<r'|b }}, {{ 'Æ'|b }} or {{ '>r'|b }}</li>
+        <li>Recombining lists: {{ '+'|b }}, {{ '-'|b }}, {{ '&'|b }}, {{ '|'|b }}, {{ '^'|b }}, {{ '*'|b }}</li>
+        <li>Fragmenting or rearranging: {{ '$'|b }}, {{ 'U'|b }}, {{ '/'|b }}, {{ '%'|b }}, {{ 'G'|b }}, {{ 'W'|b }}, {{ '™'|b }} or {{ 'Tt'|b }}</li>
+        <li>Predicates: {{ '<h'|b }}, {{ '=h'|b }}, {{ '>h'|b }}, {{ '$p'|b }}, {{ '<p'|b }}, {{ '=p'|b }}, {{ '>p'|b }}</li>
+    </ul>
+</li>
+<li><strong>Logic</strong>:
+    <ul>
+        <li>{{ '!'|b }}, {{ '?'|b }}, {{ '&'|b }}, {{ '|'|b }}, {{ '&p'|b }}, {{ '|p'|b }}.</li>
+        <li>Any whitespace character is the identity function. A nonobvious application of this is that you can apply trailers to it: so, for example, to filter truthy elements in a list, {{ ' '|b }}{{ 'f'|bt }} works.</li>
+    </ul>
+</li>
+<li><strong>Strings</strong>:
+    <ul>
+        <li>Operations:
+        {{ 'Uc'|b }}, {{ 'Lc'|b }}, {{ 'Xc'|b }}, {{ 'Tc'|b }},
+        {{ 'Up'|b }}, {{ 'Lp'|b }}, {{ 'Ap'|b }}
+        </li>
+        <li>Constants:
+        {{ 'Ua'|b }}, {{ 'La'|b }}, {{ 'Aa'|b }}, {{ 'Da'|b }}
+        </li>
+        <li>Formatting/string interpolation:
+        {{ 'S'|b }},
+        {{ 'i'|st }},
+        {{ 'f'|st }}
+        </li>
+    </ul>
+</li>
+<li><strong>Higher-order functions</strong>:
+    <ul>
+    <li>Argument, stack, reluctance fiddling:
+        {{ ''|bt }},
+        {{ 'a'|bt }},
+        {{ 'b'|bt }},
+        {{ 'd'|bt }},
+        {{ 'k'|bt }},
+        {{ 'q'|bt }},
+        {{ 'u'|bt }}
+    </li>
+    <li>Operations on sequences:
+        <ul>
+            <li>Each: {{ '*'|b }}, {{ '/'|b }}, {{ 'e'|bt }}, {{ 'x'|bt }}.
+            Note that this is often also "reduce with initial value".</li>
+            <li>Map: {{ '%'|b }}, {{ 'm'|bt }}, {{ 'o'|bt }}, {{ 'w'|bt }}.
+            Note that all elements on the shadow stack are collected into the list, so you can use this to flatmap.</li>
+            <li>Filter: {{ '+'|b }}, {{ '-'|b }}, {{ ','|b }}, {{ 'J'|b }}, {{ 'f'|bt }}</li>
+            <li>Reduce: {{ 'R'|b }}, {{ 'r'|bt }}</li>
+            <li>Zip: {{ '‰'|b }}, {{ 'z'|bt }}, {{ 'y'|bt }}</li>
+            <li>Vectorize (bind + map): {{ 'v'|bt }}, {{ 'ß'|bt }}</li>
+            <li>Find: {{ '='|b }}, {{ '^'|b }}, {{ 'g'|bt }} (?)</li>
+            <li>Take/drop: {{ '<'|b }}, {{ '>'|b }}</li>
+        </ul>
+        While looping, the X-stack (<code>X</code>, <code>Y</code>, <code>Z</code> etc.) is very useful.
+    </li>
+    </ul>
+</li>
+<li><strong>Input and output</strong>:
+    If a global trailer is set, input from the stack is implicit like GolfScript, but you can also explicitly read input with {{ 'V'|b }}.
+    For output you can use {{ 'O'|b }} and {{ 'P'|b }} or string trailers {{ 'o'|st }} and {{ 'p'|st }}.
+</li>
+</ul>
+"""
+
 name_template = """<a href="#{{id}}"><code>
 {%- for char in chars -%}
     {%- if char.sp -%}
@@ -374,8 +476,8 @@ h2 { padding-top: 0.5em; border-top: 3px double black; }
 h3 { border-top: 1px dashed black; padding-top: 0.5em; }
 h3.name { font-family: monospace; }
 h3 a { text-decoration: none; }
-h3 code.char { font-size: 75%; border: 1px dotted black; background: #ccc; }
 pre { border: 1px solid #ac9; background-color: #eeffcc; padding: 0.2em; }
+code.char { font-size: 75%; border: 1px dotted black; background: #ccc; }
 pre.ex::before, pre.exs::before { font-size: 75%; font-family: sans-serif; }
 pre.ex::before { content: "Example: "; }
 pre.exs::before { content: "Examples: "; display: block; }
@@ -383,7 +485,6 @@ p.const { border: 1px solid #ccc; background-color: #eee; padding: 0.2em; }
 
 p.aliases, p.stability { font-style: italic; margin-left: 2.5em; }
 p.aliases a { text-decoration: none; }
-p.aliases code.char { font-size: 75%; border: 1px dotted black; background: #ccc; }
 p.unstable { color: #c00; }
 p.alpha { color: #c60; }
 p.beta { color: #088; }
@@ -401,6 +502,7 @@ p.stable { color: #0a0; }
 <li><a href="#GSemantics">Semantics</a></li>
 <li><a href="#GMnemonics">Mnemonics</a></li>
 <li><a href="#GStability">Stability</a></li>
+<li><a href="#GOverview">Overview</a></li>
 {% for family in trailer_families %}
 <li><a href="#{{ family.id }}">{{ family.name }} Trailers</a></li>
 {% endfor %}
@@ -417,6 +519,8 @@ p.stable { color: #0a0; }
 {{ mnemonics }}
 <h2 id="GStability">Stability</h2>
 {{ stability }}
+<h2 id="GOverview">Built-in/Trailer Overview</h2>
+{{ overview }}
 
 {% for family in trailer_families %}
 <h2 id="{{ family.id }}">{{ family.name }} Trailers</h2>
@@ -599,6 +703,7 @@ def document(env: Environment,
         'semantics': Markup(markdown(semantics)),
         'mnemonics': Markup(markdown(mnemonics)),
         'stability': Markup(markdown(stability_text)),
+        'overview': Markup(jenv.from_string(overview).render()),
         'vars': data,
         'trailer_families': trailer_data
     }))
