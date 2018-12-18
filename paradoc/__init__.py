@@ -477,6 +477,14 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_min",
                 lambda env: apply_pd_list_op(env, b, objects.pd_min_of_seq_list_op)), False)
 
+    @put("count", "ç",
+            docs="""Apply this block to each element of a list (coerces numbers
+            to ranges); push the number of truthy results.""",
+            stability="alpha")
+    def count_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_count",
+                lambda env: apply_pd_list_op(env, b, objects.pd_count)), False)
+
     return ret
 block_trailer_dict = build_block_trailer_dict()
 # }}}
