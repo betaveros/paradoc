@@ -1234,6 +1234,18 @@ def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
     else:
         return seq.count(e)
 
+def pd_count_pairs(seq: PdSeq) -> list:
+    distinct_elements: List[PdObject] = []
+    frequencies: Dict[PdKey, int] = dict()
+    for e in pd_iterable(seq):
+        key = pykey(e)
+        if key in frequencies:
+            frequencies[key] += 1
+        else:
+            distinct_elements.append(e)
+            frequencies[key] = 1
+    return [[e, frequencies[e]] for e in distinct_elements]
+
 def pd_map_iterable(env: Environment, func: Block, it: Iterable[PdObject]) -> List[PdObject]:
     env.push_yx()
     acc: List[PdObject] = []

@@ -1251,6 +1251,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             predicate. Mnemonic: number sign, as in you're counting the number
             of something""",
             stability="alpha")
+    cput('Count_pairs', ['#p'], [
+        Case.seq(lambda env, seq: [pd_count_pairs(seq)]),
+    ],
+            docs="""Given a sequence, return a list of pairs, each pair with
+            a distinct element and the number of times it appears in the
+            sequence.""",
+            stability="alpha")
     # }}}
     # Down/Do, Transpose, Zip {{{
     reverse_case = Case.seq_range(lambda env, a: [a[::-1]])
