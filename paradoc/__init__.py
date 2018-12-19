@@ -553,7 +553,7 @@ def build_string_trailer_dict() -> Dict[str, Trailer[str]]: # {{{
                     format_res = s % tuple(
                             map(num.intify, format_args)) # type: ignore
                 except TypeError:
-                    raise Exception('Could not format string ' + repr(s) +
+                    raise ValueError('Could not format string ' + repr(s) +
                             ' with arguments ' + repr(format_args))
             env.push(format_res)
         return (BuiltIn(objects.pd_repr(s) + "_format", format_s), False)
@@ -661,7 +661,7 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
         def power_i(env: Environment) -> None:
             v = env.pop()
             if isinstance(v, Block):
-                raise Exception('Cannot take power of block')
+                raise TypeError('Cannot take power of block')
             else:
                 env.push(objects.pd_deepmap_n2v(lambda e: e ** i, v))
         return (BuiltIn(str(i) + "_power", power_i), False)
@@ -673,7 +673,7 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
         def root_i(env: Environment) -> None:
             v = env.pop()
             if isinstance(v, Block):
-                raise Exception('Cannot take root of block')
+                raise TypeError('Cannot take root of block')
             else:
                 env.push(objects.pd_deepmap_n2v(lambda e: e ** (1/i), v))
         return (BuiltIn(str(i) + "_root", root_i), False)
@@ -869,7 +869,7 @@ def to_int_for_forloop(n: PdObject) -> int:
     elif isinstance(n, str):
         return int(n)
     else:
-        raise Exception('Non-numeric non-string ' + repr(n) + ' cannot be used as forloop limit')
+        raise TypeError('Non-numeric non-string ' + repr(n) + ' cannot be used as forloop limit')
 
 space_set = set([' ', '\n', '\r', '\t'])
 
@@ -1023,7 +1023,7 @@ class CodeBlock(Block):
                     active_assign_token_trailer = None
                 elif block_level == 0:
                     if token.startswith('}'):
-                        raise Exception("closing curly brace out of nowhere")
+                        raise RuntimeError("closing curly brace out of nowhere")
                     elif token in block_starters:
                         assert block_prefix_trailer is None
                         block_prefix_trailer = block_starters[token]

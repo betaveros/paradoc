@@ -189,7 +189,7 @@ class Environment: # {{{
     def get(self, token: str) -> PdObject:
         ret = self.get_or_none(token)
         if ret is None:
-            raise Exception('No variable with name ' + repr(token))
+            raise NameError('No variable with name ' + repr(token))
         else: return ret
 
     def get_or_else(self, token: str, other: PdObject) -> PdObject:
@@ -311,11 +311,11 @@ class Environment: # {{{
     def get_epsilon(self) -> float:
         ret = self.get_or_none('Ep')
         if ret is None:
-            raise Exception('No variable named Ep (epsilon)')
+            raise NameError('No variable named Ep (epsilon)')
         elif isinstance(ret, (int, float)):
             return float(ret)
         else:
-            raise Exception('Ep (epsilon) is not numeric')
+            raise TypeError('Ep (epsilon) is not numeric')
 
     def pd_str(self, obj: PdObject) -> str:
         if isinstance(obj, (list, range)):
@@ -458,7 +458,7 @@ def pd_truthy(env: Environment, func: Block, lst: List[PdObject]) -> bool:
     try:
         return bool(pd_sandbox(env, func, lst)[-1])
     except IndexError:
-        raise Exception("sandboxed truthiness lacked return value")
+        raise TypeError("Sandboxed truthiness lacked return value")
 # }}}
 # coercion {{{
 def pynumber_length(x: PdValue) -> Union[int, float]:
@@ -613,7 +613,7 @@ def pd_deep_copy_to_list(obj: PdValue) -> PdValue:
         acc: List[PdValue] = []
         for e in pd_iterable(obj):
             if isinstance(e, Block):
-                raise AssertionError("can't deep copy Block")
+                raise TypeError("can't deep copy Block")
             else:
                 acc.append(pd_deep_copy_to_list(e))
         return acc
@@ -625,7 +625,7 @@ def pd_deepmap_n2v(func: Callable[[Union[int, float]], PdValue], obj: PdValue) -
         acc = []
         for e in pd_iterable(obj):
             if isinstance(e, Block):
-                raise AssertionError("can't map numeric function across Block")
+                raise TypeError("can't map numeric function across Block")
             else:
                 acc.append(pd_deepmap_n2v(func, e))
         return acc
@@ -644,7 +644,7 @@ def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue, whole_str_ok: bool 
         acc = []
         for e in pd_iterable(obj):
             if isinstance(e, Block):
-                raise AssertionError("can't map string function across Block")
+                raise TypeError("can't map string function across Block")
             else:
                 acc.append(pd_deepmap_s2s(func, e))
         return acc
@@ -658,7 +658,7 @@ def pd_deepmap_s2v(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
         acc = []
         for e in pd_iterable(obj):
             if isinstance(e, Block):
-                raise AssertionError("can't map string function across Block")
+                raise TypeError("can't map string function across Block")
             else:
                 acc.append(pd_deepmap_s2v(func, e))
         return acc
@@ -749,7 +749,7 @@ def pd_deepmap_block(env: Environment, func: Block, seq: PdSeq) -> PdObject:
             acc = []
             for e in pd_iterable(obj):
                 if isinstance(e, Block):
-                    raise AssertionError("can't deep-map across Block")
+                    raise TypeError("can't deep-map across Block")
                 else:
                     flag, res = process(e)
                     acc.extend(res)
@@ -1063,7 +1063,7 @@ def pd_mold_from(value_iterable: Iterator[PdValue], template: PdObject) -> PdObj
             acc.append(pd_mold_from(iter(value_iterable), te))
         return pd_build_like(template, acc)
     else:
-        raise AssertionError('can\'t mold like ' + repr(template))
+        raise TypeError('can\'t mold like ' + repr(template))
 
 def pd_mold(el_source: PdValue, template: PdSeq) -> PdObject:
     if isinstance(el_source, (Char, int, float)):
@@ -1463,7 +1463,7 @@ def pd_count(env: Environment, func: Block, seq: PdSeq, negate: bool = False) ->
 def pd_get(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     _, e = pd_find_entry(env, func, seq)
     if e is None:
-        raise AssertionError('pd_get: no element satisfying predicate found')
+        raise ValueError('pd_get: no element satisfying predicate found')
     else:
         return e
 
@@ -1473,7 +1473,7 @@ def pd_get_index(env: Environment, func: Block, seq: PdSeq) -> int:
 def pd_get_last(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     _, e = pd_find_last_entry(env, func, seq)
     if e is None:
-        raise AssertionError('pd_getlast: no element satisfying predicate found')
+        raise ValueError('pd_getlast: no element satisfying predicate found')
     else:
         return e
 
@@ -1519,7 +1519,7 @@ def pd_reduce(env: Environment, func: Block, seq: PdSeq) -> PdObject:
         else:
             acc = pd_sandbox(env, func, [acc, element])[-1]
     if acc is None:
-        raise AssertionError('pd_reduce on empty list')
+        raise ValueError('pd_reduce on empty list')
     return acc
 
 def pd_scan(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
@@ -1648,12 +1648,12 @@ def pd_repr(obj: PdObject) -> str:
 def pd_to_char(val: PdValue) -> Char:
     if isinstance(val, (list, range)):
         if not val:
-            raise AssertionError('converting empty list/range to char')
+            raise ValueError('converting empty list/range to char')
         else:
             return pd_to_char(val[0])
     elif isinstance(val, str):
         if not val:
-            raise AssertionError('converting empty string to char')
+            raise ValueError('converting empty string to char')
         else:
             return Char(ord(val[0]))
     elif isinstance(val, Char):
@@ -1665,12 +1665,12 @@ def pd_to_char(val: PdValue) -> Char:
 def pd_to_float(val: PdValue) -> float:
     if isinstance(val, (list, range)):
         if not val:
-            raise AssertionError('converting empty list/range to float')
+            raise ValueError('converting empty list/range to float')
         else:
             return pd_to_float(val[0])
     elif isinstance(val, str):
         if not val:
-            raise AssertionError('converting empty string to float')
+            raise ValueError('converting empty string to float')
         else:
             return float(val)
     elif isinstance(val, Char):
@@ -1682,12 +1682,12 @@ def pd_to_float(val: PdValue) -> float:
 def pd_to_int(val: PdValue) -> int:
     if isinstance(val, (list, range)):
         if not val:
-            raise AssertionError('converting empty list/range to int')
+            raise ValueError('converting empty list/range to int')
         else:
             return pd_to_int(val[0])
     elif isinstance(val, str):
         if not val:
-            raise AssertionError('converting empty string to int')
+            raise ValueError('converting empty string to int')
         else:
             return int(val)
     elif isinstance(val, Char):
@@ -1828,17 +1828,17 @@ def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> PdV
                 if isinstance(target, (str, list, range)):
                     target = pd_index(target, i)
                 else:
-                    raise AssertionError(
+                    raise TypeError(
                         'could not index {} into {}: {} not indexable'.format(
                         repr(key), repr(arr_new), i, repr(target)))
             if isinstance(target, list):
                 target[key[-1]] = pd_sandbox(env, func, [target[key[-1]]])[-1]
             else:
-                raise AssertionError(
+                raise TypeError(
                     'could not assign into index {} of {}: {} not list'.format(
                     repr(key), repr(arr_new), repr(target)))
         except IndexError as e:
-            raise AssertionError('could not index {} into {}: IndexError'.format(key, arr_new)) from e
+            raise IndexError('could not index {} into {}: IndexError'.format(key, arr_new)) from e
     return arr_new
 
 def pd_array_key_get(arr: Union[list, range], k: Union[list, range]) -> PdObject:
