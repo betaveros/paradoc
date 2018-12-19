@@ -164,6 +164,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 5][5 8]|'), [[2,5,8]])
         self.assertEqual(pd_simple_eval('[2 5][5 8]^'), [[2,8]])
         self.assertEqual(pd_simple_eval('[2 5][5 8]-'), [[2]])
+        self.assertEqual(pd_simple_eval('[2 5 5 5][5 5 8]&'), [[5,5]])
+        self.assertEqual(pd_simple_eval('[2 5 5 5][5 5 8]|'), [[2,5,5,5,8]])
+        self.assertEqual(pd_simple_eval('[2 5 5 5][5 5 8]^'), [[2,8]])
+        self.assertEqual(pd_simple_eval('[2 5 5 5][5 5 8]-'), [[2]])
         self.assertEqual(pd_simple_eval('[[4 5][6 7]][[6 7][5 4]]&'), [[[6,7]]])
         self.assertEqual(pd_simple_eval('[[4 5][6 7]][[5 4][6 7]]|'), [[[4,5],[6,7],[5,4]]])
 

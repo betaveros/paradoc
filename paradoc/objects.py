@@ -1717,13 +1717,10 @@ def pd_seq_union(a: PdSeq, b: PdSeq) -> PdSeq:
             acc.append(element)
     return pd_build_like(a, acc)
 def pd_seq_difference(a: PdSeq, b: PdSeq) -> PdSeq:
-    set_b = collections.Counter(pykey(e) for e in pd_iterable(b))
+    set_b = set(pykey(e) for e in pd_iterable(b))
     acc: List[PdObject] = []
     for element in pd_iterable(a):
-        key = pykey(element)
-        if key in set_b and set_b[key]:
-            set_b[key] -= 1
-        else:
+        if pykey(element) not in set_b:
             acc.append(element)
     return pd_build_like(a, acc)
 def pd_seq_symmetric_difference(a: PdSeq, b: PdSeq) -> PdSeq:
