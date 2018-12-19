@@ -465,6 +465,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10 3%b#'), [6])
         self.assertEqual(pd_simple_eval('21Êç'), [11])
         self.assertEqual(pd_simple_eval('[5 3 4 4 5 5 5]#p'), [[[5,4],[3,1],[4,2]]])
+        self.assertEqual(pd_simple_eval('[[1][1 1][1]]#p'), [[[[1],2],[[1,1],1]]])
 
     def test_reverse(self):
         self.assertEqual(pd_simple_eval('[2 5 3]D'), [[3,5,2]])
