@@ -395,6 +395,8 @@ overview = r"""
     <ul>
         <li>{{ '!'|b }}, {{ '?'|b }}, {{ '&'|b }}, {{ '|'|b }}, {{ '&p'|b }}, {{ '|p'|b }}.</li>
         <li>Any whitespace character is the identity function. A nonobvious application of this is that you can apply trailers to it: so, for example, to filter truthy elements in a list, {{ ' '|b }}{{ 'f'|bt }} works.</li>
+        <li>If you need to convert a nonnegative integer to a "boolean" (0 or 1) for some other purpose (e.g. to sum, or to execute something 0 or 1 times), you can use {{ 'U'|b }} or {{ 'Â'|b }}.</li>
+        <li>If you need to convert a list to a "boolean", you may be able to use {{ 'Ê'|b }}.</li>
     </ul>
 </li>
 <li><strong>Strings</strong>:
