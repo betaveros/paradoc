@@ -1,6 +1,6 @@
 from paradoc.objects import (
         PdObject, Environment, PdSeq, PdValue, PdNum, Char, Block, pd_deepmap_n2v,
-        PdEmptyStackException,
+        Hoard, PdImmutableSeq, PdEmptyStackException,
         )
 from typing import Any, Callable, List, Optional, Tuple, Type, Union
 
@@ -29,31 +29,44 @@ just_float  = ArgType.just_type(float)
 just_char   = ArgType.just_type(Char)
 just_number = ArgType.just_type(Char, int, float)
 just_str    = ArgType.just_type(str)
-just_list   = ArgType.just_type(list, range)
-just_seq    = ArgType.just_type(str, list, range)
+just_list   = ArgType.just_type(list, range, Hoard)
+just_seq    = ArgType.just_type(str, list, range, Hoard)
 just_block  = ArgType.just_type(Block)
-just_value  = ArgType.just_type(Char, int, float, str, list, range)
-just_any    = ArgType.just_type(Char, int, float, str, list, range, Block)
+just_value  = ArgType.just_type(Char, int, float, str, list, range, Hoard)
+just_any    = ArgType.just_type(Char, int, float, str, list, range, Hoard, Block)
 
 # Accepts a list, coercing Chars or numbers to single-element lists
 list_singleton = ArgType([
-        ((Char, int, float),  lambda x: [x]),
-        ((list, range),       lambda x: x),
+        ((Char, int, float),   lambda x: [x]),
+        ((list, range, Hoard), lambda x: x),
+        ])
+
+# Accepts a seq, dereferencing hoards
+seq_deref = ArgType([
+        ((str, list, range), lambda x: x),
+        ((Hoard,),           lambda x: x.to_list()),
         ])
 
 # Accepts a sequence, coercing Chars or numbers to single-element strings or
 # lists
 seq_singleton = ArgType([
-        ((Char,),            lambda x: x.chr),
-        ((int, float),       lambda x: [x]),
-        ((str, list, range), lambda x: x),
+        ((Char,),                   lambda x: x.chr),
+        ((int, float),              lambda x: [x]),
+        ((str, list, range, Hoard), lambda x: x),
         ])
 # Accepts a sequence, coercing Chars or numbers to ranges
 seq_range = ArgType([
+        ((Char,),                   lambda x: range(x.ord)),
+        ((int,),                    lambda x: range(x)),
+        ((float,),                  lambda x: range(int(x))),
+        ((str, list, range, Hoard), lambda x: x),
+        ])
+seq_range_deref = ArgType([
         ((Char,),            lambda x: range(x.ord)),
         ((int,),             lambda x: range(x)),
         ((float,),           lambda x: range(int(x))),
         ((str, list, range), lambda x: x),
+        ((Hoard,),           lambda x: x.to_list()),
         ])
 
 # Accepts a list, coercing strings to lists of integers and Chars or numbers to ranges
@@ -144,14 +157,20 @@ class Case:
     def str_(func: Callable[[Environment, str], List[PdObject]]) -> 'Case':
         return Case(1, [just_str], func)
     @staticmethod
-    def list_(func: Callable[[Environment, list], List[PdObject]]) -> 'Case':
+    def list_(func: Callable[[Environment, Union[list, range, Hoard]], List[PdObject]]) -> 'Case':
         return Case(1, [just_list], func)
     @staticmethod
     def seq(func: Callable[[Environment, PdSeq], List[PdObject]]) -> 'Case':
         return Case(1, [just_seq], func)
     @staticmethod
+    def seq_deref(func: Callable[[Environment, PdImmutableSeq], List[PdObject]]) -> 'Case':
+        return Case(1, [seq_deref], func)
+    @staticmethod
     def seq_range(func: Callable[[Environment, PdSeq], List[PdObject]]) -> 'Case':
         return Case(1, [seq_range], func)
+    @staticmethod
+    def seq_range_deref(func: Callable[[Environment, PdImmutableSeq], List[PdObject]]) -> 'Case':
+        return Case(1, [seq_range_deref], func)
     @staticmethod
     def number(func: Callable[[Environment, Union[int, float]], List[PdObject]]) -> 'Case':
         return Case(1, [just_number], func)
@@ -184,20 +203,20 @@ class Case:
     def str2(func: Callable[[Environment, str, str], List[PdObject]]) -> 'Case':
         return Case(2, [just_str, just_str], func)
     @staticmethod
-    def list2(func: Callable[[Environment, Union[list, range], Union[list, range]], List[PdObject]]) -> 'Case':
+    def list2(func: Callable[[Environment, Union[list, range, Hoard], Union[list, range, Hoard]], List[PdObject]]) -> 'Case':
         return Case(2, [just_list, just_list], func)
     @staticmethod
-    def list_list_singleton(func: Callable[[Environment, Union[list, range], Union[list, range]], List[PdObject]]) -> 'Case':
+    def list_list_singleton(func: Callable[[Environment, Union[list, range, Hoard], Union[list, range, Hoard]], List[PdObject]]) -> 'Case':
         return Case(2, [just_list, list_singleton], func)
     @staticmethod
-    def list2_singleton(func: Callable[[Environment, Union[list, range], Union[list, range]], List[PdObject]]) -> 'Case':
+    def list2_singleton(func: Callable[[Environment, Union[list, range, Hoard], Union[list, range, Hoard]], List[PdObject]]) -> 'Case':
         return Case(2, [list_singleton, list_singleton], func)
     @staticmethod
-    def list_number(func: Callable[[Environment, Union[list, range], PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
+    def list_number(func: Callable[[Environment, Union[list, range, Hoard], PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_list, just_number], func,
                 commutative=commutative)
     @staticmethod
-    def list_range_number(func: Callable[[Environment, Union[list, range], PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
+    def list_range_number(func: Callable[[Environment, Union[list, range, Hoard], PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [list_int_range, just_number], func,
                 commutative=commutative)
     @staticmethod
@@ -260,10 +279,10 @@ class Case:
     def any_any_number(func: Callable[[Environment, PdObject, PdObject, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(3, [just_any, just_any, just_number], func, commutative=commutative)
     @staticmethod
-    def list_list_singleton_value(func: Callable[[Environment, list, list, PdValue], List[PdObject]]) -> 'Case':
+    def list_list_singleton_value(func: Callable[[Environment, Union[list, range, Hoard], Union[list, range, Hoard], PdValue], List[PdObject]]) -> 'Case':
         return Case(3, [just_list, list_singleton, just_value], func)
     @staticmethod
-    def list_list_block(func: Callable[[Environment, list, list, Block], List[PdObject]]) -> 'Case':
+    def list_list_block(func: Callable[[Environment, Union[list, range, Hoard], Union[list, range, Hoard], Block], List[PdObject]]) -> 'Case':
         return Case(3, [just_list, just_list, just_block], func)
     @staticmethod
     def seq2_range_block(func: Callable[[Environment, PdSeq, PdSeq, Block], List[PdObject]], commutative: bool = True) -> 'Case':

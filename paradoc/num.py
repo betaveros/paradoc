@@ -1,4 +1,4 @@
-from typing import Any, Callable, Union
+from typing import Any, Callable, Union, Optional
 import math
 import operator
 
@@ -61,6 +61,12 @@ def intify(x: PdNum) -> int:
         return x.ord
     else:
         return int(x)
+
+def intify_opt(x: Optional[PdNum]) -> Optional[int]:
+    if x is None:
+        return None
+    else:
+        return intify(x)
 
 def lift_numerify1(f: Callable[[Num], Num]) -> Callable[[PdNum], PdNum]:
     def inner(a: PdNum) -> PdNum:

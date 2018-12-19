@@ -1,8 +1,8 @@
 # coding: utf-8
 import typing
 from typing import (
-        Callable, Dict, Generator, Match, Iterable, Iterator, List, Optional,
-        Set, Tuple, TypeVar, Union, overload,
+        Callable, Dict, Deque, Generator, Match, Iterable, Iterator, List,
+        Optional, Set, Tuple, TypeVar, Union, overload,
         )
 import sys
 import math
@@ -11,6 +11,7 @@ import paradoc.num as num
 import collections
 import random
 import itertools
+import copy
 
 T = TypeVar('T')
 
@@ -46,9 +47,148 @@ class BuiltIn(Block):
     def __repr__(self) -> str:
         return '<BuiltIn {}>'.format(self.name)
 # }}}
+# Hoard, general mutable data structure {{{
+HoardStructure = Union[List["PdObject"], Deque["PdObject"], Dict["PdKey", Tuple["PdObject", "PdObject"]]]
+class Hoard:
+    def __init__(self, init: Optional[HoardStructure] = None) -> None:
+        self.structure: HoardStructure = [] if init is None else init
 
-PdSeq = Union[str, list, range]
-PdValue = Union[PdNum, PdSeq]
+    def append(self, obj: "PdObject") -> None:
+        if isinstance(self.structure, (list, collections.deque)):
+            self.structure.append(obj)
+        else:
+            raise TypeError("Hoard is dictionary; appending is not allowed")
+
+    def appendleft(self, obj: "PdObject") -> None:
+        if isinstance(self.structure, (list, collections.deque)):
+            if isinstance(self.structure, list):
+                self.structure = collections.deque(self.structure)
+            self.structure.appendleft(obj)
+        else:
+            raise TypeError("Hoard is dictionary; appending is not allowed")
+
+    def pop(self) -> "PdObject":
+        if isinstance(self.structure, (list, collections.deque)):
+            return self.structure.pop()
+        else:
+            raise TypeError("Hoard is dictionary; popping is not allowed")
+
+    def popleft(self) -> "PdObject":
+        if isinstance(self.structure, (list, collections.deque)):
+            if isinstance(self.structure, list):
+                self.structure = collections.deque(self.structure)
+            return self.structure.popleft()
+        else:
+            raise TypeError("Hoard is dictionary; popping is not allowed")
+
+    def index(self, key: "PdKey") -> "PdObject":
+        if isinstance(self.structure, (list, collections.deque)):
+            if isinstance(key, int):
+                return self.structure[key]
+            else:
+                raise TypeError("Hoard is list/deque, must index by int")
+        else:
+            return self.structure[key][1]
+
+    def slice(self, left: Optional["PdKey"], right: Optional["PdKey"]) -> "PdObject":
+        if isinstance(self.structure, (list, collections.deque)):
+            if (
+                    (left is None or isinstance(left, (Char, int, float))) and
+                    (right is None or isinstance(right, (Char, int, float)))):
+                ls = self.structure
+                if isinstance(ls, collections.deque):
+                    ls = list(ls) # TODO: Deques could be sliced more
+                    # efficiently in common special cases.
+                return ls[num.intify_opt(left):num.intify_opt(right)]
+            else:
+                raise TypeError("Hoard is list/deque, must slice by numbers")
+        else:
+            items = [(k, vp) for k, vp in self.structure.items()
+                    if (left is None or left <= k) and (right is None or k < right)]
+            return [v for _, (_, v) in sorted(items, key=lambda pair: pair[0])]
+
+    def first(self) -> "PdObject":
+        if isinstance(self.structure, (list, collections.deque)):
+            return self.structure[0]
+        else:
+            return min(self.structure.items(), key=lambda pair: pair[0])[1][1]
+
+    def last(self) -> "PdObject":
+        if isinstance(self.structure, (list, collections.deque)):
+            return self.structure[-1]
+        else:
+            return max(self.structure.items(), key=lambda pair: pair[0])[1][1]
+
+    def butfirst(self) -> "PdObject":
+        return self.to_list()[1:]
+
+    def butlast(self) -> "PdObject":
+        return self.to_list()[:-1]
+
+    def key_list(self) -> Union[range, List["PdObject"]]:
+        if isinstance(self.structure, (list, collections.deque)):
+            return range(len(self.structure))
+        else:
+            return [k for _, (k, _) in sorted(self.structure.items(),
+                key=lambda pair: pair[0])]
+
+    def to_iterable(self) -> Iterable["PdObject"]:
+        # Making this an explicit function for more conservative type safety
+        if isinstance(self.structure, (list, collections.deque)):
+            return self.structure
+        else:
+            return (v for _, (_, v) in sorted(self.structure.items(),
+                key=lambda pair: pair[0]))
+
+    def to_reversed_iterable(self) -> Iterable["PdObject"]:
+        if isinstance(self.structure, (list, collections.deque)):
+            return reversed(self.structure)
+        else:
+            return (v for _, (_, v) in reversed(sorted(self.structure.items(),
+                key=lambda pair: pair[0])))
+
+    def to_list(self) -> List["PdObject"]:
+        if isinstance(self.structure, (list, collections.deque)):
+            return list(self.structure)
+        else:
+            return [v for _, (_, v) in sorted(self.structure.items(),
+                key=lambda pair: pair[0])]
+
+    def __repr__(self) -> str:
+        return "Hoard({})".format(repr(self.structure))
+
+    def __len__(self) -> int:
+        return len(self.structure)
+
+    def update(self, key: "PdValue", value: "PdValue") -> None:
+        if isinstance(self.structure, (list, collections.deque)):
+            if isinstance(key, int):
+                try:
+                    self.structure[key] = value
+                    return
+                except IndexError:
+                    pass
+            self.structure = {pykey(k): (k, v) for k, v in enumerate(self.structure)}
+        self.structure[pykey(key)] = (key, value)
+
+    def copy(self) -> "Hoard":
+        return Hoard(copy.copy(self.structure))
+
+    def replace(self, a: "PdObject") -> None:
+        if isinstance(a, (str, list, range)):
+            self.structure = list(a)
+        elif isinstance(a, Hoard):
+            self.structure = copy.copy(a.structure)
+        elif isinstance(a, (Char, int, float)):
+            self.structure = [a]
+        else:
+            raise TypeError('Replacing hoard with unknown')
+# }}}
+
+PdImmutableSeq = Union[str, list, range]
+PdSeq = Union[str, list, range, Hoard]
+PdImmutable = Union[PdNum, str, list, range]
+PdValue = Union[PdImmutable, Hoard]
 PdObject = Union[PdValue, Block]
 
 PdKey = Union[PdNum, str, tuple, range]
@@ -320,6 +460,8 @@ class Environment: # {{{
     def pd_str(self, obj: PdObject) -> str:
         if isinstance(obj, (list, range)):
             return self.join_output_fields(self.pd_str(e) for e in obj)
+        elif isinstance(obj, (Hoard)):
+            return self.join_output_fields(self.pd_str(e) for e in obj.to_iterable())
         else: # includes str, int, float etc.
             return basic_pd_str(obj)
 
@@ -462,7 +604,7 @@ def pd_truthy(env: Environment, func: Block, lst: List[PdObject]) -> bool:
 # }}}
 # coercion {{{
 def pynumber_length(x: PdValue) -> Union[int, float]:
-    if isinstance(x, (str, list, range)):
+    if isinstance(x, (str, list, range, Hoard)):
         return len(x)
     elif isinstance(x, Char):
         return x.ord
@@ -509,15 +651,41 @@ def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObj
 def to_comparable_list(a: PdValue) -> list:
     if isinstance(a, list): return a
     elif isinstance(a, (Char, int, float)): return [a]
+    elif isinstance(a, Hoard): return a.to_list()
     else: return list(pd_iterable(a))
+
+def pd_to_list(a: Union[list, range, Hoard]) -> list:
+    if isinstance(a, list): return a
+    elif isinstance(a, range): return list(a)
+    else: return a.to_list()
+
+def pd_to_sorted(a: Union[list, range, Hoard]) -> list:
+    if isinstance(a, (list, range)): return sorted(a)
+    elif isinstance(a, range): return sorted(a)
+    else: return sorted(a.to_iterable())
+
+def pd_deref(a: PdSeq) -> Union[str, list, range]:
+    if isinstance(a, Hoard): return a.to_list()
+    else: return a
+
+def pd_deref_to_iterable(a: PdSeq) -> Iterable[PdObject]:
+    if isinstance(a, Hoard): return a.to_iterable()
+    else: return a
+
+def pd_zip_with_tail(a: PdSeq) -> Generator[Tuple[PdObject, PdObject], None, None]:
+    recent: Optional[PdObject] = None
+    for e in pd_iterable(a):
+        if recent is not None:
+            yield (recent, e)
+        recent = e
 
 def pd_cmp(a: PdObject, b: PdObject) -> int:
     if isinstance(a, (Char, int)) and isinstance(b, (Char, int)):
         return num.any_cmp(num.intify(a), num.intify(b))
     elif isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
         return num.any_cmp(num.floatify(a), num.floatify(b))
-    elif isinstance(a, (list, range)) and isinstance(b, (list, range)):
-        return num.any_cmp(list(a), list(b))
+    elif isinstance(a, (list, range, Hoard)) and isinstance(b, (list, range, Hoard)):
+        return num.any_cmp(pd_to_list(a), pd_to_list(b))
     elif isinstance(a, str) and isinstance(b, str):
         return num.any_cmp(a, b)
     elif isinstance(a, (Char, str)) and isinstance(b, (Char, str)):
@@ -598,7 +766,7 @@ def pd_sort(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
         if isinstance(a, str):
             return ''.join(sorted(a))
         else:
-            return list(sorted(a))
+            return list(sorted(pd_to_list(a)))
     else:
         env, f = ef
         keyed = [(pd_sandbox(env, f, [elt]), elt) for elt in pd_iterable(a)]
@@ -767,6 +935,8 @@ def pd_deepmap_block(env: Environment, func: Block, seq: PdSeq) -> PdObject:
 def pd_iterable(seq: PdSeq) -> Iterable[PdObject]:
     if isinstance(seq, str):
         return (Char(ord(c)) for c in seq)
+    elif isinstance(seq, Hoard):
+        return seq.to_iterable()
     return seq
 
 def pd_len_singleton(v: PdValue) -> int:
@@ -782,12 +952,16 @@ def pd_cycle_to_len(n: int, obj: PdValue) -> Iterable[PdObject]:
         n0 = len(obj)
         return (Char(ord(obj[i % n0])) for i in range(n))
     else:
+        if isinstance(obj, Hoard):
+            obj = obj.to_list()
         n0 = len(obj)
         return (obj[i % n0] for i in range(n))
 
 def pd_reversed_iterable(seq: PdSeq) -> Iterable[PdObject]:
     if isinstance(seq, str):
         return (Char(ord(c)) for c in reversed(seq))
+    elif isinstance(seq, Hoard):
+        return seq.to_reversed_iterable()
     return reversed(seq)
 
 def pd_deep_generator(obj: PdObject) -> Generator[PdValue, None, None]:
@@ -814,10 +988,38 @@ def pd_enumerate(seq: PdSeq, start: int = 0) -> List[list]:
 def pd_index(seq: PdSeq, n: PdNum) -> PdObject:
     if isinstance(seq, str):
         return Char(ord(seq[num.intify(n)]))
+    elif isinstance(seq, Hoard):
+        return seq.index(n)
     else:
         return seq[num.intify(n)]
+def pd_slice(seq: PdSeq, left: Optional[PdNum], right: Optional[PdNum]) -> PdObject:
+    if isinstance(seq, (str, list, range)):
+        return seq[num.intify_opt(left):num.intify_opt(right)]
+    else:
+        return seq.slice(left, right)
+def pd_first(seq: PdSeq) -> PdObject:
+    if isinstance(seq, Hoard):
+        return seq.first()
+    else:
+        return pd_index(seq, 0)
+def pd_last(seq: PdSeq) -> PdObject:
+    if isinstance(seq, Hoard):
+        return seq.last()
+    else:
+        return pd_index(seq, -1)
+def pd_butfirst(seq: PdSeq) -> PdObject:
+    if isinstance(seq, Hoard):
+        return seq.butfirst()
+    else:
+        return pd_slice(seq, 1, None)
+def pd_butlast(seq: PdSeq) -> PdObject:
+    if isinstance(seq, Hoard):
+        return seq.butlast()
+    else:
+        return pd_slice(seq, None, -1)
 def pd_modify_index(env: Environment, func: Block, seq: PdSeq, n: int) -> PdObject:
     if isinstance(seq, str): seq = list(pd_iterable(seq))
+    elif isinstance(seq, Hoard): seq = seq.to_list()
     before = list(seq[:n])
     after  = [] if n == -1 else list(seq[n+1:])
     return before + pd_sandbox(env, func, [seq[n]]) + after
@@ -841,7 +1043,7 @@ def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
     if isinstance(seq, (str, list)):
         return seq * n_int
     else:
-        return list(seq) * n_int
+        return pd_to_list(seq) * n_int
 
 def pd_cartesian_product_seq_matrix(seq1: PdSeq, seq2: PdSeq) -> List[List[list]]:
     return [[[e1, e2]
@@ -862,6 +1064,7 @@ def pd_pow_seq(seq: PdSeq, n: PdNum) -> PdSeq:
         return [list(e) for e in itertools.product(pd_iterable(seq), repeat=n_int)]
 
 def pd_split_seq_int_gen(seq: PdSeq, n: int, include_leftover: bool) -> Generator[PdSeq, None, None]:
+    if isinstance(seq, Hoard): seq = seq.to_list()
     for i in range(0, len(seq), n):
         if i + n <= len(seq) or include_leftover:
             yield seq[i:i+n]
@@ -870,6 +1073,8 @@ def pd_split_seq(seq: PdSeq, n: PdNum, include_leftover: bool) -> List[PdSeq]:
     return list(pd_split_seq_int_gen(seq, num.intify(n), include_leftover))
 
 def pd_split_seq_by_gen(seq: PdSeq, tok: PdSeq) -> Generator[PdSeq, None, None]:
+    if isinstance(seq, Hoard): seq = seq.to_list()
+    if isinstance(tok, Hoard): tok = tok.to_list()
     i = 0
     cur_start = 0
     seqlen = len(seq)
@@ -899,6 +1104,7 @@ def pd_split_seq_by(seq: PdSeq, tok: PdSeq) -> List[PdSeq]:
 
 # Emulate str.split(). Never returns any empty sequences.
 def pd_split_seq_by_pred(seq: PdSeq, pred: Callable[[PdObject], bool]) -> Generator[PdSeq, None, None]:
+    if isinstance(seq, Hoard): seq = seq.to_list()
     i = 0
     cur_start = 0
     seqlen = len(seq)
@@ -931,6 +1137,7 @@ def pd_split_seq_by_spaces(seq: PdSeq) -> List[PdSeq]:
     return list(pd_split_seq_by_pred(seq, pd_is_space))
 
 def pd_sliding_window_seq_int_gen(seq: PdSeq, n: int) -> Generator[PdSeq, None, None]:
+    if isinstance(seq, Hoard): seq = seq.to_list()
     for i in range(len(seq) + 1 - n):
         yield seq[i:i+n]
 
@@ -943,7 +1150,7 @@ def pd_replicate(atom: PdObject, n: int) -> PdSeq:
     else:
         return [atom] * n
 
-def pd_maybe_build_str(result: List[PdObject]) -> PdSeq:
+def pd_maybe_build_str(result: List[PdObject]) -> Union[str, list]:
     if all(isinstance(c, (Char, int)) for c in result):
         return (
             ''.join(
@@ -954,16 +1161,18 @@ def pd_maybe_build_str(result: List[PdObject]) -> PdSeq:
     else:
         return result
 
-def pd_build_like(orig: PdSeq, result: List[PdObject]) -> PdSeq:
+def pd_build_like(orig: PdSeq, result: List[PdObject]) -> Union[str, list]:
     if isinstance(orig, str):
         return pd_maybe_build_str(result)
-    else:
+    else: # includes list, Hoard
         return result
 
-def pd_flatten_once(val: PdValue) -> PdValue:
+def pd_flatten_once(val: PdValue) -> PdImmutable:
     if isinstance(val, (Char, int, float, str, range)):
         return val
-    else: # list
+    else: # list/Hoard
+        if isinstance(val, Hoard):
+            val = val.to_list()
         if all(isinstance(e, (Char, str)) for e in val):
             return ''.join(
                     e.chr if isinstance(e, Char) else e # type: ignore
@@ -983,7 +1192,7 @@ def pd_flatten_once(val: PdValue) -> PdValue:
 @overload
 def pd_flatten(val: range) -> range: ...
 @overload
-def pd_flatten(val: list) -> Union[list, str]: ...
+def pd_flatten(val: Union[list, Hoard]) -> Union[list, str]: ...
 @overload
 def pd_flatten(val: Char) -> Char: ...
 @overload
@@ -993,10 +1202,12 @@ def pd_flatten(val: float) -> float: ...
 @overload
 def pd_flatten(val: str) -> str: ...
 
-def pd_flatten(val: PdValue) -> PdValue:
+def pd_flatten(val: PdValue) -> PdImmutable:
     if isinstance(val, (Char, int, float, str, range)):
         return val
-    else: # list
+    else: # list/Hoard
+        if isinstance(val, Hoard):
+            val = val.to_list()
         acc: List[PdObject] = []
         for e in val:
             if isinstance(e, str):
@@ -1120,6 +1331,7 @@ def pd_subsequences(seq: PdSeq) -> Iterable[PdSeq]:
     elif isinstance(seq, range):
         return pd_lst_subsequences_gen(list(seq))
     else:
+        if isinstance(seq, Hoard): seq = seq.to_list()
         return pd_lst_subsequences_gen(seq)
 
 def pd_subsequences_list(seq: PdSeq) -> List[PdSeq]:
@@ -1131,6 +1343,7 @@ def pd_palindromize(seq: PdSeq) -> PdSeq:
     elif isinstance(seq, str):
         return seq[:-1] + seq[::-1]
     else:
+        if isinstance(seq, Hoard): seq = seq.to_list()
         return seq[:-1] + seq[::-1]
 
 def pd_rectangularize_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
@@ -1195,6 +1408,8 @@ def pd_find_substring_index(env: Environment, needle: PdSeq, haystack: PdSeq) ->
         except ValueError:
             return -1
     else:
+        if isinstance(needle, Hoard): needle = needle.to_list()
+        if isinstance(haystack, Hoard): haystack = haystack.to_list()
         nn = len(needle)
         needle = list(needle)
         for i in range(len(haystack) - nn + 1):
@@ -1215,7 +1430,7 @@ def pd_find_last_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[int, 
         if pd_truthy(env, func, [e]): return (i, e)
     return (-1, None)
 
-def pd_take_drop_while(env: Environment, func: Block, seq: PdSeq) -> Tuple[PdSeq, PdSeq]:
+def pd_take_drop_while(env: Environment, func: Block, seq: PdImmutableSeq) -> Tuple[PdSeq, PdSeq]:
     for i, e in py_enumerate(seq):
         if not pd_truthy(env, func, [e]): return (seq[:i], seq[i:])
     return (seq, [])
@@ -1232,6 +1447,8 @@ def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
         # whatever, it's ok to count whatever is in a range
         return seq.count(e) # type: ignore
     else:
+        if isinstance(seq, Hoard):
+            seq = seq.to_list() # TODO relatively inefficient
         return seq.count(e)
 
 def pd_count_pairs(seq: PdSeq) -> list:
@@ -1285,7 +1502,7 @@ def pd_map_fold_into(env: Environment, func: Block, seq: PdSeq,
             raise AssertionError("pd_map_fold_into: function(None) should return non-None")
     return ret
 
-def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
+def pd_map(env: Environment, func: Block, seq: PdSeq) -> PdImmutableSeq:
     return pd_build_like(seq,
         pd_map_iterable(env, func, pd_iterable(seq)))
 
@@ -1307,6 +1524,8 @@ def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
             acc.append(e.chr)
         elif isinstance(e, (int, float)):
             acc.append([e])
+        elif isinstance(e, Hoard):
+            acc.append(e.to_list()[::-1])
         else:
             acc.append(e[::-1])
     return acc
@@ -1643,6 +1862,8 @@ def pd_repr(obj: PdObject) -> str:
         return repr(obj)
     elif isinstance(obj, float):
         return repr(obj).replace('-', '—')
+    elif isinstance(obj, Hoard):
+        return repr(obj) # TODO
 # }}}
 # other conversions {{{
 def pd_to_char(val: PdValue) -> Char:
@@ -1841,10 +2062,10 @@ def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> PdV
             raise IndexError('could not index {} into {}: IndexError'.format(key, arr_new)) from e
     return arr_new
 
-def pd_array_key_get(arr: Union[list, range], k: Union[list, range]) -> PdObject:
+def pd_array_key_get(arr: Union[list, range, Hoard], k: Union[list, range, Hoard]) -> PdObject:
     target = arr
-    for sk in k:
-        target = target[sk]
+    for sk in pd_deref_to_iterable(k):
+        target = pd_index(target, sk)
     return target
 # }}}
 # regex {{{

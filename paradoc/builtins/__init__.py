@@ -103,6 +103,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""A utility variable assigned to by {{ 'Assign_bullet'|b }}
             and {{ 'Assign_bullet_destructive'|b }}. Initialized to 0.""",
             stability="alpha")
+
+    env.put('H', Hoard(), docs="An empty Hoard", stability="alpha")
     # }}}
     # Universal functions: stack stuff, list stuff {{{
 
@@ -258,7 +260,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
 
     add_case = Case.number2(lambda env, a, b: [num.pd_add(a, b)])
-    cat_list_case = Case.list2_singleton(lambda env, a, b: [list(a) + list(b)])
+    cat_list_case = Case.list2_singleton(lambda env, a, b: [pd_to_list(a) + pd_to_list(b)])
     strcat_list_case = Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)])
     filter_case = Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq)])
     cput('Plus', [], [add_case], docs="Add numbers.", stability="stable")
@@ -272,14 +274,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="stable")
 
     cput('Cat_between', ['Cb'], [
-        Case.list2_singleton(lambda env, a, b: [list(a) + list(b) + list(a)]),
+        Case.list2_singleton(lambda env, a, b: [pd_to_list(a) + pd_to_list(b) + pd_to_list(a)]),
         Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b) + env.pd_str(a)]),
     ],
             docs="""two copies of a with b between: a, b -> a + b + a. Numbers
             coerce to single-element lists.""",
             stability="unstable")
     cput('Cat_flank', ['Cf'], [
-        Case.list2_singleton(lambda env, a, b: [list(b) + list(a) + list(b)]),
+        Case.list2_singleton(lambda env, a, b: [pd_to_list(b) + pd_to_list(a) + pd_to_list(b)]),
         Case.seq2_singleton(lambda env, a, b: [env.pd_str(b) + env.pd_str(a) + env.pd_str(b)]),
     ],
             docs="""a with two copies of b flanking: a, b -> b + a + b. Numbers
@@ -365,7 +367,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     cput('Mod_or_slice_mod_or_split_nonempty_or_map', ['%'], [
         Case.number2(lambda env, a, b: [num.pd_mod(a, b)]),
-        Case.number_seq(lambda env, n, seq: [seq[::num.intify(n)]]),
+        Case.number_seq(lambda env, n, seq: [pd_deref(seq)[::num.intify(n)]]),
         Case.seq2(lambda env, seq, tok: [[s for s in pd_split_seq_by(seq, tok) if s]]),
         Case.block_seq_range(lambda env, block, seq: [pd_map(env, block, seq)]),
     ],
@@ -383,7 +385,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     zip_cases = [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
         Case.seq2_range_block(lambda env, seq1, seq2, block:
-                [pd_zip(env, block, seq1, seq2)]),
+                [pd_zip(env, block,
+                    pd_deref_to_iterable(seq1),
+                    pd_deref_to_iterable(seq2))]),
     ]
     cput('Divmod_or_zip', ['‰', '%p'], [
         Case.number2(lambda env, a, b: [num.pd_intdiv(a, b), num.pd_mod(a, b)]),
@@ -563,17 +567,17 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.block_seq_range(lambda env, f, s: [pd_sort(s, (env, f))]),
     ], docs="Sort or select from stack", stability="beta")
     cput('Order_statistic', ['¢'], [
-        Case.list_number(lambda env, x, i: [sorted(x)[num.intify(i)]]),
+        Case.list_number(lambda env, x, i: [pd_to_sorted(x)[num.intify(i)]]),
         Case.str_number(lambda env, s, i: [Char(sorted(s)[num.intify(i)])]),
     ], docs="Order statistic (zero-indexed)", stability="alpha")
     cput('Is_sorted', ['$p'], [
-        Case.seq(lambda env, s: [int(all(pd_lte(a, b) for a, b in zip(s, s[1:])))]),
+        Case.seq(lambda env, s: [int(all(pd_lte(a, b) for a, b in pd_zip_with_tail(s)))]),
     ], docs="Test if sorted", stability="beta")
     cput('Is_strictly_increasing', ['<p'], [
-        Case.seq(lambda env, s: [int(all(pd_less_than(a, b) for a, b in zip(s, s[1:])))]),
+        Case.seq(lambda env, s: [int(all(pd_less_than(a, b) for a, b in pd_zip_with_tail(s)))]),
     ], docs="Test if strictly increasing", stability="beta")
     cput('Is_strictly_decreasing', ['>p'], [
-        Case.seq(lambda env, s: [int(all(pd_less_than(b, a) for a, b in zip(s, s[1:])))]),
+        Case.seq(lambda env, s: [int(all(pd_less_than(b, a) for a, b in pd_zip_with_tail(s)))]),
     ], docs="Test if strictly decreasing", stability="beta")
     # }}}
     # Range/enumerate/flatten; Comma, J {{{
@@ -736,7 +740,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # Base {{{
     base_cases = [
         Case.number2(lambda env, n, b: [base.to_base_digits(num.intify(b), num.intify(n))]),
-        Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), lst)]),
+        Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), pd_deref_to_iterable(lst))]),
         Case.str_number(lambda env, s, b: [int(s, num.intify(b))]),
     ]
     cput('Base', [], base_cases,
@@ -793,7 +797,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Equal', ['Eq'], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
-        Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
+        Case.list2(lambda env, a, b: [int(pd_to_list(a) == pd_to_list(b))]),
     ],
             docs="Test for value equality.",
             stability="beta")
@@ -805,8 +809,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Equal_or_index_or_find', ['='], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
         Case.str2(lambda env, a, b: [int(a == b)]),
-        Case.list2(lambda env, a, b: [int(list(a) == list(b))]),
-        Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n))]),
+        Case.list2(lambda env, a, b: [int(pd_to_list(a) == pd_to_list(b))]),
+        Case.number_seq(lambda env, n, seq: [pd_index(seq, n)]),
         Case.block_seq_range(lambda env, block, seq:
             [second_or_error(pd_find_entry(env, block, seq),
                 "Entry not found in Equal_or_index_or_find")]),
@@ -818,10 +822,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Lt_or_slice', ['<'], [
         Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) < 0)]),
         Case.str2(lambda env, a, b: [int(a < b)]),
-        Case.list2(lambda env, a, b: [int(list(a) < list(b))]),
-        Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)]]),
+        Case.list2(lambda env, a, b: [int(pd_to_list(a) < pd_to_list(b))]),
+        Case.number_seq(lambda env, n, seq: [pd_slice(seq, None, n)]),
         Case.block_seq_range(lambda env, block, seq:
-            [pd_take_drop_while(env, block, seq)[0]]),
+            [pd_take_drop_while(env, block, pd_deref(seq))[0]]),
     ],
             docs="""On two numbers, two strings, or two lists, compare if the
             first is less than the second. On a number and a sequence, slice
@@ -833,10 +837,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Gt_or_slice', ['>'], [
         Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) > 0)]),
         Case.str2(lambda env, a, b: [int(a > b)]),
-        Case.list2(lambda env, a, b: [int(list(a) > list(b))]),
-        Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]),
+        Case.list2(lambda env, a, b: [int(pd_to_list(a) > pd_to_list(b))]),
+        Case.number_seq(lambda env, n, seq: [pd_slice(seq, n, None)]),
         Case.block_seq_range(lambda env, block, seq:
-            [pd_take_drop_while(env, block, seq)[1]]),
+            [pd_take_drop_while(env, block, pd_deref(seq))[1]]),
     ],
             docs="""On two numbers, two strings, or two lists, compare if the
             first is greater than the second. On a number and a sequence, slice
@@ -848,16 +852,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Leq_or_slice', ['<e'], [
         Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) <= 0)]),
         Case.str2(lambda env, a, b: [int(a <= b)]),
-        Case.list2(lambda env, a, b: [int(list(a) <= list(b))]),
-        Case.number_seq(lambda env, n, seq: [seq[:num.intify(n)+1]]),
+        Case.list2(lambda env, a, b: [int(pd_to_list(a) <= pd_to_list(b))]),
+        Case.number_seq(lambda env, n, seq: [pd_slice(seq, None, num.pd_add_const(n, 1))]),
     ],
             docs="""Less than or equal to.""",
             stability="beta")
     cput('Geq_or_slice', ['>e'], [
         Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) >= 0)]),
         Case.str2(lambda env, a, b: [int(a >= b)]),
-        Case.list2(lambda env, a, b: [int(list(a) >= list(b))]),
-        Case.number_seq(lambda env, n, seq: [seq[num.intify(n):]]), # TODO: ?
+        Case.list2(lambda env, a, b: [int(pd_to_list(a) >= pd_to_list(b))]),
+        Case.number_seq(lambda env, n, seq: [pd_slice(seq, n, None)]), # TODO: ?
     ],
             docs="""Greater than or equal to.""",
             stability="beta")
@@ -918,13 +922,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="beta")
     cput('Array_median', ['=r'], [
         # TODO: True median should try to take the average of two elements
-        Case.list_(lambda env, x: [sorted(x)[len(x)//2]]),
+        Case.list_(lambda env, x: [pd_to_sorted(x)[len(x)//2]]),
         Case.str_(lambda env, s: [Char(sorted(s)[len(s)//2])]),
     ], docs="Median of array", stability="alpha")
     cput('Compare', ['=c', '˜'], [
         Case.number2(lambda env, a, b: [num.pd_num_cmp(a, b)]),
         Case.str2(lambda env, a, b: [num.any_cmp(a, b)]),
-        Case.list2(lambda env, a, b: [num.any_cmp(list(a), list(b))]),
+        Case.list2(lambda env, a, b: [num.any_cmp(pd_to_list(a), pd_to_list(b))]),
     ],
             docs="""Compare (-1, 0, or 1)""",
             stability="alpha")
@@ -969,19 +973,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Right_shift', [], [right_shift_case],
             docs="""Bitwise right shift""",
             stability="beta")
-    nonempty_left_slices_case  = Case.seq(
+    nonempty_left_slices_case  = Case.seq_deref(
             lambda env, seq: [[seq[:n+1] for n in range(len(seq))]])
-    nonempty_right_slices_case = Case.seq(
+    nonempty_right_slices_case = Case.seq_deref(
             lambda env, seq: [[seq[n:] for n in range(len(seq) - 1, -1, -1)]])
-    from_empty_left_slices_case  = Case.seq(
+    from_empty_left_slices_case  = Case.seq_deref(
             lambda env, seq: [[seq[:n] for n in range(len(seq) + 1)]])
-    from_empty_right_slices_case = Case.seq(
+    from_empty_right_slices_case = Case.seq_deref(
             lambda env, seq: [[seq[n:] for n in range(len(seq), -1, -1)]])
-    def nonempty_slices_func(env: Environment, seq: PdSeq) -> List[PdObject]:
+    def nonempty_slices_func(env: Environment, seq: PdImmutableSeq) -> List[PdObject]:
         return [[seq[lo:hi]
                 for lo in range(len(seq))
                 for hi in range(lo + 1, len(seq) + 1)]]
-    nonempty_slices_case = Case.seq(nonempty_slices_func)
+    nonempty_slices_case = Case.seq_deref(nonempty_slices_func)
 
     cput('Left_slices', [], [nonempty_left_slices_case],
             docs="""Left slices (nonempty, by increasing length)""",
@@ -1018,7 +1022,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             length)""",
             stability="alpha")
 
-    nonempty_slices_range_case = Case.seq_range(nonempty_slices_func)
+    nonempty_slices_range_case = Case.seq_range_deref(nonempty_slices_func)
 
     cput('All_slices', ['=s', '§'], [nonempty_slices_range_case],
             docs="""All slices of a sequence (numbers coerce to ranges).""",
@@ -1057,7 +1061,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="unstable")
 
     cput('Has_prefix', ['<h'], [
-        Case.list2_singleton(lambda env, a, b: [int(list(a)[:len(b)] == list(b))]),
+        Case.list2_singleton(lambda env, a, b: [int(pd_to_list(a)[:len(b)] == pd_to_list(b))]), # TODO could be optimized
         Case.seq2_singleton(lambda env, a, b: [int(env.pd_str(a).startswith(env.pd_str(b)))]),
     ],
             docs="""Test if the first argument has a prefix equal to the second
@@ -1065,17 +1069,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             argument is a string, both coerce to strings).""",
             stability="unstable")
     cput('Has_suffix', ['>h'], [
-        Case.list2_singleton(lambda env, a, b: [int(list(a)[-len(b):] == list(b))]),
+        Case.list2_singleton(lambda env, a, b: [int(pd_to_list(a)[-len(b):] == pd_to_list(b))]), # TODO could be optimized
         Case.seq2_singleton(lambda env, a, b: [int(env.pd_str(a).endswith(env.pd_str(b)))]),
     ],
             docs="""Test if the first argument has a suffix equal to the second
             argument (numbers coerce to single-element lists; if at least one
             argument is a string, both coerce to strings).""",
             stability="unstable")
+    def has_infix(env: Environment, a: Union[list, range, Hoard], b: Union[list, range, Hoard]) -> List[PdObject]:
+        a = pd_to_list(a)
+        b = pd_to_list(b)
+        return [int(any(a[i:i+len(b)] == b for i in range(len(a) - len(b) + 1)))]
     cput('Has_infix', ['=h'], [
-        Case.list2_singleton(lambda env, a, b: [
-            int(any(list(a)[i:i+len(b)] == list(b) for i in range(len(a) - len(b) + 1)))
-        ]),
+        Case.list2_singleton(has_infix),
         Case.seq2_singleton(lambda env, a, b: [int(env.pd_str(b) in env.pd_str(a))]),
     ],
             docs="""Test if the first argument has a substring equal to the
@@ -1097,12 +1103,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Decr_two', [], [decr2_case], docs="Decrease by 2.", stability="beta")
     cput('Incr_two', [], [incr2_case], docs="Increase by 2.", stability="beta")
 
-    uncons_case = Case.seq(lambda env, a: [a[1:], pd_index(a, 0)])
+    uncons_case = Case.seq(lambda env, a: [pd_butfirst(a), pd_first(a)])
     cput('Uncons', [], [uncons_case],
             docs="""Split into tail and first.
 
             ex: [1 2 3]Uncons => [2 3]1""", stability="beta")
-    unsnoc_case = Case.seq(lambda env, a: [a[:-1], pd_index(a, -1)])
+    unsnoc_case = Case.seq(lambda env, a: [pd_butlast(a), pd_last(a)])
     cput('Unsnoc', [], [unsnoc_case],
             docs="""Split into init and last.
 
@@ -1130,10 +1136,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             {{ 'Modify_last'|b }}.""",
             stability="beta")
 
-    first_case = Case.seq(lambda env, a: [pd_index(a,  0)])
-    last_case  = Case.seq(lambda env, a: [pd_index(a, -1)])
-    butlast_case  = Case.seq(lambda env, a: [a[:-1]])
-    butfirst_case = Case.seq(lambda env, a: [a[1: ]])
+    first_case = Case.seq(lambda env, a: [pd_first(a)])
+    last_case  = Case.seq(lambda env, a: [pd_last(a)])
+    butlast_case  = Case.seq(lambda env, a: [pd_butlast(a)])
+    butfirst_case = Case.seq(lambda env, a: [pd_butfirst(a)])
     first_and_last_case = Case.seq(lambda env, a: [pd_index(a, 0), pd_index(a, -1)])
 
     cput('First',    [], [first_case], docs="First of sequence", stability="stable")
@@ -1260,7 +1266,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     # }}}
     # Down/Do, Transpose, Zip {{{
-    reverse_case = Case.seq_range(lambda env, a: [a[::-1]])
+    reverse_case = Case.seq_range_deref(lambda env, a: [a[::-1]])
     doloop_case  = Case.block(lambda env, body: pd_do_then_empty_list(env, body))
     cput('Reverse', ['Down'], [reverse_case, doloop_case],
             docs="""Reverse a sequence (coerces numbers to range).""",
@@ -1318,7 +1324,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             angle).""",
             stability="alpha")
     cput('Unrotate', ['Ur'], [
-        Case.seq(lambda env, a: [pd_transpose(a[::-1])]),
+        Case.seq(lambda env, a: [pd_transpose(pd_deref(a)[::-1])]),
     ],
             docs="""Rotate a matrix, or list of lists, 90 degrees clockwise
             (just by vague mathematical convention of angle).""",
@@ -1346,7 +1352,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     cput('Ziplongest', ['Zl'], [
         Case.seq2_range(lambda env, a, b: [pd_ziplongest_as_list(a, b)]),
-        Case.seq2_range_block(lambda env, a, b, block: [pd_ziplongest(env, block, a, b)]),
+        Case.seq2_range_block(lambda env, a, b, block: [pd_ziplongest(env, block, pd_deref_to_iterable(a), pd_deref_to_iterable(b))]),
     ],
             docs="""Zip two sequences (numbers coerce to ranges), returning a
             list of length-2 or (at indices between their lengths, if the
@@ -1365,7 +1371,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     cput('Loopzip', ['Oz'], [
         Case.seq2_range(lambda env, a, b: [pd_loopzip_as_list(a, b)]),
-        Case.seq2_range_block(lambda env, a, b, block: [pd_loopzip(env, block, a, b)]),
+        Case.seq2_range_block(lambda env, a, b, block: [pd_loopzip(env, block, pd_deref_to_iterable(a), pd_deref_to_iterable(b))]),
     ],
             docs="""Zip two sequences (numbers coerce to ranges), returning a
             list of length-2 lists; or zip them with a block, which operates on
@@ -1601,7 +1607,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         a = env.pop()
         if isinstance(a, Block):
             a(env)
-        elif isinstance(a, (str, list, range)):
+        elif isinstance(a, (str, list, range, Hoard)):
             env.push(*pd_iterable(a))
         elif isinstance(a, int):
             env.push(~a)
@@ -1723,7 +1729,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         # Cannot sensibly handle improper fractions p/q > 1 if q > 1.
         return [
             Case.number(lambda env, a: [num.pd_mul_div_const(a, p, q)]),
-            Case.seq(lambda env, a: [a[:len(a)*p//q] if p <= q else pd_mul_seq(a, p)]),
+            Case.seq(lambda env, a: [pd_slice(a, None, len(a)*p//q) if p <= q else pd_mul_seq(a, p)]),
             Case.block(lambda env, b:
                 pd_run_with_probability_then_empty_list(env, b, p/q)
                 if p <= q else
@@ -2110,7 +2116,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             stability="alpha")
     cput('Random_choice', ['Rc'], [
-        Case.seq(lambda env, seq: [random.choice(seq)])
+        Case.seq(lambda env, seq: [random.choice(pd_deref(seq))])
     ],
             stability="alpha")
     @put('Random_seed', stability="alpha")

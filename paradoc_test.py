@@ -644,6 +644,25 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"253""\\d"El'), [[["2"], ["5"], ["3"]]])
         self.assertEqual(pd_simple_eval('"2x5y3x""(\\d)x"El'), [[["2x", "2"], ["3x", "3"]]])
 
+    def test_regex(self):
+        self.assertEqual(pd_simple_eval('"l33t""\\d"Es'), [["3"]])
+        self.assertEqual(pd_simple_eval('"normal""\\d"Es'), [[]])
+        self.assertEqual(pd_simple_eval('"12c456""\\d(\\d)\\d"Es'), [["456", "5"]])
+        self.assertEqual(pd_simple_eval('"253""\\d"Em'), [[]])
+        self.assertEqual(pd_simple_eval('"253""\\d+"Em'), [["253"]])
+        self.assertEqual(pd_simple_eval('"253""\\d"El'), [[["2"], ["5"], ["3"]]])
+        self.assertEqual(pd_simple_eval('"2x5y3x""(\\d)x"El'), [[["2x", "2"], ["3x", "3"]]])
+
+    def test_hoard(self):
+        self.assertEqual(pd_simple_eval('[]Hr Hl'), [[]])
+        self.assertEqual(pd_simple_eval('[]Hr 1Ha 2Ha 3Ha Hl'), [[1,2,3]])
+        self.assertEqual(pd_simple_eval('[]Hr 1Ha 2Hb 3Ha 4Hb Hl'), [[4,2,1,3]])
+        self.assertEqual(pd_simple_eval('[4 3 2 1]Hr HpHqHqHp'), [1,4,3,2])
+        self.assertEqual(pd_simple_eval('[4 3 2 1]Hr H1='), [3])
+        self.assertEqual(pd_simple_eval('[4 3 2 1]Hr H›'), [1])
+        self.assertEqual(pd_simple_eval('[4 3 2 1]Hr H»'), [[3,2,1]])
+        self.assertEqual(pd_simple_eval('[]Hr 2 3 Hu 5 7 Hu 2 H='), [3])
+
 if __name__ == '__main__':
     unittest.main()
 

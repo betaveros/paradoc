@@ -14,7 +14,7 @@ from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Uni
 import itertools
 from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_trailers, lex_code, break_trailer, is_numeric_literal_token, name_trailer_dissections
 from paradoc.num import Char
-from paradoc.objects import Block, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException, PdAbortException, PdBreakException, PdContinueException
+from paradoc.objects import Block, Hoard, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException, PdAbortException, PdBreakException, PdContinueException
 import paradoc.num as num
 import paradoc.objects as objects
 import paradoc.base as base
@@ -710,8 +710,11 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
                 env.push(num.pd_mul_div_const(e, i, 4))
             elif isinstance(e, (str, list, range)):
                 env.push(e[:len(e)*i//4])
-            elif random.random() < i/4:
-                e(env)
+            elif isinstance(e, Hoard):
+                env.push(e.to_list()[:len(e)*i//4])
+            elif isinstance(e, Block):
+                if random.random() < i/4:
+                    e(env)
         return (BuiltIn(str(i) + "_quarter", quarter_i), False)
 
     for agchar in 'áéíóúàèìòùý':
@@ -762,6 +765,65 @@ def build_char_trailer_dict() -> Dict[str, Trailer[Char]]: # {{{
     return ret
 char_trailer_dict = build_char_trailer_dict()
 # }}}
+def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
+    ret: Dict[str, Trailer[Hoard]] = dict()
+    def put(*names: str, docs: Optional[str] = None,
+            stability: str = "unknown") -> TrailerPutter[Hoard]:
+        return trailer_putter(ret, names, docs=docs, stability=stability)
+
+    @put("a", docs="Append (to the right).", stability="alpha")
+    def append_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def append_b(env: Environment) -> None:
+            h.append(env.pop())
+        return (BuiltIn(objects.pd_repr(h) + "_append", append_b), False)
+
+    @put("p", docs="Pop (from the right).", stability="alpha")
+    def pop_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def pop_b(env: Environment) -> None:
+            env.push(h.pop())
+        return (BuiltIn(objects.pd_repr(h) + "_pop", pop_b), False)
+
+    @put("b", docs="Append to the left, aka back.", stability="alpha")
+    def appendleft_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def appendleft_b(env: Environment) -> None:
+            h.appendleft(env.pop())
+        return (BuiltIn(objects.pd_repr(h) + "_appendleft", appendleft_b), False)
+
+    @put("q", docs="Pop from the left. Dequeue, perhaps.", stability="alpha")
+    def popleft_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def popleft_b(env: Environment) -> None:
+            env.push(h.popleft())
+        return (BuiltIn(objects.pd_repr(h) + "_popleft", popleft_b), False)
+
+    @put("u", docs="Update at an index or key.", stability="alpha")
+    def update_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def update_b(env: Environment) -> None:
+            value = env.pop()
+            key = env.pop()
+            h.update(key, value)
+        return (BuiltIn(objects.pd_repr(h) + "_update", update_b), False)
+
+    @put("c", docs="Copy into a new Hoard.", stability="alpha")
+    def copy_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def copy_b(env: Environment) -> None:
+            env.push(h.copy())
+        return (BuiltIn(objects.pd_repr(h) + "_copy", copy_b), False)
+
+    @put("r", docs="Completely replace data.", stability="alpha")
+    def replace_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def replace_b(env: Environment) -> None:
+            h.replace(env.pop())
+        return (BuiltIn(objects.pd_repr(h) + "_replace", replace_b), False)
+
+    @put("l", docs="To list", stability="alpha")
+    def list_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def list_b(env: Environment) -> None:
+            env.push(h.to_list())
+        return (BuiltIn(objects.pd_repr(h) + "_list", list_b), False)
+
+    return ret
+hoard_trailer_dict = build_hoard_trailer_dict()
+# }}}
 
 def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tuple[PdObject, bool]:
     # print("act_on_trailer_token", token, b0)
@@ -802,6 +864,14 @@ def act_on_trailer_token(outer_env: Environment, token: str, b0: PdObject) -> Tu
             return char_trailer_dict[token](outer_env, c)
         except KeyError:
             raise NotImplementedError("unknown trailer token " + token + " on char " + repr(c))
+
+    elif isinstance(b0, Hoard):
+        h: Hoard = b0
+        try:
+            return hoard_trailer_dict[token](outer_env, h)
+        except KeyError:
+            raise NotImplementedError("unknown trailer token " + token + " on hoard " + repr(h))
+
 
     raise NotImplementedError("unknown trailer token " + token + " on unknown thing " + repr(b0))
 
