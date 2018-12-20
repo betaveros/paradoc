@@ -800,6 +800,8 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
         def update_b(env: Environment) -> None:
             value = env.pop()
             key = env.pop()
+            if isinstance(key, Block):
+                raise TypeError("Cannot update hoard with block as key")
             h.update(key, value)
         return (BuiltIn(objects.pd_repr(h) + "_update", update_b), False)
 
@@ -1038,13 +1040,13 @@ class CodeBlock(Block):
                     n = to_int_for_forloop(env.pop())
                     set_executor(make_each_loop_over(range(n)))
                 except PdEmptyStackException:
-                    set_executor(make_each_loop_over(itertools.count(0)))
+                    set_executor(make_each_loop_over(i for i in itertools.count(0)))
             elif trailer_token == 'o' or trailer_token == '_onefor':
                 try:
                     n = to_int_for_forloop(env.pop())
                     set_executor(make_each_loop_over(range(1, n+1)))
                 except PdEmptyStackException:
-                    set_executor(make_each_loop_over(itertools.count(1)))
+                    set_executor(make_each_loop_over(i for i in itertools.count(1)))
             elif trailer_token == 's' or trailer_token == '_space':
                 env.put('Ñ', ' ')
             elif trailer_token == 'n' or trailer_token == '_newline':

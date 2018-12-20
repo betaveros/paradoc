@@ -740,7 +740,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # Base {{{
     base_cases = [
         Case.number2(lambda env, n, b: [base.to_base_digits(num.intify(b), num.intify(n))]),
-        Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), pd_deref_to_iterable(lst))]),
+        Case.list_number(lambda env, lst, b: [base.from_base_digits(num.intify(b), pd_flatten_to_int_generator(lst))]),
         Case.str_number(lambda env, s, b: [int(s, num.intify(b))]),
     ]
     cput('Base', [], base_cases,
@@ -1029,7 +1029,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="unstable")
 
     cput('Left_cycle', ['<c'], [
-        Case.list_range_number(lambda env, seq, n: [list(seq[num.intify(n):]) + list(seq[:num.intify(n)])]),
+        Case.list_range_number(lambda env, seq, n: [pd_to_list(pd_slice(seq, num.intify(n), None)) + pd_to_list(pd_slice(seq, None, num.intify(n)))]),
         Case.str_number(lambda env, seq, n: [seq[num.intify(n):] + seq[:num.intify(n)]]),
     ],
             docs="""Left cycle a list or string by some number of elements,
@@ -1037,7 +1037,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="unstable")
 
     cput('Right_cycle', ['>c'], [
-        Case.list_range_number(lambda env, seq, n: [list(seq[-num.intify(n):]) + list(seq[:-num.intify(n)])]),
+        Case.list_range_number(lambda env, seq, n: [pd_to_list(pd_slice(seq, -num.intify(n), None)) + pd_to_list(pd_slice(seq, None, -num.intify(n)))]),
         Case.str_number(lambda env, seq, n: [seq[-num.intify(n):] + seq[:-num.intify(n)]]),
     ],
             docs="""Right cycle a list or string by some number of elements,
@@ -1953,7 +1953,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Map over keys of an array.""",
             stability="alpha")
     cput('Key_get', ['Kg'], [
-        Case.list_list_singleton(lambda env, arr, k: [pd_array_key_get(arr, k)]),
+        Case.seq_seq_singleton(lambda env, arr, k: [pd_array_key_get(arr, k)]),
     ],
             docs="""Access value corresponding to a key in an array.""",
             stability="alpha")

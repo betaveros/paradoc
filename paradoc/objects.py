@@ -90,7 +90,7 @@ class Hoard:
         else:
             return self.structure[key][1]
 
-    def slice(self, left: Optional["PdKey"], right: Optional["PdKey"]) -> "PdObject":
+    def slice(self, left: Optional["PdKey"], right: Optional["PdKey"]) -> list:
         if isinstance(self.structure, (list, collections.deque)):
             if (
                     (left is None or isinstance(left, (Char, int, float))) and
@@ -119,10 +119,10 @@ class Hoard:
         else:
             return max(self.structure.items(), key=lambda pair: pair[0])[1][1]
 
-    def butfirst(self) -> "PdObject":
+    def butfirst(self) -> List["PdObject"]:
         return self.to_list()[1:]
 
-    def butlast(self) -> "PdObject":
+    def butlast(self) -> List["PdObject"]:
         return self.to_list()[:-1]
 
     def key_list(self) -> Union[range, List["PdObject"]]:
@@ -160,7 +160,7 @@ class Hoard:
     def __len__(self) -> int:
         return len(self.structure)
 
-    def update(self, key: "PdValue", value: "PdValue") -> None:
+    def update(self, key: "PdValue", value: "PdObject") -> None:
         if isinstance(self.structure, (list, collections.deque)):
             if isinstance(key, int):
                 try:
@@ -1022,7 +1022,16 @@ def pd_index(seq: PdSeq, n: PdNum) -> PdObject:
         return seq.index(n)
     else:
         return seq[num.intify(n)]
-def pd_slice(seq: PdSeq, left: Optional[PdNum], right: Optional[PdNum]) -> PdObject:
+@overload
+def pd_slice(seq: str, left: Optional[PdNum], right: Optional[PdNum]) -> str: ...
+@overload
+def pd_slice(seq: list, left: Optional[PdNum], right: Optional[PdNum]) -> list: ...
+@overload
+def pd_slice(seq: range, left: Optional[PdNum], right: Optional[PdNum]) -> range: ...
+@overload
+def pd_slice(seq: Hoard, left: Optional[PdNum], right: Optional[PdNum]) -> list: ...
+
+def pd_slice(seq: PdSeq, left: Optional[PdNum], right: Optional[PdNum]) -> PdImmutableSeq:
     if isinstance(seq, (str, list, range)):
         return seq[num.intify_opt(left):num.intify_opt(right)]
     else:
@@ -1037,12 +1046,12 @@ def pd_last(seq: PdSeq) -> PdObject:
         return seq.last()
     else:
         return pd_index(seq, -1)
-def pd_butfirst(seq: PdSeq) -> PdObject:
+def pd_butfirst(seq: PdSeq) -> PdImmutableSeq:
     if isinstance(seq, Hoard):
         return seq.butfirst()
     else:
         return pd_slice(seq, 1, None)
-def pd_butlast(seq: PdSeq) -> PdObject:
+def pd_butlast(seq: PdSeq) -> PdImmutableSeq:
     if isinstance(seq, Hoard):
         return seq.butlast()
     else:
@@ -1252,6 +1261,21 @@ def pd_flatten(val: PdValue) -> PdImmutable:
                     for e in acc)
         else:
             return acc
+
+def pd_flatten_to_int_generator(val: PdValue) -> Generator[int, None, None]:
+    if isinstance(val, (Char, int, float)):
+        yield num.intify(val)
+    elif isinstance(val, str):
+        yield from (ord(c) for c in val)
+    elif isinstance(val, range):
+        yield from val
+    else: # list/Hoard
+        if isinstance(val, Hoard):
+            val = val.to_list()
+        for e in val:
+            if isinstance(e, Block):
+                raise TypeError("Cannot flatten block to ints")
+            yield from pd_flatten_to_int_generator(e)
 
 def pd_group_by_function(seq: PdSeq, proj: Callable[[PdObject], PdObject]) -> list:
     result = []
@@ -2060,30 +2084,40 @@ def new_array_of_dims(dims: List[int], filler: PdValue) -> list:
     else:
         return [new_array_of_dims(dims[1:], filler) for _ in range(dims[0])]
 
-def pd_new_array(kvs: list, dims: list, filler: PdValue) -> list:
-    arr = new_array_of_dims(dims, filler)
+def pd_new_array(kvs: Union[list, range, Hoard], dims: Union[list, range, Hoard], filler: PdValue) -> list:
+    arr = new_array_of_dims(list(pd_flatten_to_int_generator(dims)),
+            filler)
     # TODO: do it lazily so we can loop last value
-    for key, value in kvs:
-        target = arr
-        for i in key[:-1]: target = target[i]
-        target[key[-1]] = value
+    for item in pd_iterable(kvs):
+        try:
+            key, value = item # type: ignore
+            target = arr
+            for i in key[:-1]: target = target[i] # type: ignore
+            target[key[-1]] = value # type: ignore
+        except ValueError as e:
+            raise ValueError("Element in array construction argument not usable length-2 key-value list") from e
     return arr
 
 # def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObject]:
-def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> PdValue:
+def pd_array_keys_map(env: Environment, arr: PdValue, ks: PdSeq, func: Block) -> PdValue:
     arr_new = pd_deep_copy_to_list(arr)
-    for key in ks:
+    for key in pd_iterable(ks):
         try:
             target: PdObject = arr_new
-            for i in key[:-1]:
-                if isinstance(target, (str, list, range)):
-                    target = pd_index(target, i)
-                else:
-                    raise TypeError(
-                        'could not index {} into {}: {} not indexable'.format(
-                        repr(key), repr(arr_new), i, repr(target)))
+            if isinstance(key, (str, list, range, Hoard)):
+                for i in pd_iterable(pd_butlast(key)):
+                    if isinstance(target, (str, list, range)):
+                        target = pd_index(target, i) # type: ignore
+                    else:
+                        raise TypeError(
+                            'could not index {} into {}: {} not indexable'.format(
+                            repr(key), repr(arr_new), i, repr(target)))
+                key_last = pd_last(key)
+            else:
+                key_last = key
             if isinstance(target, list):
-                target[key[-1]] = pd_sandbox(env, func, [target[key[-1]]])[-1]
+                target[key_last] = pd_sandbox(env, func, [target[key[-1]]])[-1] # type: ignore
+
             else:
                 raise TypeError(
                     'could not assign into index {} of {}: {} not list'.format(
@@ -2092,9 +2126,9 @@ def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> PdV
             raise IndexError('could not index {} into {}: IndexError'.format(key, arr_new)) from e
     return arr_new
 
-def pd_array_key_get(arr: Union[list, range, Hoard], k: Union[list, range, Hoard]) -> PdObject:
+def pd_array_key_get(arr: PdSeq, k: PdSeq) -> PdObject:
     target = arr
-    for sk in pd_deref_to_iterable(k):
+    for sk in pd_iterable(k):
         # pretty unsafe but eh
         target = pd_index(target, sk) # type: ignore
     return target

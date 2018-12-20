@@ -26,7 +26,7 @@ class ParadocCodec(codecs.Codec):
 def paradoc_lookup(name: str) -> Optional[codecs.CodecInfo]:
     if name != 'paradoc':
         return None
-    return codecs.CodecInfo(
+    return codecs.CodecInfo( # type: ignore
         name='paradoc',
         encode=ParadocCodec().encode,
         decode=ParadocCodec().decode,

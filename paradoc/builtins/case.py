@@ -227,6 +227,9 @@ class Case:
     def seq2(func: Callable[[Environment, PdSeq, PdSeq], List[PdObject]]) -> 'Case':
         return Case(2, [just_seq, just_seq], func)
     @staticmethod
+    def seq_seq_singleton(func: Callable[[Environment, PdSeq, PdSeq], List[PdObject]]) -> 'Case':
+        return Case(2, [just_seq, seq_singleton], func)
+    @staticmethod
     def seq2_singleton(func: Callable[[Environment, PdSeq, PdSeq], List[PdObject]]) -> 'Case':
         return Case(2, [seq_singleton, seq_singleton], func)
     @staticmethod
