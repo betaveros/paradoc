@@ -104,7 +104,7 @@ class Hoard:
                 raise TypeError("Hoard is list/deque, must slice by numbers")
         else:
             items = [(k, vp) for k, vp in self.structure.items()
-                    if (left is None or left <= k) and (right is None or k < right)]
+                    if (left is None or pykey_lte(left, k)) and (right is None or pykey_lt(k, right))]
             return [v for _, (_, v) in sorted(items, key=lambda pair: pair[0])]
 
     def first(self) -> "PdObject":
@@ -654,10 +654,21 @@ def to_comparable_list(a: PdValue) -> list:
     elif isinstance(a, Hoard): return a.to_list()
     else: return list(pd_iterable(a))
 
+def to_comparable_tuple(a: PdKey) -> tuple:
+    if isinstance(a, tuple): return a
+    elif isinstance(a, (Char, int, float)): return (a,)
+    elif isinstance(a, Hoard): return tuple(a.to_iterable())
+    else: return tuple(pd_iterable(a))
+
 def pd_to_list(a: Union[list, range, Hoard]) -> list:
     if isinstance(a, list): return a
     elif isinstance(a, range): return list(a)
     else: return a.to_list()
+
+def pd_to_tuple(a: Union[tuple, range, Hoard]) -> tuple:
+    if isinstance(a, tuple): return a
+    elif isinstance(a, range): return tuple(a)
+    else: return tuple(a.to_iterable())
 
 def pd_to_sorted(a: Union[list, range, Hoard]) -> list:
     if isinstance(a, (list, range)): return sorted(a)
@@ -695,10 +706,29 @@ def pd_cmp(a: PdObject, b: PdObject) -> int:
     else:
         return num.any_cmp(to_comparable_list(a), to_comparable_list(b))
 
+def pykey_cmp(a: PdKey, b: PdKey) -> int:
+    if isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
+        return pd_cmp(a, b)
+    elif isinstance(a, (tuple, range, Hoard)) and isinstance(b, (tuple, range, Hoard)):
+        return num.any_cmp(pd_to_tuple(a), pd_to_tuple(b))
+    elif isinstance(a, str) and isinstance(b, str):
+        return num.any_cmp(a, b)
+    elif isinstance(a, (Char, str)) and isinstance(b, (Char, str)):
+        return num.any_cmp(basic_pd_str(a), basic_pd_str(b))
+    elif isinstance(a, Block) or isinstance(b, Block):
+        raise TypeError('cannot compare blocks')
+    else:
+        return num.any_cmp(to_comparable_tuple(a), to_comparable_tuple(b))
+
 def pd_less_than(a: PdObject, b: PdObject) -> bool:
     return pd_cmp(a, b) < 0
 def pd_lte(a: PdObject, b: PdObject) -> bool:
     return pd_cmp(a, b) <= 0
+
+def pykey_lt(a: PdKey, b: PdKey) -> bool:
+    return pykey_cmp(a, b) < 0
+def pykey_lte(a: PdKey, b: PdKey) -> bool:
+    return pykey_cmp(a, b) <= 0
 
 def pd_minmax(a: PdObject, b: PdObject, ef: Optional[Tuple[Environment, Block]] = None) -> Tuple[PdObject, PdObject]:
     if ef is None:
@@ -1017,7 +1047,7 @@ def pd_butlast(seq: PdSeq) -> PdObject:
         return seq.butlast()
     else:
         return pd_slice(seq, None, -1)
-def pd_modify_index(env: Environment, func: Block, seq: PdSeq, n: int) -> PdObject:
+def pd_modify_index(env: Environment, func: Block, seq: PdImmutableSeq, n: int) -> PdObject:
     if isinstance(seq, str): seq = list(pd_iterable(seq))
     elif isinstance(seq, Hoard): seq = seq.to_list()
     before = list(seq[:n])
@@ -2065,7 +2095,8 @@ def pd_array_keys_map(env: Environment, arr: list, ks: list, func: Block) -> PdV
 def pd_array_key_get(arr: Union[list, range, Hoard], k: Union[list, range, Hoard]) -> PdObject:
     target = arr
     for sk in pd_deref_to_iterable(k):
-        target = pd_index(target, sk)
+        # pretty unsafe but eh
+        target = pd_index(target, sk) # type: ignore
     return target
 # }}}
 # regex {{{

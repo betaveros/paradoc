@@ -1,7 +1,7 @@
 # coding: utf-8
 import codecs
 import itertools
-from typing import Optional
+from typing import Optional, Tuple
 
 cp1252_string = codecs.decode(bytearray(range(256)), 'cp1252', 'replace')
 pd_modifications = [(5, 'ε'), (6, 'φ'), (12, 'λ'), (14, 'Ŋ'), (16, 'Ƥ'), (24, 'χ'), (26, 'ζ'), (160, '␣')]
@@ -17,10 +17,10 @@ decoding_table = ''.join(decoding_list)
 # Wow we are using some hardcore private API stuff here
 
 class ParadocCodec(codecs.Codec):
-    def encode(self, input_: str, errors: str = 'strict') -> bytes: # type: ignore
+    def encode(self, input_: str, errors: str = 'strict') -> Tuple[bytes, int]:
         return codecs.charmap_encode(input_, errors, encoding_table) # type: ignore
 
-    def decode(self, input_: bytes, errors: str = 'strict') -> str: # type: ignore
+    def decode(self, input_: bytes, errors: str = 'strict') -> Tuple[str, int]:
         return codecs.charmap_decode(input_, errors, decoding_table) # type: ignore
 
 def paradoc_lookup(name: str) -> Optional[codecs.CodecInfo]:

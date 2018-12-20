@@ -1113,8 +1113,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Split into init and last.
 
             ex: [1 2 3]Uncons => [1 2]3""", stability="beta")
-    modify_first_case = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, seq, 0)])
-    modify_last_case  = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, seq, -1)])
+    modify_first_case = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, pd_deref(seq), 0)])
+    modify_last_case  = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, pd_deref(seq), -1)])
 
     cput('Modify_first', [], [modify_first_case],
             docs="""Run a block over the first element of a list, then replace
