@@ -823,6 +823,40 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             env.push(h.to_list())
         return (BuiltIn(objects.pd_repr(h) + "_list", list_b), False)
 
+    @put("g", docs="Get a key with a default value if the key is not found", stability="alpha")
+    def get_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def get_b(env: Environment) -> None:
+            default = env.pop()
+            key = env.pop()
+            if isinstance(key, Block):
+                raise TypeError("Cannot index into hoard with block as key")
+            env.push(h.get(key, default))
+        return (BuiltIn(objects.pd_repr(h) + "_get", get_b), False)
+
+    @put("o", docs="Put 1 at a key", stability="unstable")
+    def updateone_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def updateone_b(env: Environment) -> None:
+            key = env.pop()
+            if isinstance(key, Block):
+                raise TypeError("Cannot update hoard with block as key")
+            h.update(key, 1)
+        return (BuiltIn(objects.pd_repr(h) + "_updateone", updateone_b), False)
+
+    @put("z", docs="Get value at a key with 0 as default is the key is not found", stability="unstable")
+    def getzero_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def getzero_b(env: Environment) -> None:
+            key = env.pop()
+            if isinstance(key, Block):
+                raise TypeError("Cannot index into hoard with block as key")
+            env.push(h.get(key, 0))
+        return (BuiltIn(objects.pd_repr(h) + "_getzero", getzero_b), False)
+
+    @put("k", docs="Get list of keys", stability="unstable")
+    def keys_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def keys_b(env: Environment) -> None:
+            env.push(h.key_list())
+        return (BuiltIn(objects.pd_repr(h) + "_keys", keys_b), False)
+
     return ret
 hoard_trailer_dict = build_hoard_trailer_dict()
 # }}}

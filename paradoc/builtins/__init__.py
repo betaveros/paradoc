@@ -808,6 +808,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     cput('Equal_or_index_or_find', ['='], [
         Case.number2(lambda env, a, b: [int(num.numerify(a) == num.numerify(b))]),
+        Case.hoard_immutable(lambda env, hoard, value: [hoard.index(value)]),
         Case.str2(lambda env, a, b: [int(a == b)]),
         Case.list2(lambda env, a, b: [int(pd_to_list(a) == pd_to_list(b))]),
         Case.number_seq(lambda env, n, seq: [pd_index(seq, n)]),
@@ -821,6 +822,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             element satisfying the block.""", stability="beta")
     cput('Lt_or_slice', ['<'], [
         Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) < 0)]),
+        Case.hoard_immutable(lambda env, hoard, value: [hoard.slice(None, pykey(value))]),
         Case.str2(lambda env, a, b: [int(a < b)]),
         Case.list2(lambda env, a, b: [int(pd_to_list(a) < pd_to_list(b))]),
         Case.number_seq(lambda env, n, seq: [pd_slice(seq, None, n)]),
@@ -836,6 +838,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="beta")
     cput('Gt_or_slice', ['>'], [
         Case.number2(lambda env, a, b: [int(num.pd_num_cmp(a, b) > 0)]),
+        Case.hoard_immutable(lambda env, hoard, value: [hoard.slice(pykey(value), None)]),
         Case.str2(lambda env, a, b: [int(a > b)]),
         Case.list2(lambda env, a, b: [int(pd_to_list(a) > pd_to_list(b))]),
         Case.number_seq(lambda env, n, seq: [pd_slice(seq, n, None)]),

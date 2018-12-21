@@ -81,7 +81,8 @@ class Hoard:
         else:
             raise TypeError("Hoard is dictionary; popping is not allowed")
 
-    def index(self, key: "PdKey") -> "PdObject":
+    def index(self, key0: "PdValue") -> "PdObject":
+        key = pykey(key0)
         if isinstance(self.structure, (list, collections.deque)):
             if isinstance(key, int):
                 return self.structure[key]
@@ -89,6 +90,19 @@ class Hoard:
                 raise TypeError("Hoard is list/deque, must index by int")
         else:
             return self.structure[key][1]
+
+    def get(self, key0: "PdValue", default: "PdObject") -> "PdObject":
+        key = pykey(key0)
+        if isinstance(self.structure, (list, collections.deque)):
+            if isinstance(key, int):
+                if 0 <= key < len(self.structure):
+                    return self.structure[key]
+                else:
+                    return default
+            else:
+                raise TypeError("Hoard is list/deque, must index by int")
+        else:
+            return self.structure.get(key, (None, default))[1]
 
     def slice(self, left: Optional["PdKey"], right: Optional["PdKey"]) -> list:
         if isinstance(self.structure, (list, collections.deque)):

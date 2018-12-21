@@ -24,16 +24,18 @@ class ArgType:
     def just_type(*typs: Type[PdObject]) -> 'ArgType':
         return ArgType([(tuple(typs), lambda obj: obj)])
 
-just_int    = ArgType.just_type(int)
-just_float  = ArgType.just_type(float)
-just_char   = ArgType.just_type(Char)
-just_number = ArgType.just_type(Char, int, float)
-just_str    = ArgType.just_type(str)
-just_list   = ArgType.just_type(list, range, Hoard)
-just_seq    = ArgType.just_type(str, list, range, Hoard)
-just_block  = ArgType.just_type(Block)
-just_value  = ArgType.just_type(Char, int, float, str, list, range, Hoard)
-just_any    = ArgType.just_type(Char, int, float, str, list, range, Hoard, Block)
+just_int       = ArgType.just_type(int)
+just_float     = ArgType.just_type(float)
+just_char      = ArgType.just_type(Char)
+just_number    = ArgType.just_type(Char, int, float)
+just_str       = ArgType.just_type(str)
+just_list      = ArgType.just_type(list, range, Hoard)
+just_seq       = ArgType.just_type(str, list, range, Hoard)
+just_block     = ArgType.just_type(Block)
+just_hoard     = ArgType.just_type(Hoard)
+just_immutable = ArgType.just_type(Char, int, float, str, list, range)
+just_value     = ArgType.just_type(Char, int, float, str, list, range, Hoard)
+just_any       = ArgType.just_type(Char, int, float, str, list, range, Hoard, Block)
 
 # Accepts a list, coercing Chars or numbers to single-element lists
 list_singleton = ArgType([
@@ -244,6 +246,9 @@ class Case:
     @staticmethod
     def seq_value(func: Callable[[Environment, PdSeq, PdValue], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_seq, just_value], func, commutative=commutative)
+    @staticmethod
+    def hoard_immutable(func: Callable[[Environment, Hoard, PdValue], List[PdObject]], commutative: bool = True) -> 'Case':
+        return Case(2, [just_hoard, just_immutable], func, commutative=commutative)
     @staticmethod
     def char_number(func: Callable[[Environment, Char, PdNum], List[PdObject]], commutative: bool = True) -> 'Case':
         return Case(2, [just_char, just_number], func, commutative=commutative)
