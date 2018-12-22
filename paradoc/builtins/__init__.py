@@ -165,6 +165,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
             ex: 1 2 3¸ => 1 3""",
             stability="beta")
+    cput('Pop_out', [';o'], [Case.any3(lambda env, x, y, z: [y, z])],
+            docs="""Pop the third from the top element of the stack, named to
+            be somewhat analogous to {{ '\\\\o'|b }}.
+
+            ex: 1 2 3;o => 2 3""",
+            stability="unstable")
+    cput('Pop_around', [';a'], [Case.any3(lambda env, x, y, z: [y])],
+            docs="""Pop the first and third from the top elements of the stack,
+            named to be somewhat analogous to {{ '\\\\a'|b }}.
+
+            ex: 1 2 3;p => 2""",
+            stability="unstable")
+    cput('Pop_second_pair', [';p'], [Case.any3(lambda env, x, y, z: [z])],
+            docs="""Pop the second and third from the top elements of the
+            stack. Not the first and second because that's
+            {{ ';'|b }}{{ 'd'|bt }}.
+
+            ex: 1 2 3;p => 3""",
+            stability="unstable")
     cput('Repr', ['`'], [Case.any(lambda env, x: [pd_repr(x)])],
             docs="Push the string Paradoc representation of the top element.",
             stability="beta")

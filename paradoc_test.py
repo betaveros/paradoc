@@ -59,6 +59,13 @@ class TestParadoc(unittest.TestCase):
     def test_pop(self):
         self.assertEqual(pd_simple_eval('1; 2;t 0;t 3;f 0;f 4 5;i 6 0;i 7 8;n 9 0;n'),
                 [0,3,6,7])
+        self.assertEqual(pd_simple_eval('1 2 3 4;s'), [])
+        self.assertEqual(pd_simple_eval('1 2 3 4;' ), [1,2,3])
+        self.assertEqual(pd_simple_eval('1 2 3 4;u'), [1,2,4])
+        self.assertEqual(pd_simple_eval('1 2 3 4;o'), [1,3,4])
+        self.assertEqual(pd_simple_eval('1 2 3 4;p'), [1,4])
+        self.assertEqual(pd_simple_eval('1 2 3 4;a'), [1,3])
+        self.assertEqual(pd_simple_eval('1 2 3 4;d'), [1,2])
 
     def test_not(self):
         self.assertEqual(pd_simple_eval('[0 1 1m 0C 1C "" 0.0 "0" \'0]!m'),
