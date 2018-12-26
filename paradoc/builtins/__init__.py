@@ -1924,16 +1924,18 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             if necessary and pad it with equally many spaces on either side
             until at least the length.""",
             stability="unstable")
-    cput('Left_add_spaces',  ['«f'],
-        char_biased_pad_cases(lambda s, n: ' ' * n + s),
-            docs="""Given a value and a length, convert the value to a string
-            if necessary and prepend that many spaces.""",
-            stability="unstable")
-    cput('Right_add_spaces', ['»f'],
-        char_biased_pad_cases(lambda s, n: s + ' ' * n),
-            docs="""Given a value and a length, convert the value to a string
-            if necessary and append that many spaces.""",
-            stability="unstable")
+    # These names clobber good filters. Maybe there are other ways to fit
+    # these utilities in.
+    # cput('Left_add_spaces',  ['«f'],
+    #     char_biased_pad_cases(lambda s, n: ' ' * n + s),
+    #         docs="""Given a value and a length, convert the value to a string
+    #         if necessary and prepend that many spaces.""",
+    #         stability="unstable")
+    # cput('Right_add_spaces', ['»f'],
+    #     char_biased_pad_cases(lambda s, n: s + ' ' * n),
+    #         docs="""Given a value and a length, convert the value to a string
+    #         if necessary and append that many spaces.""",
+    #         stability="unstable")
 
     cput('Left_fill', ['[f'], [
         Case.list_range_number_any(lambda env, s, n, fill:
