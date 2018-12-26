@@ -94,15 +94,18 @@ class Hoard:
     def get(self, key0: "PdValue", default: "PdObject") -> "PdObject":
         key = pykey(key0)
         if isinstance(self.structure, (list, collections.deque)):
-            if isinstance(key, int):
-                if 0 <= key < len(self.structure):
-                    return self.structure[key]
-                else:
-                    return default
-            else:
-                raise TypeError("Hoard is list/deque, must index by int")
+            if isinstance(key, int) and 0 <= key < len(self.structure):
+                return self.structure[key]
+            return default
         else:
             return self.structure.get(key, (None, default))[1]
+
+    def haskey(self, key0: "PdValue") -> bool:
+        key = pykey(key0)
+        if isinstance(self.structure, (list, collections.deque)):
+            return isinstance(key, int) and 0 <= key < len(self.structure)
+        else:
+            return key in self.structure
 
     def slice(self, left: Optional["PdKey"], right: Optional["PdKey"]) -> list:
         if isinstance(self.structure, (list, collections.deque)):
@@ -184,6 +187,13 @@ class Hoard:
                     pass
             self.structure = {pykey(k): (k, v) for k, v in enumerate(self.structure)}
         self.structure[pykey(key)] = (key, value)
+
+    def delete(self, key0: "PdValue") -> None:
+        if isinstance(self.structure, (list, collections.deque)):
+            self.structure = {pykey(k): (k, v) for k, v in enumerate(self.structure)}
+        key = pykey(key0)
+        if key in self.structure:
+            del self.structure[key]
 
     def copy(self) -> "Hoard":
         return Hoard(copy.copy(self.structure))

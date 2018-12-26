@@ -771,31 +771,31 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             stability: str = "unknown") -> TrailerPutter[Hoard]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
 
-    @put("a", docs="Append (to the right).", stability="alpha")
+    @put("append", "a", docs="Append (to the right).", stability="alpha")
     def append_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def append_b(env: Environment) -> None:
             h.append(env.pop())
         return (BuiltIn(objects.pd_repr(h) + "_append", append_b), False)
 
-    @put("p", docs="Pop (from the right).", stability="alpha")
+    @put("pop", "p", docs="Pop (from the right).", stability="alpha")
     def pop_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def pop_b(env: Environment) -> None:
             env.push(h.pop())
         return (BuiltIn(objects.pd_repr(h) + "_pop", pop_b), False)
 
-    @put("b", docs="Append to the left, aka back.", stability="alpha")
+    @put("appendleft", "appendback", "b", docs="Append to the left, aka back.", stability="alpha")
     def appendleft_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def appendleft_b(env: Environment) -> None:
             h.appendleft(env.pop())
         return (BuiltIn(objects.pd_repr(h) + "_appendleft", appendleft_b), False)
 
-    @put("q", docs="Pop from the left. Dequeue, perhaps.", stability="alpha")
+    @put("popleft", "q", docs="Pop from the left. Dequeue, perhaps.", stability="alpha")
     def popleft_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def popleft_b(env: Environment) -> None:
             env.push(h.popleft())
         return (BuiltIn(objects.pd_repr(h) + "_popleft", popleft_b), False)
 
-    @put("u", docs="Update at an index or key.", stability="alpha")
+    @put("update", "u", docs="Update at an index or key.", stability="alpha")
     def update_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def update_b(env: Environment) -> None:
             value = env.pop()
@@ -805,25 +805,70 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             h.update(key, value)
         return (BuiltIn(objects.pd_repr(h) + "_update", update_b), False)
 
-    @put("c", docs="Copy into a new Hoard.", stability="alpha")
+    @put("delete", "d", docs="Delete a key", stability="alpha")
+    def delete_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def delete_b(env: Environment) -> None:
+            key = env.pop()
+            if isinstance(key, Block):
+                raise TypeError("Cannot delete block key from hoard")
+            h.delete(key)
+        return (BuiltIn(objects.pd_repr(h) + "_delete", delete_b), False)
+
+    @put("haskey", "h", docs="Test if a key exists", stability="unstable")
+    def haskey_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def haskey_b(env: Environment) -> None:
+            key = env.pop()
+            if isinstance(key, Block):
+                raise TypeError("Cannot check for block key in hoard")
+            env.push(int(h.haskey(key)))
+        return (BuiltIn(objects.pd_repr(h) + "_haskey", haskey_b), False)
+
+    @put("adjust", "j",
+            docs="""Adjust at an index or key: change the value at that index
+            or key to the result of running that value through incrementing an
+            integer or running a block. If no value existed there previously, 0
+            is assumed. (In the future we may handle other types of values
+            differently.)""",
+            stability="unstable")
+    def adjust_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def adjust_b(env: Environment) -> None:
+            adjuster = env.pop()
+            key = env.pop()
+            if isinstance(key, Block):
+                raise TypeError("Cannot adjust hoard with block as key")
+            if isinstance(adjuster, (Char, int, float)):
+                old = h.get(key, 0)
+                if not isinstance(old, (Char, int, float)):
+                    raise TypeError("Cannot adjust non-number by number")
+                h.update(key, num.pd_add(old, adjuster))
+            elif isinstance(adjuster, Block):
+                old = h.get(key, 0)
+                sandboxed_result = objects.pd_sandbox(env, adjuster, [old])
+                if not sandboxed_result:
+                    raise ValueError("Sandboxed adjust lacked result")
+                h.update(key, sandboxed_result[-1])
+            else:
+                raise NotImplementedError("Cannot adjust by " + repr(adjuster))
+        return (BuiltIn(objects.pd_repr(h) + "_adjust", adjust_b), False)
+
+
+    @put("copy", "c", docs="Copy into a new Hoard.", stability="alpha")
     def copy_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def copy_b(env: Environment) -> None:
             env.push(h.copy())
         return (BuiltIn(objects.pd_repr(h) + "_copy", copy_b), False)
 
-    @put("r", docs="Completely replace data.", stability="alpha")
+    @put("replace", "r", docs="Completely replace data.", stability="alpha")
     def replace_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def replace_b(env: Environment) -> None:
             h.replace(env.pop())
         return (BuiltIn(objects.pd_repr(h) + "_replace", replace_b), False)
 
-    @put("l", docs="To list", stability="alpha")
-    def list_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
-        def list_b(env: Environment) -> None:
-            env.push(h.to_list())
-        return (BuiltIn(objects.pd_repr(h) + "_list", list_b), False)
+    @put("list", "l", docs="To list", stability="alpha")
+    def list_trailer(outer_env: Environment, h: Hoard) -> Tuple[list, bool]:
+        return (h.to_list(), False)
 
-    @put("g", docs="Get a key with a default value if the key is not found", stability="alpha")
+    @put("get", "g", docs="Get a key with a default value if the key is not found", stability="alpha")
     def get_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def get_b(env: Environment) -> None:
             default = env.pop()
@@ -833,7 +878,7 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             env.push(h.get(key, default))
         return (BuiltIn(objects.pd_repr(h) + "_get", get_b), False)
 
-    @put("o", docs="Put 1 at a key", stability="unstable")
+    @put("updateone", "o", docs="Put 1 at a key", stability="unstable")
     def updateone_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def updateone_b(env: Environment) -> None:
             key = env.pop()
@@ -842,7 +887,7 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             h.update(key, 1)
         return (BuiltIn(objects.pd_repr(h) + "_updateone", updateone_b), False)
 
-    @put("z", docs="Get value at a key with 0 as default is the key is not found", stability="unstable")
+    @put("getzero", "z", docs="Get value at a key with 0 as default is the key is not found", stability="unstable")
     def getzero_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def getzero_b(env: Environment) -> None:
             key = env.pop()
@@ -851,11 +896,18 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             env.push(h.get(key, 0))
         return (BuiltIn(objects.pd_repr(h) + "_getzero", getzero_b), False)
 
+    @put("map", "m",
+            docs="""Map looking up keys with default 0 across elements of a
+            list (coerces numbers to ranges).""",
+            stability="unstable")
+    def map_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def getzero_b(env: Environment) -> None:
+            env.push([h.get(key, 0) for key in objects.pd_to_list_range(env.pop())])
+        return (BuiltIn(objects.pd_repr(h) + "_map", map_b), False)
+
     @put("k", docs="Get list of keys", stability="unstable")
-    def keys_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
-        def keys_b(env: Environment) -> None:
-            env.push(h.key_list())
-        return (BuiltIn(objects.pd_repr(h) + "_keys", keys_b), False)
+    def keys_trailer(outer_env: Environment, h: Hoard) -> Tuple[list, bool]:
+        return (h.key_list(), False)
 
     return ret
 hoard_trailer_dict = build_hoard_trailer_dict()
