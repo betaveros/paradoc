@@ -698,6 +698,28 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             env.push(objects.pd_index(e, -1-i))
         return (BuiltIn(str(i) + "_last", last_i), False)
 
+    @put("in", "i",
+            docs="""Move the top element of the stack to position n
+            (zero-indexed, so below n other elements.)""",
+            stability="unstable")
+    def in_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def in_i(env: Environment) -> None:
+            old_top = env.pop()
+            transit = env.pop_n(i)
+            env.push(old_top, *transit)
+        return (BuiltIn(str(i) + "_in", in_i), False)
+    @put("out", "o",
+            docs="""Move the nth element of the stack (zero-indexed, so the
+            element below n other elements) to the top.""",
+            stability="unstable")
+    def out_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def out_i(env: Environment) -> None:
+            transit = env.pop_n(i)
+            new_top = env.pop()
+            env.push(*transit, new_top)
+        return (BuiltIn(str(i) + "_out", out_i), False)
+
+
     @put("quarter", "q",
             docs="""Let X be this number over four. For numbers, multiply by X.
             For lists, take floor of the first X elements. For blocks, run with
