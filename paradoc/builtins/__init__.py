@@ -221,7 +221,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             reverse order.
 
             ex: [1 2 3¬ => [3 2 1]""",
-            stability="beta")
+            stability="stable")
     def pack_reverse(env: Environment) -> None:
         env.push(env.pop_until_stack_marker()[::-1])
     @put(']_case', ']c', stability="beta")
@@ -255,14 +255,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             ASCII alternative: 1_array; see {{ 'array'|it }}.
 
             ex: 1 2 3† => 1 2 [3]""",
-            stability="beta")
+            stability="stable")
     cput('‡', [], [Case.any2(lambda env, x, y: [[x, y]])],
             docs="""Pack the top two elements of the stack into a list.
 
             ASCII alternative: 2_array; see {{ 'array'|it }}.
 
             ex: 1 2 3‡ => 1 [2 3]""",
-            stability="beta")
+            stability="stable")
     # }}}
     # Not {{{
     cput('Not', ['!'], [Case.any(lambda env, x: [int(not x)])],
@@ -442,7 +442,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Inside a sequence (numbers coerce to ranges), find the
             first index of an element, a substring, or something satisfying a
             block. Mnemonic: finds where the element is AT.""",
-            stability="alpha")
+            stability="beta")
 
     cput('Abs_diff', ['Ad', '±'], [
         Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
@@ -1141,11 +1141,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Modify_first', [], [modify_first_case],
             docs="""Run a block over the first element of a list, then replace
             it in the list with the result.""",
-            stability="unstable")
+            stability="beta")
     cput('Modify_last', [], [modify_last_case],
             docs="""Run a block over the last element of a list, then replace
             it in the list with the result.""",
-            stability="unstable")
+            stability="beta")
 
     cput('Decr_or_uncons_or_modify_first', ['('],
             [decr_case, uncons_case, modify_first_case],
@@ -1183,19 +1183,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Floor_or_first', ['‹'], [floor_case, first_case],
             docs="""{{ 'Floor'|b }} or {{ 'First'|b }} of sequence or
             {{ 'Modify_first'|b }}""",
-            stability="alpha")
+            stability="beta")
     cput('Ceiling_or_last', ['›'], [ceil_case, last_case],
             docs="""{{ 'Ceiling'|b }} or {{ 'Last'|b }} of sequence or
             {{ 'Modify_last'|b }}""",
-            stability="alpha")
+            stability="beta")
 
     cput('Decr_two_or_but_last',  ['«'], [decr2_case, butlast_case],
             docs="""Decrease by two, or all but last""",
-            stability="alpha")
+            stability="beta")
 
     cput('Incr_two_or_but_first', ['»'], [incr2_case, butfirst_case],
             docs="""Increase by two, or all but first (tail)""",
-            stability="alpha")
+            stability="beta")
 
     cput('Round_or_first_and_last', ['¤' ], [round_case, first_and_last_case],
             stability="alpha")
@@ -1278,7 +1278,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Count factor multiplicity, frequency, or number satisfying
             predicate. Mnemonic: number sign, as in you're counting the number
             of something""",
-            stability="alpha")
+            stability="beta")
     cput('Count_pairs', ['#p'], [
         Case.seq(lambda env, seq: [pd_count_pairs(seq)]),
     ],
@@ -1337,7 +1337,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Transpose a matrix, or list of lists. Mnemonic: matrices
             are transposed by a superscript T, so Tt is just that "doubled" and
             ™ is "Transpose Matrix" superscripted.""",
-            stability="alpha")
+            stability="beta")
     cput('Rotate', ['Ro'], [
         Case.seq(lambda env, a: [pd_transpose(a)[::-1]]),
     ],

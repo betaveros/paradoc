@@ -88,7 +88,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
     @put("anti", "a",
             docs="""Swap the top two elements of the stack before running this
             block. Makes the result reluctant.""",
-            stability="beta")
+            stability="alpha")
     def anti_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def anti_b(env: Environment) -> None:
             e2, e1 = env.pop2()
@@ -100,7 +100,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             docs="""Right now, pop the top element of this stack; before each
             time this block is to be executed, push it. Makes the result
             reluctant.""",
-            stability="beta")
+            stability="stable")
     def bind_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         e = outer_env.pop()
         def bind_b(env: Environment) -> None:
@@ -129,7 +129,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             docs="""Apply this block to each element of a list (coerces numbers
             to ranges). Compare {{ 'xloop'|bt }}.
             """,
-            stability="beta")
+            stability="stable")
     def each_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def each_b(env: Environment) -> None:
             lst = objects.pd_to_list_range(env.pop())
@@ -140,7 +140,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             docs="""Apply this block to each element of a list (coerces numbers
             to ranges) and filter elements for which the block gives a truthy
             result.""",
-            stability="beta")
+            stability="stable")
     def filter_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         return (BuiltIn(b.code_repr() + "_filter",
                 lambda env: apply_pd_list_op(env, b, objects.pd_filter)), False)
@@ -148,7 +148,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
     @put("get", "g",
             docs="""Find the first element of the list where this block gives a
             truthy result (coerces numbers to ranges).""",
-            stability="unstable")
+            stability="beta")
     def get_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         return (BuiltIn(b.code_repr() + "_get",
                 lambda env: apply_pd_list_op(env, b, objects.pd_get)), False)
@@ -179,7 +179,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             ex:
             10 Uk => 10 1
             5 6 +k => 5 6 11""",
-            stability="beta")
+            stability="stable")
     def keep_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def keep_b(env: Environment) -> None:
             shadow = env.keep_shadow()
@@ -207,7 +207,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
     @put("map", "m",
             docs="""Apply this block to each element of a list (coerces numbers
             to ranges); collect the results into a new list.""",
-            stability="beta")
+            stability="stable")
     def map_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         return (BuiltIn(b.code_repr() + "_map",
                 lambda env: apply_pd_list_op(env, b, objects.pd_map)), False)
@@ -259,7 +259,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             ex:
             10 Uq => 1 10
             5 6 +q => 11 5 6""",
-            stability="beta")
+            stability="stable")
     def keepunder_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def keepunder_b(env: Environment) -> None:
             shadow = env.keep_shadow()
@@ -275,7 +275,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             ex:
             5 10 Uu => 1 10
             1 5 9 +u => 6 9""",
-            stability="beta")
+            stability="stable")
     def under_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def under_b(env: Environment) -> None:
             t = env.pop()
