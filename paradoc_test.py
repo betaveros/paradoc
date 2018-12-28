@@ -402,6 +402,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('\'xI'), [120])
         self.assertEqual(pd_simple_eval('98C'), [Char(98)])
 
+    def test_conversions_group(self):
+        self.assertEqual(pd_simple_eval('"253"Ig'), [[253]])
+        self.assertEqual(pd_simple_eval('"2 5 -3"Ig'), [[2,5,-3]])
+        self.assertEqual(pd_simple_eval('"1e2 3e4"Ig'), [[1,2,3,4]])
+        self.assertEqual(pd_simple_eval('"2 5 -3"Fg'), [[2.0,5.0,-3.0]])
+        self.assertEqual(pd_simple_eval('"1e2 3e4"Fg'), [[1e2,3e4]])
+
     def test_negate(self):
         self.assertEqual(pd_simple_eval('5M 6MM —7M —8MM'), [-5,6,7,-8])
 

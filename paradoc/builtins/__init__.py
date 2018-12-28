@@ -574,6 +574,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""On a non-block value, {{ 'To_float'|b }}; on a block,
             {{ 'Iterate'|b }}.""",
             stability="beta")
+
+    cput('Int_groups', ['Ig'], [Case.str_(lambda env, x: [[int(m) for m in re.findall(r"-?\d+", x)]])],
+            docs="Finds integer-looking parts of a string and converts them to integers.",
+            stability="alpha")
+    cput('Float_groups', ['Fg'], [Case.str_(lambda env, x: [[float(m) for m in re.findall(r"-?\d+(?:\.\d+)?(?:e\d+)?|\.\d+(?:e\d+)?", x)]])],
+            docs="Finds float-looking parts of a string and converts them to floats.",
+            stability="alpha")
     # }}}
     # Sort, $; test for sortedness; order_statistic {{{
     cput('Sort', [], [
