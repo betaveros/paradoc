@@ -1058,32 +1058,32 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="unstable")
 
     cput('Left_cycle', ['<c'], [
-        Case.list_range_number(lambda env, seq, n: [pd_to_list(pd_slice(seq, num.intify(n), None)) + pd_to_list(pd_slice(seq, None, num.intify(n)))]),
         Case.str_number(lambda env, seq, n: [seq[num.intify(n):] + seq[:num.intify(n)]]),
+        Case.list_range_number(lambda env, seq, n: [pd_to_list(pd_slice(seq, num.intify(n), None)) + pd_to_list(pd_slice(seq, None, num.intify(n)))]),
     ],
             docs="""Left cycle a list or string by some number of elements,
             which are cut off the left and reattached to the right.""",
             stability="unstable")
 
     cput('Right_cycle', ['>c'], [
-        Case.list_range_number(lambda env, seq, n: [pd_to_list(pd_slice(seq, -num.intify(n), None)) + pd_to_list(pd_slice(seq, None, -num.intify(n)))]),
         Case.str_number(lambda env, seq, n: [seq[-num.intify(n):] + seq[:-num.intify(n)]]),
+        Case.list_range_number(lambda env, seq, n: [pd_to_list(pd_slice(seq, -num.intify(n), None)) + pd_to_list(pd_slice(seq, None, -num.intify(n)))]),
     ],
             docs="""Right cycle a list or string by some number of elements,
             which are cut off the right and reattached to the left.""",
             stability="unstable")
 
     cput('Left_cycle_one', ['<o'], [
-        Case.list_int_range(lambda env, seq: [list(seq[1:]) + list(seq[:1])]),
         Case.str_(lambda env, seq: [seq[1:] + seq[:1]]),
+        Case.list_int_range(lambda env, seq: [list(seq[1:]) + list(seq[:1])]),
     ],
             docs="""Left cycle a list or string Once: move the first element to
             the last.""",
             stability="unstable")
 
     cput('Right_cycle_one', ['>o'], [
-        Case.list_int_range(lambda env, seq: [list(seq[-1:]) + list(seq[:-1])]),
         Case.str_(lambda env, seq: [seq[-1:] + seq[:-1]]),
+        Case.list_int_range(lambda env, seq: [list(seq[-1:]) + list(seq[:-1])]),
     ],
             docs="""Right cycle a list or string Once: move the last element to
             the first.""",
@@ -2039,7 +2039,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     )
     permutation_cases = [
         Case.seq(lambda env, seq:
-            [list(itertools.permutations(pd_iterable(seq)))]),
+            [list(map(list, itertools.permutations(pd_iterable(seq))))]),
         Case.block_seq_range(lambda env, block, seq:
             [pd_map_iterable(env, block,
                 map(list, itertools.permutations(pd_iterable(seq))))]),

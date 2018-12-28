@@ -192,6 +192,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 5 3]>o'), [[3,2,5]])
         self.assertEqual(pd_simple_eval('[1 2 3 4 5]2<c'), [[3,4,5,1,2]])
         self.assertEqual(pd_simple_eval('[1 2 3 4 5]2>c'), [[4,5,1,2,3]])
+        self.assertEqual(pd_simple_eval('"prdc"<o'), ["rdcp"])
+        self.assertEqual(pd_simple_eval('"prdc">o'), ["cprd"])
+        self.assertEqual(pd_simple_eval('"paradoc"3<c'), ["adocpar"])
+        self.assertEqual(pd_simple_eval('"paradoc"3>c'), ["docpara"])
 
     def test_each(self):
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}/'), [9,10,12])
