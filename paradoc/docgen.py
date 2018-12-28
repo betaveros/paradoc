@@ -480,6 +480,7 @@ h3.name { font-family: monospace; }
 h3 a { text-decoration: none; }
 pre { border: 1px solid #ac9; background-color: #eeffcc; padding: 0.2em; }
 code.char { font-size: 75%; border: 1px dotted black; background: #ccc; }
+pre, code { white-space: pre-wrap; overflow-wrap: break-word; }
 pre.ex::before, pre.exs::before { font-size: 75%; font-family: sans-serif; }
 pre.ex::before { content: "Example: "; }
 pre.exs::before { content: "Examples: "; display: block; }
