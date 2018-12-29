@@ -220,7 +220,7 @@ PdKey = Union[PdNum, str, tuple, range]
 # exceptions {{{
 class PdEmptyStackException(Exception): pass
 class PdEndOfFileException(Exception): pass
-class PdAbortException(Exception):
+class PdExitException(Exception):
     def __init__(self, msg: str, code: int = 0) -> None:
         super(Exception, self).__init__(msg)
         self.code = code
@@ -1108,6 +1108,9 @@ def pd_mul_seq(seq: PdSeq, n: PdNum) -> PdSeq:
     else:
         return pd_to_list(seq) * n_int
 
+def pd_cartesian_product_seq_flat(seq1: PdSeq, seq2: PdSeq) -> List[list]:
+    return [[e1, e2] for e1 in pd_iterable(seq1) for e2 in pd_iterable(seq2)]
+
 def pd_cartesian_product_seq_matrix(seq1: PdSeq, seq2: PdSeq) -> List[List[list]]:
     return [[[e1, e2]
         for e2 in pd_iterable(seq2)]
@@ -1608,7 +1611,7 @@ def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
             acc.append(e[::-1])
     return acc
 
-def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq) -> list:
+def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq, flat: bool) -> list:
     # Approximately: (f : a -> b -> c) -> (seq1 : [a]) -> (seq2 : [b]) -> [[c]]
     env.push_yx()
     outer: list = []
@@ -1628,13 +1631,17 @@ def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq) -> l
             finally:
                 env.pop_yx()
 
-            outer.append(pd_build_like(seq2, inner))
+            # outer.append(pd_build_like(seq2, inner))
+            outer.append(inner)
     except PdBreakException:
         pass
     finally:
         env.pop_yx()
 
-    return outer
+    if flat:
+        return pd_build_like(seq2, [e for inner in outer for e in inner])
+    else:
+        return [pd_build_like(seq2, inner) for inner in outer]
 
 def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     env.push_yx()

@@ -46,8 +46,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     # Default variables {{{
     env.put('N', '\n', docs="Output record separator", stability="stable")
-    env.put(u'T', 10, docs="Utility constant: ten", stability="stable")
-    env.put(u'E', 11, docs="Utility constant: eleven", stability="stable")
+    env.put('A', 10, docs="Utility constant: ten", stability="stable")
+    env.put('¹', 11, docs="Utility constant: eleven", stability="unstable")
     env.put(u'Ñ', '', docs="Output field separator", stability="stable")
     env.put('Ee', math.e, stability="beta")
     env.put('Ep', 1e-9, docs="Epsilon for approximate tests", stability="beta")
@@ -330,24 +330,40 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             {{ 'Minus_or_reject'|b }}.""",
             stability="beta")
 
+    cput('Table', ['T'], [
+        Case.seq2_range(lambda env, a, b: [pd_cartesian_product_seq_matrix(a, b)]),
+        Case.seq2_range_block(lambda env, seq1, seq2, block:
+                [pd_map_product(env, block, seq1, seq2, flat=False)]),
+    ],
+            docs="""On two sequences (numbers coerce to ranges), "structured"
+            Cartesian product: make a "table", or a list of lists, of pairs of
+            elements. On a block and two sequences (number coerce to ranges),
+            make a "table" of results of mapping pairs of elements. For the
+            flat versions, see {{ '*'|b }} or {{ 'B'|b }}.""",
+            stability="alpha")
+
     cput('Mul_or_xloop', ['*'], [
         Case.number2(lambda env, a, b: [num.pd_mul(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_mul_seq(seq, n)]),
-        Case.seq2(lambda env, a, b: [pd_cartesian_product_seq_matrix(a, b)]),
+        Case.seq2(lambda env, a, b: [pd_cartesian_product_seq_flat(a, b)]),
         Case.block_seq_range(lambda env, block, seq:
             pd_foreach_x_only_then_empty_list(env, block, seq)),
     ],
             docs="""Multiplication on numbers. Repetition on sequences with
-            numbers. Cartesian product on two sequences. X-loop on blocks and
-            sequences (numbers coerce to ranges, so, if you don't use the
-            variable X, it's just repeating a block some number of times.)
+            numbers. "Flat" Cartesian product on two sequences (this returns a
+            single-level list of pairs, rather than a list of lists of pairs;
+            if you want the latter, see {{ 'T'|b }}). X-loop on blocks and
+            sequences, in which elements and corresponding indices are pushed
+            onto the X-stack, but not pushed onto the stack (numbers coerce to
+            ranges, so, if you don't use the variable X, it's just repeating a
+            block some number of times.)
 
             See also {{ 'xloop'|bt }}.
 
             ex: 3 {2*} 4* => 48
             {X} 4* => 0 1 2 3
             [2 3 5 7] {2X#} * => 4 8 32 128""",
-            stability="stable")
+            stability="beta")
 
     cput('Div_or_split_or_each', ['/'], [
         Case.number2(lambda env, a, b: [num.pd_div(a, b)]),
@@ -776,14 +792,15 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             characters if a string) in the radix of the number and converts to
             a number. (See {{ 'B'|b }})""", stability="beta")
     product_map_case = Case.seq2_range_block(lambda env, seq1, seq2, block:
-            [pd_map_product(env, block, seq1, seq2)])
+            [pd_map_product(env, block, seq1, seq2, flat=True)])
     cput('Product_map', [], [product_map_case],
             docs="""Map over the Cartesian product of two sequences, resulting
-            in a list of lists. (See {{ 'B'|b }})""", stability="alpha")
+            in a list. (See {{ 'B'|b }}.)""", stability="alpha")
     cput('Base_or_product_map', ['B'], base_cases + [product_map_case],
             docs="""{{ 'Base'|b }} or {{ 'Product_map'|b }} (mnemonic: Bi-map,
-            mapping over two things at once, or creating an m "**by**" n
-            table)""",
+            mapping over two things at once. Note that the result is a
+            single-level list of results; for a "table" or a list of lists, see
+            {{ 'T'|b }}.""",
             stability="beta")
     cput('Lower_base', ['Lb'], [
         Case.value_number(lambda env, v, b: [pd_deepmap_n2v(
@@ -1723,24 +1740,24 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         if env.get('Debug'):
             print('Dump:', env.debug_dump(), file=sys.stderr)
     # }}}
-    # Abort, Break, Continue {{{
-    @put('Abort', 'A',
-            docs="""Abort the current program.""",
+    # Break, Continue, Exit {{{
+    @put('Exit', 'E',
+            docs="""Exit the current program.""",
             stability="beta")
-    def abort(env: Environment) -> None:
-        raise PdAbortException("Abort")
+    def exit(env: Environment) -> None:
+        raise PdExitException("Exit")
 
-    @put('Abort_with', 'Aw',
-            docs="""Abort the current program with the specified exit code or
+    @put('Exit_with', 'Ew',
+            docs="""Exit the current program with the specified exit code or
             message.""",
             stability="beta")
-    def abort_with(env: Environment) -> None:
+    def exit_with(env: Environment) -> None:
         e = env.pop()
         if isinstance(e, (int, float, Char)):
-            raise PdAbortException("Abort", num.intify(e))
+            raise PdExitException("Exit", num.intify(e))
         else:
-            print("Abort: " + str(e), file=sys.stderr)
-            raise PdAbortException(str(e), 1)
+            print("Exit: " + str(e), file=sys.stderr)
+            raise PdExitException(str(e), 1)
 
     @put('Break', 'Quit_loop', 'Q',
             docs="""Break out of the current loop.""",
@@ -1777,7 +1794,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Square', ['²'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
         Case.seq(lambda env, s: [pd_cartesian_product_seq_matrix(s, s)]),
-        Case.block_seq_range(lambda env, block, seq: [pd_map_product(env, block, seq, seq)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_map_product(env, block, seq, seq, flat=False)]),
     ],
             docs="""Square a number, or compute the Cartesian product of a
             sequence with itself, or map a block across that.""",

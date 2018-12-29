@@ -14,7 +14,7 @@ from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Uni
 import itertools
 from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_trailers, lex_code, break_trailer, is_numeric_literal_token, name_trailer_dissections
 from paradoc.num import Char
-from paradoc.objects import Block, Hoard, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException, PdAbortException, PdBreakException, PdContinueException
+from paradoc.objects import Block, Hoard, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException, PdExitException, PdBreakException, PdContinueException
 import paradoc.num as num
 import paradoc.objects as objects
 import paradoc.base as base
@@ -1260,7 +1260,7 @@ class CodeBlock(Block):
                         if token in block_starters:
                             block_level += 1
                         block_acc.append(token0)
-            except PdAbortException: raise
+            except PdExitException: raise
             except PdBreakException: raise
             except PdContinueException: raise
             except Exception as ex:
@@ -1321,7 +1321,7 @@ def paradoc_repl(sandboxed: bool, debug: bool) -> None:
             print(objects.pd_repr(env._stack))
         except EOFError:
             break
-        except PdAbortException:
+        except PdExitException:
             raise
         except Exception as e:
             print(e, file=sys.stderr)
@@ -1415,7 +1415,7 @@ def main() -> None:
                             sandboxed=args.sandboxed, debug=args.debug)
         else:
             paradoc_repl(sandboxed=args.sandboxed, debug=args.debug)
-    except PdAbortException as e:
+    except PdExitException as e:
         sys.exit(e.code)
 
 if __name__ == "__main__": main()

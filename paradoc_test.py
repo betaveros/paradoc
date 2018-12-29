@@ -33,11 +33,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(list(lex_code('—3—4—5')), ['—3', '—4', '—5'])
 
     def test_readme(self):
-        self.assertEqual(pd_simple_eval('E²m'), [[0,1,4,9,16,25,36,49,64,81,100]])
-        self.assertEqual(pd_simple_eval('E2pm'), [[0,1,4,9,16,25,36,49,64,81,100]])
+        self.assertEqual(pd_simple_eval('¹²m'), [[0,1,4,9,16,25,36,49,64,81,100]])
+        self.assertEqual(pd_simple_eval('A)2pm'), [[0,1,4,9,16,25,36,49,64,81,100]])
         self.assertEqual(pd_simple_eval('11 Square_map'), [[0,1,4,9,16,25,36,49,64,81,100]])
 
-        self.assertEqual(pd_simple_eval('0 1T+kx'), [0,1,1,2,3,5,8,13,21,34,55,89])
+        self.assertEqual(pd_simple_eval('0 1A+kx'), [0,1,1,2,3,5,8,13,21,34,55,89])
         self.assertEqual(pd_simple_eval('0 1 10 +_keep_xloop'), [0,1,1,2,3,5,8,13,21,34,55,89])
 
     def test_numeric_literals(self):
@@ -227,7 +227,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[[2 3]5[7 9]]{7+}w'), [[[9,10],12,[14,16]]])
 
     def test_map_product(self):
-        self.assertEqual(pd_simple_eval('[1 2][3 4]*_B'), [[[3,4],[6,8]]])
+        self.assertEqual(pd_simple_eval('[1 2][3 4]*_T'), [[[3,4],[6,8]]])
+        self.assertEqual(pd_simple_eval('[1 2][3 4]*_B'), [[3,4,6,8]])
         self.assertEqual(pd_simple_eval('[1 2]*_²'), [[[1,2],[2,4]]])
 
     def test_bind(self):
@@ -332,7 +333,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 4][6 0 1]Cb'), [[2,4,6,0,1,2,4]])
         self.assertEqual(pd_simple_eval('[2 4][6 0 1]Cf'), [[6,0,1,2,4,6,0,1]])
         self.assertEqual(pd_simple_eval('[2 4]6*'), [[2,4,2,4,2,4,2,4,2,4,2,4]])
-        self.assertEqual(pd_simple_eval('[2 4][6 0 1]*'), [[[[2,6],[2,0],[2,1]],[[4,6],[4,0],[4,1]]]])
+        self.assertEqual(pd_simple_eval('[2 4][6 0 1]T'), [[[[2,6],[2,0],[2,1]],[[4,6],[4,0],[4,1]]]])
+        self.assertEqual(pd_simple_eval('[2 4][6 0 1]*'), [[[2,6],[2,0],[2,1],[4,6],[4,0],[4,1]]])
         self.assertEqual(pd_simple_eval('[2 4]3*p'),
                 [[[2,2,2],[2,2,4],[2,4,2],[2,4,4],[4,2,2],[4,2,4],[4,4,2],[4,4,4]]])
         self.assertEqual(pd_simple_eval('[2 4 6 0 1]('), [[4,6,0,1],2])
