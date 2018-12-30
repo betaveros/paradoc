@@ -316,14 +316,15 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
                 objects.pd_map)
         return (BuiltIn(b.code_repr() + "_bindmap", bindmap_b), False)
 
-    @put("mapbind", "ß",
+    @put("mapbind", "y",
             docs="""Pop the second-to-top element of the stack. Then, apply
             this block to each element of the top element of the stack (coerces
             numbers to ranges), pushing what was the second-to-top element
             underneath the top element before each application; collect the
             results into a new list.
 
-            Sort of a reversed {{ 'bindmap'|bt }}.""",
+            Sort of a reversed {{ 'bindmap'|bt }}. Mnemonic: y looks like a
+            modified v, for vectorize.""",
             stability="alpha")
     def mapbind_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def mapbind_b(env: Environment) -> None:
@@ -367,7 +368,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             objects.pd_foreach_x_only(env, b, lst)
         return (BuiltIn(b.code_repr() + "_xloop", xloop_b), False)
 
-    @put("ziplongest", "y",
+    @put("ziplongest", "ž",
             docs="""Execute this block once for each corresponding pair of
             elements from two lists (coerces numbers to ranges). Both elements
             are pushed onto the stack. Collect the results into a list, which

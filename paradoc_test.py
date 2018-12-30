@@ -236,7 +236,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2 3] 100 +v'), [[101,102,103]])
         self.assertEqual(pd_simple_eval('10,3%v'), [[0,1,2,0,1,2,0,1,2,0]])
         self.assertEqual(pd_simple_eval('[[1 2][3 4]] [100 200] +vz'), [[[101,102],[203,204]]])
-        self.assertEqual(pd_simple_eval('9 5J%ß'), [[0,1,0,1,4]])
+        self.assertEqual(pd_simple_eval('9 5J%y'), [[0,1,0,1,4]])
 
     def test_filter(self):
         self.assertEqual(pd_simple_eval('[1 3 7 5 0 9 2]{5<}+'), [[1,3,0,2]])
@@ -378,7 +378,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2][3 4 5][6 7]{*+}3z'), [[19,30]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5]ζ2*+'), [[19,16,13]])
         self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 4 4 4]+z'), [[10,9,8]])
-        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 4 4 4]+y'), [[10,9,8,4,4,4]])
+        self.assertEqual(pd_simple_eval('[1 2 3][9 7 5 4 4 4]+ž'), [[10,9,8,4,4,4]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ä'), [[3,5,8,14,20]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ë'), [[1,3,5,8,13,16]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9][1 2]+ö'), [[2,4,4,7,10]])
