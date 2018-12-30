@@ -677,7 +677,7 @@ class TestParadoc(unittest.TestCase):
     def test_hoard_as_dictionary(self):
         self.assertEqual(pd_simple_eval('[]Hr 2 3 Hu 5 7 Hu 2 H='), [3])
         self.assertEqual(pd_simple_eval('[]Hr [1 2] [3 4] Hu [5 6] [7 8] Hu [1 2] H='), [[3,4]])
-        self.assertEqual(pd_simple_eval('[]Hr 2 3 Hu 5 7 Hu 2 11 Hj 2 M_ Hj 2 H='), [-14])
+        self.assertEqual(pd_simple_eval('[]Hr 2 3 Hu 5 7 Hu 2 11 Hm 2 M_ Hm 2 H='), [-14])
         self.assertEqual(pd_simple_eval('[]Hr 5 Ho 2 Ho 5 Ho 3 Ho Hk'), [[2,3,5]])
         self.assertEqual(pd_simple_eval('[]Hr 5 Ho 5 Hd Hk'), [[]])
 

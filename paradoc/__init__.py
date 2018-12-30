@@ -868,33 +868,33 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             env.push(int(h.haskey(key)))
         return (BuiltIn(objects.pd_repr(h) + "_haskey", haskey_b), False)
 
-    @put("adjust", "j",
-            docs="""Adjust at an index or key: change the value at that index
+    @put("modify", "m",
+            docs="""Modify at an index or key: change the value at that index
             or key to the result of running that value through incrementing an
             integer or running a block. If no value existed there previously, 0
             is assumed. (In the future we may handle other types of values
             differently.)""",
             stability="unstable")
-    def adjust_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
-        def adjust_b(env: Environment) -> None:
-            adjuster = env.pop()
+    def modify_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def modify_b(env: Environment) -> None:
+            modifier = env.pop()
             key = env.pop()
             if isinstance(key, Block):
-                raise TypeError("Cannot adjust hoard with block as key")
-            if isinstance(adjuster, (Char, int, float)):
+                raise TypeError("Cannot modify hoard with block as key")
+            if isinstance(modifier, (Char, int, float)):
                 old = h.get(key, 0)
                 if not isinstance(old, (Char, int, float)):
-                    raise TypeError("Cannot adjust non-number by number")
-                h.update(key, num.pd_add(old, adjuster))
-            elif isinstance(adjuster, Block):
+                    raise TypeError("Cannot modify non-number by number")
+                h.update(key, num.pd_add(old, modifier))
+            elif isinstance(modifier, Block):
                 old = h.get(key, 0)
-                sandboxed_result = objects.pd_sandbox(env, adjuster, [old])
+                sandboxed_result = objects.pd_sandbox(env, modifier, [old])
                 if not sandboxed_result:
-                    raise ValueError("Sandboxed adjust lacked result")
+                    raise ValueError("Sandboxed modify lacked result")
                 h.update(key, sandboxed_result[-1])
             else:
-                raise NotImplementedError("Cannot adjust by " + repr(adjuster))
-        return (BuiltIn(objects.pd_repr(h) + "_adjust", adjust_b), False)
+                raise NotImplementedError("Cannot modify by " + repr(modifier))
+        return (BuiltIn(objects.pd_repr(h) + "_modify", modify_b), False)
 
 
     @put("copy", "c", docs="Copy into a new Hoard.", stability="alpha")
@@ -908,6 +908,15 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
         def replace_b(env: Environment) -> None:
             h.replace(env.pop())
         return (BuiltIn(objects.pd_repr(h) + "_replace", replace_b), False)
+
+    @put("eject", "j",
+            docs="""Push a list copy of the hoard, then clear the hoard.""",
+            stability="unstable")
+    def eject_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def eject_b(env: Environment) -> None:
+            env.push(h.to_list())
+            h.clear()
+        return (BuiltIn(objects.pd_repr(h) + "_eject", eject_b), False)
 
     @put("list", "l", docs="To list", stability="alpha")
     def list_trailer(outer_env: Environment, h: Hoard) -> Tuple[list, bool]:
@@ -941,14 +950,14 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             env.push(h.get(key, 0))
         return (BuiltIn(objects.pd_repr(h) + "_getzero", getzero_b), False)
 
-    @put("map", "m",
-            docs="""Map looking up keys with default 0 across elements of a
-            list (coerces numbers to ranges).""",
+    @put("translate", "t",
+            docs="""Translate a list through looking up keys, with default 0
+            (coerces numbers to ranges).""",
             stability="unstable")
-    def map_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
-        def map_b(env: Environment) -> None:
+    def translate_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def translate_b(env: Environment) -> None:
             env.push([h.get(key, 0) for key in objects.pd_to_list_range(env.pop())])
-        return (BuiltIn(objects.pd_repr(h) + "_map", map_b), False)
+        return (BuiltIn(objects.pd_repr(h) + "_translate", translate_b), False)
 
     @put("k", docs="Get list of keys", stability="unstable")
     def keys_trailer(outer_env: Environment, h: Hoard) -> Tuple[Union[range, list], bool]:

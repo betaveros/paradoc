@@ -204,6 +204,9 @@ class Hoard:
     def copy(self) -> "Hoard":
         return Hoard(copy.copy(self.structure))
 
+    def clear(self) -> None:
+        self.structure = []
+
     def replace(self, a: "PdObject") -> None:
         if isinstance(a, (str, list, range)):
             self.structure = list(a)
