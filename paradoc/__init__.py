@@ -649,13 +649,13 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
     @put("bits", "b",
             docs="""Convert to list of bits.""",
             stability="unstable")
-    def bits_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+    def bits_trailer(outer_env: Environment, i: int) -> Tuple[list, bool]:
         return (base.to_base_digits(2, i), False)
 
     @put("digits", "d",
             docs="""Convert to list of digits.""",
             stability="unstable")
-    def digits_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+    def digits_trailer(outer_env: Environment, i: int) -> Tuple[list, bool]:
         return (base.to_base_digits(10, i), False)
 
     @put("pushbits", "ß",
@@ -674,7 +674,7 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             stability="unstable")
     def pushdigits_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
         i_digits = base.to_base_digits(10, i)
-        def digits_i(env: Environment) -> None:
+        def pushdigits_i(env: Environment) -> None:
             env.push(*i_digits)
         return (BuiltIn(str(i) + "_pushdigits", pushdigits_i), False)
 
@@ -945,13 +945,13 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             docs="""Map looking up keys with default 0 across elements of a
             list (coerces numbers to ranges).""",
             stability="unstable")
-    def map_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
-        def getzero_b(env: Environment) -> None:
+    def map_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def map_b(env: Environment) -> None:
             env.push([h.get(key, 0) for key in objects.pd_to_list_range(env.pop())])
         return (BuiltIn(objects.pd_repr(h) + "_map", map_b), False)
 
     @put("k", docs="Get list of keys", stability="unstable")
-    def keys_trailer(outer_env: Environment, h: Hoard) -> Tuple[list, bool]:
+    def keys_trailer(outer_env: Environment, h: Hoard) -> Tuple[Union[range, list], bool]:
         return (h.key_list(), False)
 
     return ret

@@ -2069,7 +2069,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     )
     permutation_cases = [
         Case.seq(lambda env, seq:
-            [list(map(list, itertools.permutations(pd_iterable(seq))))]),
+            [list(list(p) for p in itertools.permutations(pd_iterable(seq)))]),
         Case.block_seq_range(lambda env, block, seq:
             [pd_map_iterable(env, block,
                 map(list, itertools.permutations(pd_iterable(seq))))]),

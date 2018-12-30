@@ -1617,7 +1617,7 @@ def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
             acc.append(e[::-1])
     return acc
 
-def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq, flat: bool) -> list:
+def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq, flat: bool) -> Union[list, str]:
     # Approximately: (f : a -> b -> c) -> (seq1 : [a]) -> (seq2 : [b]) -> [[c]]
     env.push_yx()
     outer: list = []
@@ -1673,7 +1673,7 @@ def pd_translate_entries(source: PdSeq, target: PdSeq) -> Generator[Tuple[PdKey,
         yield pykey(s), t0
 
 def pd_index_translate(operand: PdSeq, table: PdSeq) -> PdSeq:
-    td = dict(py_enumerate(table))
+    td: Dict[PdKey, PdObject] = dict(py_enumerate(table))
     return pd_build_like(operand, [td.get(pykey(e), e) for e in pd_iterable(operand)])
 
 def pd_translate(operand: PdSeq, source: PdSeq, target: PdSeq) -> PdSeq:
