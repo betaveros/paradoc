@@ -53,6 +53,12 @@ class Hoard:
     def __init__(self, init: Optional[HoardStructure] = None) -> None:
         self.structure: HoardStructure = [] if init is None else init
 
+    @classmethod
+    def dictionary(cls, init: Iterable[Tuple["PdValue", "PdObject"]]) -> "Hoard":
+        ret = cls(dict())
+        for k, v in init: ret.update(k, v)
+        return ret
+
     def append(self, obj: "PdObject") -> None:
         if isinstance(self.structure, (list, collections.deque)):
             self.structure.append(obj)

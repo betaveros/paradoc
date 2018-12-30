@@ -489,6 +489,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Subtract two things after coercing both to ints or floats,
             sequences by taking their length.""",
             stability="unstable")
+    # }}}
+    # Dictionary, translate, whatever {{{
+    cput('Dictionary', ['Dc'], [
+        Case.seq(lambda env, seq: [Hoard.dictionary(pd_iterable(seq))]),
+    ],
+            docs="""Convert to new dictionary hoard.""",
+            stability="unstable")
 
     cput('Index_translate', ['It'], [
         Case.seq2_singleton(lambda env, seq, table: [pd_index_translate(seq, table)]),
