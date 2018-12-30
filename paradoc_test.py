@@ -502,8 +502,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('3Dj[3 2 1]='), [1])
         self.assertEqual(pd_simple_eval('4Er[0 2]='), [1])
         self.assertEqual(pd_simple_eval('4Or[1 3]='), [1])
-        self.assertEqual(pd_simple_eval('4Ej[2 4]='), [1])
-        self.assertEqual(pd_simple_eval('5Oj[1 3 5]='), [1])
+        # self.assertEqual(pd_simple_eval('4Ej[2 4]='), [1])
+        # self.assertEqual(pd_simple_eval('5Oj[1 3 5]='), [1])
         self.assertEqual(pd_simple_eval('3 5To[3 4 5]='), [1])
         self.assertEqual(pd_simple_eval('5 9Tl[5 6 7 8]='), [1])
         self.assertEqual(pd_simple_eval('2 6¨[2 3 4 5]='), [1])
@@ -656,22 +656,13 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10{:{(:XuX+}{;1}?}M~', use_cache=False), [1024])
 
     def test_regex(self):
-        self.assertEqual(pd_simple_eval('"l33t""\\d"Es'), [["3"]])
-        self.assertEqual(pd_simple_eval('"normal""\\d"Es'), [[]])
-        self.assertEqual(pd_simple_eval('"12c456""\\d(\\d)\\d"Es'), [["456", "5"]])
-        self.assertEqual(pd_simple_eval('"253""\\d"Em'), [[]])
-        self.assertEqual(pd_simple_eval('"253""\\d+"Em'), [["253"]])
-        self.assertEqual(pd_simple_eval('"253""\\d"El'), [[["2"], ["5"], ["3"]]])
-        self.assertEqual(pd_simple_eval('"2x5y3x""(\\d)x"El'), [[["2x", "2"], ["3x", "3"]]])
-
-    def test_regex(self):
-        self.assertEqual(pd_simple_eval('"l33t""\\d"Es'), [["3"]])
-        self.assertEqual(pd_simple_eval('"normal""\\d"Es'), [[]])
-        self.assertEqual(pd_simple_eval('"12c456""\\d(\\d)\\d"Es'), [["456", "5"]])
-        self.assertEqual(pd_simple_eval('"253""\\d"Em'), [[]])
-        self.assertEqual(pd_simple_eval('"253""\\d+"Em'), [["253"]])
-        self.assertEqual(pd_simple_eval('"253""\\d"El'), [[["2"], ["5"], ["3"]]])
-        self.assertEqual(pd_simple_eval('"2x5y3x""(\\d)x"El'), [[["2x", "2"], ["3x", "3"]]])
+        self.assertEqual(pd_simple_eval('"l33t""\\d"Xs'), [["3"]])
+        self.assertEqual(pd_simple_eval('"normal""\\d"Xs'), [[]])
+        self.assertEqual(pd_simple_eval('"12c456""\\d(\\d)\\d"Xs'), [["456", "5"]])
+        self.assertEqual(pd_simple_eval('"253""\\d"Xm'), [[]])
+        self.assertEqual(pd_simple_eval('"253""\\d+"Xm'), [["253"]])
+        self.assertEqual(pd_simple_eval('"253""\\d"Xa'), [[["2"], ["5"], ["3"]]])
+        self.assertEqual(pd_simple_eval('"2x5y3x""(\\d)x"Xa'), [[["2x", "2"], ["3x", "3"]]])
 
     def test_hoard(self):
         self.assertEqual(pd_simple_eval('[]Hr Hl'), [[]])

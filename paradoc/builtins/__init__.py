@@ -707,14 +707,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.number(lambda env, n: [range(0, num.intify(n), 2)])
     ],
             docs="Range, evens, from 0, exclusive", stability="unstable")
-    cput('Range_odds_inclusive', ['Oj'], [
-        Case.number(lambda env, n: [range(1, num.intify(n) + 1, 2)])
-    ],
-            docs="Range, odds, from 1, inclusive", stability="unstable")
-    cput('Range_evens_inclusive', ['Ej'], [
-        Case.number(lambda env, n: [range(2, num.intify(n) + 1, 2)])
-    ],
-            docs="Range, evens, from 2, inclusive", stability="unstable")
+    # cput('Range_odds_inclusive', ['Oj'], [
+    #     Case.number(lambda env, n: [range(1, num.intify(n) + 1, 2)])
+    # ],
+    #         docs="Range, odds, from 1, inclusive", stability="unstable")
+    # cput('Range_evens_inclusive', ['Ej'], [
+    #     Case.number(lambda env, n: [range(2, num.intify(n) + 1, 2)])
+    # ],
+    #         docs="Range, evens, from 2, inclusive", stability="unstable")
     # }}}
     # Binary operators &|^ {{{
     cput('Bin_or_or_union_or_unless', ['|'], [
@@ -1747,11 +1747,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     def exit(env: Environment) -> None:
         raise PdExitException("Exit")
 
-    @put('Exit_with', 'Ew',
+    @put('Exit_with_code', 'Ec',
             docs="""Exit the current program with the specified exit code or
             message.""",
             stability="beta")
-    def exit_with(env: Environment) -> None:
+    def exit_with_code(env: Environment) -> None:
         e = env.pop()
         if isinstance(e, (int, float, Char)):
             raise PdExitException("Exit", num.intify(e))
@@ -2129,28 +2129,28 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # Time {{{
     cput('Now_time', ['Nt'], [Case.void(lambda env: [time.time()])], stability="alpha")
     now = datetime.datetime.now
-    fromtimestamp = datetime.datetime.fromtimestamp
+    fts = datetime.datetime.fromtimestamp
 
-    cput('Now_minute',       ['Nb'], [Case.void     (lambda _: [           now().minute             ])], docs="Get the current minute", stability="alpha")
-    cput('Time_minute',      ['Tb'], [Case.value_n2v(lambda e:  fromtimestamp(e).minute              )], docs="Get the minute from a timestamp", stability="alpha")
-    cput('Now_day',          ['Nd'], [Case.void     (lambda _: [           now().day                ])], docs="Get the current day", stability="alpha")
-    cput('Time_day',         ['Td'], [Case.value_n2v(lambda e:  fromtimestamp(e).day                 )], docs="Get the day from a timestamp", stability="alpha")
-    cput('Now_hour',         ['Nh'], [Case.void     (lambda _: [           now().hour               ])], docs="Get the current hour", stability="alpha")
-    cput('Time_hour',        ['Th'], [Case.value_n2v(lambda e:  fromtimestamp(e).hour                )], docs="Get the hour from a timestamp", stability="alpha")
-    cput('Now_twelve_hour',  ['Ni'], [Case.void     (lambda _: [          (now().hour - 1) % 12 + 1 ])], docs="Get the current hour, as a number from 1 to 12", stability="alpha")
-    cput('Time_twelve_hour', ['Ti'], [Case.value_n2v(lambda e: (fromtimestamp(e).hour - 1) % 12 + 1  )], docs="Get the hour, as a number from 1 to 12 from a timestamp", stability="alpha")
-    cput('Now_day_of_year',  ['Nj'], [Case.void     (lambda _: [           now().timetuple().tm_yday])], docs="Get the current day of year", stability="alpha") # type: ignore
-    cput('Time_day_of_year', ['Tj'], [Case.value_n2v(lambda e:  fromtimestamp(e).timetuple().tm_yday )], docs="Get the day of year from a timestamp", stability="alpha") # type: ignore
-    cput('Now_month',        ['Nm'], [Case.void     (lambda _: [           now().month              ])], docs="Get the current month", stability="alpha")
-    cput('Time_month',       ['Tm'], [Case.value_n2v(lambda e:  fromtimestamp(e).month               )], docs="Get the month from a timestamp", stability="alpha")
-    cput('Now_second',       ['Ns'], [Case.void     (lambda _: [           now().second             ])], docs="Get the current second", stability="alpha")
-    cput('Time_second',      ['Ts'], [Case.value_n2v(lambda e:  fromtimestamp(e).second              )], docs="Get the second from a timestamp", stability="alpha")
-    cput('Now_iso_weekday',  ['Nv'], [Case.void     (lambda _: [           now().isoweekday()       ])], docs="Get the current ISO weekday (Monday is 1, Sunday is 7)", stability="alpha")
-    cput('Time_iso_weekday', ['Tv'], [Case.value_n2v(lambda e:  fromtimestamp(e).isoweekday()        )], docs="Get the ISO weekday (Monday is 1, Sunday is 7) from a timestamp", stability="alpha")
-    cput('Now_weekday',      ['Nw'], [Case.void     (lambda _: [           now().weekday()          ])], docs="Get the current weekday (Monday is 0, Sunday is 6)", stability="alpha")
-    cput('Time_weekday',     ['Tw'], [Case.value_n2v(lambda e:  fromtimestamp(e).weekday()           )], docs="Get the weekday (Monday is 0, Sunday is 6) from a timestamp", stability="alpha")
-    cput('Now_year',         ['Ny'], [Case.void     (lambda _: [           now().year               ])], docs="Get the current year", stability="alpha")
-    cput('Time_year',        ['Ty'], [Case.value_n2v(lambda e:  fromtimestamp(e).year                )], docs="Get the year from a timestamp", stability="alpha")
+    cput('Now_minute',        ['Nb'], [Case.void     (lambda _: [ now().minute             ])], docs="Get the current minute", stability="alpha")
+    cput('Epoch_minute',      ['Eb'], [Case.value_n2v(lambda e:  fts(e).minute              )], docs="Get the minute from a timestamp", stability="alpha")
+    cput('Now_day',           ['Nd'], [Case.void     (lambda _: [ now().day                ])], docs="Get the current day", stability="alpha")
+    cput('Epoch_day',         ['Ed'], [Case.value_n2v(lambda e:  fts(e).day                 )], docs="Get the day from a timestamp", stability="alpha")
+    cput('Now_hour',          ['Nh'], [Case.void     (lambda _: [ now().hour               ])], docs="Get the current hour", stability="alpha")
+    cput('Epoch_hour',        ['Eh'], [Case.value_n2v(lambda e:  fts(e).hour                )], docs="Get the hour from a timestamp", stability="alpha")
+    cput('Now_twelve_hour',   ['Ni'], [Case.void     (lambda _: [(now().hour - 1) % 12 + 1 ])], docs="Get the current hour, as a number from 1 to 12", stability="alpha")
+    cput('Epoch_twelve_hour', ['Ei'], [Case.value_n2v(lambda e: (fts(e).hour - 1) % 12 + 1  )], docs="Get the hour, as a number from 1 to 12 from a timestamp", stability="alpha")
+    cput('Now_day_of_year',   ['Nj'], [Case.void     (lambda _: [ now().timetuple().tm_yday])], docs="Get the current day of year", stability="alpha") # type: ignore
+    cput('Epoch_day_of_year', ['Ej'], [Case.value_n2v(lambda e:  fts(e).timetuple().tm_yday )], docs="Get the day of year from a timestamp", stability="alpha") # type: ignore
+    cput('Now_month',         ['Nm'], [Case.void     (lambda _: [ now().month              ])], docs="Get the current month", stability="alpha")
+    cput('Epoch_month',       ['Em'], [Case.value_n2v(lambda e:  fts(e).month               )], docs="Get the month from a timestamp", stability="alpha")
+    cput('Now_second',        ['Ns'], [Case.void     (lambda _: [ now().second             ])], docs="Get the current second", stability="alpha")
+    cput('Epoch_second',      ['Es'], [Case.value_n2v(lambda e:  fts(e).second              )], docs="Get the second from a timestamp", stability="alpha")
+    cput('Now_iso_weekday',   ['Nu'], [Case.void     (lambda _: [ now().isoweekday()       ])], docs="Get the current ISO weekday (Monday is 1, Sunday is 7)", stability="alpha")
+    cput('Epoch_iso_weekday', ['Eu'], [Case.value_n2v(lambda e:  fts(e).isoweekday()        )], docs="Get the ISO weekday (Monday is 1, Sunday is 7) from a timestamp", stability="alpha")
+    cput('Now_weekday',       ['Nw'], [Case.void     (lambda _: [ now().weekday()          ])], docs="Get the current weekday (Monday is 0, Sunday is 6)", stability="alpha")
+    cput('Epoch_weekday',     ['Ew'], [Case.value_n2v(lambda e:  fts(e).weekday()           )], docs="Get the weekday (Monday is 0, Sunday is 6) from a timestamp", stability="alpha")
+    cput('Now_year',          ['Ny'], [Case.void     (lambda _: [ now().year               ])], docs="Get the current year", stability="alpha")
+    cput('Epoch_year',        ['Ey'], [Case.value_n2v(lambda e:  fts(e).year                )], docs="Get the year from a timestamp", stability="alpha")
     # }}}
     # Randomness {{{
     cput('Random_float', ['Rf'], [Case.void(lambda env: [random.random()])],
@@ -2178,7 +2178,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             raise AssertionError("Can't seed random with non-numeric non-string value " + repr(e))
     # }}}
     # Regular expressions {{{
-    cput('Regex_search', ['Es'], [
+    cput('Regex_search', ['Xs'], [
         Case.value2(lambda env, s, regex: [match_to_pd(re.search(env.pd_str(regex), env.pd_str(s)))]),
     ],
             docs="""Take a string and a regex, and perform a regex search
@@ -2187,7 +2187,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             list if no match is found (so the truthiness of the result is
             whether a match is found).""",
             stability="unstable")
-    cput('Regex_match', ['Em'], [
+    cput('Regex_match', ['Xm'], [
         Case.value2(lambda env, s, regex: [match_to_pd(re.fullmatch(env.pd_str(regex), env.pd_str(s)))]),
     ],
             docs="""Take a string and a regex, and attempt to match the regex
@@ -2196,7 +2196,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             groups, or an empty list if no match is found (so the truthiness of
             the result is whether a match is found).""",
             stability="unstable")
-    cput('Regex_list', ['El'], [
+    cput('Regex_array', ['Xa'], [
         Case.value2(lambda env, s, regex: [[match_to_pd(m) for m in re.finditer(env.pd_str(regex), env.pd_str(s))]]),
     ],
             docs="""Take a string and a regex, and find all matches (this is
