@@ -607,11 +607,12 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             env.push(t)
         return (BuiltIn(str(i) + "_under", under_i), False)
 
-    @put("force",
+    @put("force", "f",
             docs="""Pop some number of elements and push them back immediately.
-            A no-op except in that it may force input/stack triggers to occur.
-            Usually used for debugging.""",
-            stability="beta")
+            Generally a no-op except in that it may force input/stack triggers
+            to occur and will affect how shadow stacks behave. Usually used for
+            debugging.""",
+            stability="alpha")
     def force_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
         def force_i(env: Environment) -> None:
             xs = env.pop_n(i)
@@ -646,14 +647,36 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
         return (BuiltIn(str(i) + "_zip", zip_i), False)
 
     @put("bits", "b",
-            docs="""Interpret this number in binary and push it as a sequence
-            of bits.""",
+            docs="""Convert to list of bits.""",
             stability="unstable")
     def bits_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
-        i_bits = base.to_base_digits_at_least_two(2, i)
-        def bits_i(env: Environment) -> None:
+        return (base.to_base_digits(2, i), False)
+
+    @put("digits", "d",
+            docs="""Convert to list of digits.""",
+            stability="unstable")
+    def digits_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        return (base.to_base_digits(10, i), False)
+
+    @put("pushbits", "ß",
+            docs="""Interpret this number in binary and push the bits of this
+            number (directly onto the stack in order).""",
+            stability="unstable")
+    def pushbits_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        i_bits = base.to_base_digits(2, i)
+        def pushbits_i(env: Environment) -> None:
             env.push(*i_bits)
-        return (BuiltIn(str(i) + "_bits", bits_i), False)
+        return (BuiltIn(str(i) + "_pushbits", pushbits_i), False)
+
+    @put("pushdigits", "ð",
+            docs="""Push the digits of this number (directly onto the stack in
+            order).""",
+            stability="unstable")
+    def pushdigits_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        i_digits = base.to_base_digits(10, i)
+        def digits_i(env: Environment) -> None:
+            env.push(*i_digits)
+        return (BuiltIn(str(i) + "_pushdigits", pushdigits_i), False)
 
     @put("power", "p",
             docs="""Raise something to this power.""",
@@ -719,7 +742,6 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             new_top = env.pop()
             env.push(*transit, new_top)
         return (BuiltIn(str(i) + "_out", out_i), False)
-
 
     @put("quarter", "q",
             docs="""Let X be this number over four. For numbers, multiply by X.

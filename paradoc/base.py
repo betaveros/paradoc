@@ -14,10 +14,6 @@ def to_base_digits(base: int, num: int) -> List[int]:
         num //= base
     return [sign * digit for digit in reversed(acc)]
 
-def to_base_digits_at_least_two(base: int, num: int) -> List[int]:
-    ret = to_base_digits(base, num)
-    return [0] * max(0, 2 - len(ret)) + ret
-
 def from_base_digits(base: int, digits: Iterable[int]) -> int:
     acc = 0
     for digit in digits:

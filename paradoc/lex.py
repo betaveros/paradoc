@@ -21,7 +21,7 @@ def is_trailer(char_or_token: str) -> bool:
 # So they're not really string literals.
 numeric_literal_token_pattern = re.compile(r"""
     ^
-    —?[0-9]+(?:\.[0-9]+)?(?:e[0-9]+)? # number
+    —?[0-9]+(?:\.[0-9]+)?(?:e[0-9]+)? # number (leadings 0s ok)
     |
     —?\.[0-9]+(?:e[0-9]+)? # number starting with a decimal point
     $
@@ -34,7 +34,7 @@ pd_token_pattern = re.compile(r"""
       |
       '. # char
       |
-      —?[0-9]+(?:\.[0-9]+)?(?:e[0-9]+)? # number
+      —?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:e[0-9]+)? # number (leading 0s not ok)
       |
       —?\.[0-9]+(?:e[0-9]+)? # number starting with a decimal point
       |
