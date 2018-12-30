@@ -1841,7 +1841,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Sec',     ['Sc'], [Case.value_n2v(lambda t: 1/math.cos(t))], stability="alpha")
     cput('Csc',     ['Cc'], [Case.value_n2v(lambda t: 1/math.sin(t))], stability="alpha")
     cput('Cot',     ['Ct'], [Case.value_n2v(lambda t: 1/math.tan(t))], stability="alpha")
-    cput('Exp',     ['Ex'], [Case.value_n2v(math.exp  )], stability="beta")
+    cput('Exp',     ['Ef'], [Case.value_n2v(math.exp  )], stability="beta", docs="Exponential Function")
     cput('Log_e',   ['Ln'], [Case.value_n2v(math.log  )], stability="beta")
     cput('Log_ten', ['Lt'], [Case.value_n2v(math.log10)], stability="alpha")
     cput('Log_two', ['Lg'], [Case.value_n2v(math.log2 )], stability="alpha")
