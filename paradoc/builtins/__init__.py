@@ -99,9 +99,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     BULLET = '•'
 
-    env.put(BULLET, 0,
+    env.put(BULLET, Hoard(),
             docs="""A utility variable assigned to by {{ 'Assign_bullet'|b }}
-            and {{ 'Assign_bullet_destructive'|b }}. Initialized to 0.""",
+            and {{ 'Assign_bullet_destructive'|b }}. Initialized to a new
+            hoard.""",
             stability="alpha")
 
     env.put('H', Hoard(), docs="An empty Hoard", stability="alpha")
@@ -2265,16 +2266,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     def assign_bullet_destructive(env: Environment) -> None:
         e = env.pop()
         env.put(BULLET, e)
-    @put('Append_to_bullet', '©', docs="Pop and append to the variable •",
-            stability="alpha")
-    def append_to_bullet(env: Environment) -> None:
-        assign.append_func(env, BULLET)
-    @put('Retrieve_bullet', '®',
-            docs="""Push the current value of the variable •, then reset that
-            variable to 0.""",
-            stability="alpha")
-    def retrieve_bullet(env: Environment) -> None:
-        assign.retrieve_func(env, BULLET)
+    # @put('Append_to_bullet', '©', docs="Pop and append to the variable •",
+    #         stability="alpha")
+    # def append_to_bullet(env: Environment) -> None:
+    #     assign.append_func(env, BULLET)
+    # @put('Retrieve_bullet', '®',
+    #         docs="""Push the current value of the variable •, then reset that
+    #         variable to 0.""",
+    #         stability="alpha")
+    # def retrieve_bullet(env: Environment) -> None:
+    #     assign.retrieve_func(env, BULLET)
     # }}}
     # unsafe metacomputing {{{
     @put('Sleep', 'Sl', docs="Sleep for some number of seconds.",
