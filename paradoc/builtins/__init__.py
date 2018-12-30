@@ -490,12 +490,18 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             sequences by taking their length.""",
             stability="unstable")
 
-    cput('Translate', ['Tr'], [
+    cput('Index_translate', ['It'], [
+        Case.seq2_singleton(lambda env, seq, table: [pd_index_translate(seq, table)]),
+    ],
+            docs="""Translate the first argument by indexing into the second.""",
+            stability="unstable")
+    cput('Translate', ['Zt'], [
         Case.seq3_singleton(lambda env, seq, src, tgt: [pd_translate(seq, src, tgt)]),
     ],
             docs="""Translate the first argument using a mapping obtained by
-            zipping the second and third, repeating the last element of the
-            third as necessary.""",
+            zipping the second and third, mapping elements of the second to
+            elements of the third, repeating the last element of the third as
+            necessary.""",
             stability="alpha")
     cput('One_time_translate', ['Ot'], [
         Case.seq3_singleton(lambda env, seq, src, tgt: [pd_one_time_translate(seq, src, tgt)]),
@@ -1619,8 +1625,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.block_seq_range(lambda env, block, seq:
             [int(pd_map_fold_into(env, block, seq, make_unique_fold_f()))]),
     ]
-    cput('All', ['For_all', 'Fa'], all_cases, stability="beta")
-    cput('Any', ['There_exists', 'Te'], any_cases, stability="beta")
+    cput('All', ['Al'], all_cases, stability="beta")
+    cput('Any', ['An'], any_cases, stability="beta")
     cput('All_and_exists', ['Ae'], all_and_exists_cases, stability="alpha")
     cput('Not_all', ['Na'], not_all_cases, stability="beta")
     cput('Not_any', ['Not_exists', 'Ne'], not_any_cases, stability="beta")

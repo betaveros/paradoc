@@ -1666,6 +1666,10 @@ def pd_translate_entries(source: PdSeq, target: PdSeq) -> Generator[Tuple[PdKey,
             raise ValueError("Cannot translate with empty target")
         yield pykey(s), t0
 
+def pd_index_translate(operand: PdSeq, table: PdSeq) -> PdSeq:
+    td = dict(py_enumerate(table))
+    return pd_build_like(operand, [td.get(pykey(e), e) for e in pd_iterable(operand)])
+
 def pd_translate(operand: PdSeq, source: PdSeq, target: PdSeq) -> PdSeq:
     td = dict(pd_translate_entries(source, target))
     return pd_build_like(operand, [td.get(pykey(e), e) for e in pd_iterable(operand)])
