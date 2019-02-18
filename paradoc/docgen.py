@@ -285,17 +285,21 @@ the current element/index being operated on is pushed in most loops.
 Usually, an element and an index are pushed together, the element on top. As
 you'd expect, elements higher on the stack are easier to access. `X` is the top
 element, `Y` is the second-to-top (so usually the index), `Z` is the third;
-these names are pretty stable. The following elements currently go `Xx`, `Xy`, `Xz`, `Yx`, `Yy`, `Yz`, etc, but they should be considered unstable.
+these names are pretty stable. The following elements currently go `Xx`, `Xy`,
+`Xz`, `Yx`, `Yy`, `Yz`, etc, but they should be considered unstable.
 
 See `*` for examples.
+
+In addition, the X-stack starts with a few elements on program start to provide
+single-letter aliases for them, but these should also be considered unstable.
 
 ### Input
 
 Note that there's no implicit input; however, global trailers can configure an
 **input trigger**, the result of which is that when you try to pop from an
 empty stack, Paradoc will read input and offer it to you as the result of the
-pop. (Note that you will pop things in the order they're read, which is the opposite
-order of how lists are usually ordered on the stack!)
+pop. (Note that you will pop things in the order they're read, which is the
+opposite order of how lists are usually ordered on the stack!)
 
 You can also explicitly read input with `V`.
 """
@@ -380,7 +384,7 @@ overview = r"""
 <li><strong>List operations</strong>:
     <ul>
         <li>General construction: {{ '['|b }}, {{ ']'|b }}, {{ '¬'|b }}, integer{{ 'a'|it }}, {{ '†'|b }}, {{ '‡'|b }}, {{ '°'|b }}</li>
-        <li>Range construction: {{ ','|b }}, {{ 'D'|b }}, {{ 'J'|b }}, {{ 'Ð'|b }}, {{ 'Tl'|b }} or {{ '¨'|b }}, {{ 'To'|b }} or {{ '…'|b }}. Note that many built-ins and trailers implicitly convert numbers to the half-open ranges ending at them, which can be taken advantage of with e.g. {{ '+'|b }}{{ 'v'|bt }} and {{ '+'|b }}{{ 'ß'|bt }}. <code>3 5 +v</code> just gives <code>[3 4 5 6 7]</code>.</li>
+        <li>Range construction: {{ ','|b }}, {{ 'D'|b }}, {{ 'J'|b }}, {{ 'Ð'|b }}, {{ 'Tl'|b }} or {{ '¨'|b }}, {{ 'To'|b }} or {{ '…'|b }}. Note that many built-ins and trailers implicitly convert numbers to the half-open ranges ending at them, which can be taken advantage of with e.g. {{ '+'|b }}{{ 'v'|bt }} and {{ '+'|b }}{{ 'y'|bt }}. <code>3 5 +v</code> just gives <code>[3 4 5 6 7]</code>.</li>
         <li>Length: {{ 'L'|b }}</li>
         <li>Indexing: {{ '='|b }}, {{ '‹'|b }}, {{ '›'|b }}</li>
         <li>Slicing: {{ '<'|b }}, {{ '>'|b }}, {{ '«'|b }} or {{ '(s'|b }}, {{ '»'|b }} or {{ ')s'|b }}, {{ '½'|b }}, {{ '¼'|b }}, {{ '¾'|b }}</li>
