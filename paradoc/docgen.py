@@ -434,8 +434,8 @@ overview = r"""
             Note that all elements on the shadow stack are collected into the list, so you can use this to flatmap.</li>
             <li>Filter: {{ '+'|b }}, {{ '-'|b }}, {{ ','|b }}, {{ 'J'|b }}, {{ 'f'|bt }}</li>
             <li>Reduce: {{ 'R'|b }}, {{ 'r'|bt }}</li>
-            <li>Zip: {{ '‰'|b }}, {{ 'z'|bt }}, {{ 'y'|bt }}</li>
-            <li>Vectorize (bind + map): {{ 'v'|bt }}, {{ 'ß'|bt }}</li>
+            <li>Zip: {{ '‰'|b }}, {{ 'z'|bt }}, {{ 'ž'|bt }}</li>
+            <li>Vectorize (bind + map): {{ 'v'|bt }}, {{ 'y'|bt }}</li>
             <li>Find: {{ '='|b }}, {{ '^'|b }}, {{ 'g'|bt }} (?)</li>
             <li>Take/drop: {{ '<'|b }}, {{ '>'|b }}</li>
         </ul>
