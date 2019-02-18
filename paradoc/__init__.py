@@ -1331,12 +1331,12 @@ def pd_simple_eval(code: str, use_cache: bool = True) -> List[PdObject]:
         env._stack = []
     else:
         env = initialized_environment(sandboxed=True, debug=True)
-    env.evaluate(code)
+    env.evaluate(code, set_quine=True)
     return env._stack
 
 def main_with_code(code: str, sandboxed: bool, debug: bool) -> None:
     env = initialized_environment(sandboxed, debug)
-    env.evaluate(code)
+    env.evaluate(code, set_quine=True)
     print(env.pd_str(env._stack))
 
 def paradoc_repl(sandboxed: bool, debug: bool) -> None:
@@ -1348,7 +1348,7 @@ def paradoc_repl(sandboxed: bool, debug: bool) -> None:
     while True:
         try:
             code = input("prdc> ")
-            env.evaluate(code)
+            env.evaluate(code, set_quine=True)
             print(env.pd_str(env._stack))
             print(objects.pd_repr(env._stack))
         except EOFError:

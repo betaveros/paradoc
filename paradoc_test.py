@@ -683,6 +683,9 @@ class TestParadoc(unittest.TestCase):
 
         self.assertEqual(pd_simple_eval('[[1 2][3 4][5 6]]Dc 3='), [4])
 
+    def test_quine(self):
+        self.assertEqual(pd_simple_eval('  1  Qn  2  '), [1,'  1  Qn  2  ',2])
+
 if __name__ == '__main__':
     unittest.main()
 

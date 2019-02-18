@@ -1678,9 +1678,17 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     def pd_eval(env: Environment) -> None:
         a = env.pop()
         if isinstance(a, str):
-            env.evaluate(a)
+            env.evaluate(a, set_quine=False) # (?)
         else:
             raise NotImplementedError
+
+    @put('Quine_output', 'Qo', docs="Output the value of Qn, which will usually be the current program", stability="alpha")
+    def quine_output(env: Environment) -> None:
+        print(env.pd_str(env.get('Qn')), end="")
+
+    @put('Quine_print', 'Qp', docs="Print the value of Qn, which will usually be the current program", stability="alpha")
+    def quine_print(env: Environment) -> None:
+        env.print_output_record(env.pd_str(env.get('Qn')))
     # }}}
     # Input, output, and debugging {{{
     @put('Read_input', 'V',

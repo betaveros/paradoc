@@ -289,7 +289,9 @@ class Environment: # {{{
         self.lazy_var_triggers: List[Callable[[str], Optional[PdObject]]] = lazy_var_triggers or []
         self.marker_stack: List[int] = []
 
-    def evaluate(self, code: str) -> None:
+    def evaluate(self, code: str, set_quine: bool) -> None:
+        if set_quine:
+            self.put("Qn", code)
         self.evaluator(self, code)
 
     def run_input_trigger(self) -> Optional[PdObject]:
