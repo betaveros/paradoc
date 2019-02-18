@@ -17,9 +17,9 @@ Print squares from 0 to 100, separated by spaces
     sA)2pm               .. 6 ASCII characters
     _space 11 Square_map .. Expanded version
 
-Print Fibonacci numbers from 0 to 89, separated by spaces (there will definitely be a 2-byte way to push the initial 0 and 1, but I haven't locked it down yet):
+Print Fibonacci numbers from 0 to 89, separated by spaces:
 
-    s0 1T+kx .. 8 bytes / ASCII characters
+    sZ1A+kx .. 7 bytes / ASCII characters
 
     _space 0 1 10 +_keep_xloop .. Expanded version
 
@@ -36,7 +36,7 @@ Run a file:
 
 Evaluate a command:
 
-    python3 -m paradoc -e "sE2pm"
+    python3 -m paradoc -e "sA)2pm"
 
 Why another golfing language?
 =============================

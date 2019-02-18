@@ -22,13 +22,13 @@ Hello, world! (unterminated strings are on the TODO list)
 Print squares from 0 to 100, separated by spaces
 
     s¹²m                 .. 4 bytes (if encoded as CP1252)
-    sA)2pm               .. 5 ASCII characters
+    sA)2pm               .. 6 ASCII characters
     _space 11 Square_map .. Expanded version
 
 Print Fibonacci numbers from 0 to 89, separated by spaces:
 
-    s0 1T+kx .. 8 bytes / ASCII characters
-    s•1T+kx  .. 7 bytes in CP1252
+    sZ1A+kx .. 7 bytes / ASCII characters
+
     _space 0 1 10 +_keep_xloop .. Expanded version
 
 ### Usage
@@ -44,7 +44,7 @@ Run a file:
 
 Evaluate a command:
 
-    python3 -m paradoc -e "sE2pm"
+    python3 -m paradoc -e "sA)2pm"
 
 ### Design Philosophy
 
