@@ -193,7 +193,7 @@ syntax = """
     stack.
 
 -   **Characters** consist of a single quote followed by a single character. No
-    characters are special.
+    characters after the single quote are special.
 
 -   **Numbers** consist mostly of ASCII digits. There can be a decimal point, and
     it can start the numeric literal, but if there is one, there must be at least
@@ -214,6 +214,12 @@ syntax = """
     Paradoc considers most symbols to be uppercase letters, including whitespace.
     Lowercase letters include the typical ASCII lowercase letters and other
     lowercase letters in CP1252. Digits and underscores are neither.
+
+    The set of special characters that can't appear in identifiers are the
+    period `.`, the em dash `—`, the single quote `'`, the double quote `"`,
+    all ASCII digits `0123456789`, and curly braces `{}`. All other characters
+    (letters, symbols, whitespace including newlines, control characters) are
+    valid.
 
 -   A very important syntactic concept is a **trailer**, which basically refers
     to sequences of lowercase letters directly following some other token.
