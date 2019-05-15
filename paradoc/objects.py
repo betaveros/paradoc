@@ -792,9 +792,8 @@ def pd_median_of_three(a: PdObject, b: PdObject, c: PdObject, ef: Optional[Tuple
     if pd_less_than(br, cr): b, c, br, cr = c, b, cr, br
     if pd_less_than(ar, br): a, b = b, a
     return b
-def pd_min_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
-    if isinstance(a, str) and ef is None: return min(pd_iterable(a))
-    cur: Optional[PdObject] = None
+def pd_extrema_of_seq(a: PdSeq, is_max: bool, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
+    cur: List[PdObject] = []
     cur_key: Optional[PdObject] = None
     for e in pd_iterable(a):
         if ef is None:
@@ -802,30 +801,35 @@ def pd_min_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> P
         else:
             env, f = ef
             e_key = pd_sandbox(env, f, [e])
-        if cur_key is None or pd_less_than(e_key, cur_key):
-            cur, cur_key = e, e_key
-    if cur is None:
+        if cur_key is None:
+            cur, cur_key = [e], e_key
+        else:
+            cmp_result = pd_cmp(e_key, cur_key)
+            if (cmp_result > 0 if is_max else cmp_result < 0):
+                cur, cur_key = [e], e_key
+            elif cmp_result == 0:
+                cur.append(e)
+    return pd_build_like(a, cur)
+def pd_minima_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
+    return pd_extrema_of_seq(a, False, ef)
+def pd_min_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
+    minima = pd_extrema_of_seq(a, False, ef)
+    if not minima:
         raise ValueError("Cannot take min of empty sequence")
-    return cur
+    return pd_first(minima)
 def pd_min_of_seq_list_op(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     return pd_min_of_seq(seq, (env, func))
+def pd_maxima_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
+    return pd_extrema_of_seq(a, True, ef)
 def pd_max_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdObject:
     if isinstance(a, str) and ef is None: return max(pd_iterable(a))
-    cur: Optional[PdObject] = None
-    cur_key: Optional[PdObject] = None
-    for e in pd_iterable(a):
-        if ef is None:
-            e_key = e
-        else:
-            env, f = ef
-            e_key = pd_sandbox(env, f, [e])
-        if cur_key is None or not pd_less_than(e_key, cur_key):
-            cur, cur_key = e, e_key
-    if cur is None:
+    maxima = pd_extrema_of_seq(a, True, ef)
+    if not maxima:
         raise ValueError("Cannot take max of empty sequence")
-    return cur
+    return pd_first(maxima)
 def pd_max_of_seq_list_op(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     return pd_max_of_seq(seq, (env, func))
+
 def pd_sort(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
     if ef is None:
         if isinstance(a, str):

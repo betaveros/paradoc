@@ -992,6 +992,20 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Compare (-1, 0, or 1)""",
             stability="alpha")
+    cput('Array_minima', ['<rs', 'Œs'], [
+        Case.seq(lambda env, e: [pd_minima_of_seq(e)]),
+        Case.block_seq_range(lambda env, f, e: [pd_minima_of_seq(e, (env, f))]),
+    ],
+            docs="""Minima of array, optionally by a block (numbers will
+            coerce to ranges if you supply a block).""",
+            stability="alpha")
+    cput('Array_maxima', ['>rs', 'Æs'], [
+        Case.seq(lambda env, e: [pd_maxima_of_seq(e)]),
+        Case.block_seq_range(lambda env, f, e: [pd_maxima_of_seq(e, (env, f))]),
+    ],
+            docs="""Maxima of array, optionally by a block (numbers will
+            coerce to ranges if you supply a block).""",
+            stability="alpha")
 
     cput('Lt_length', ['<l'], [
         Case.number2_len(lambda env, a, b: [int(num.pd_num_cmp(a, b) < 0)]),
