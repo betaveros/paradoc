@@ -365,9 +365,17 @@ overview = r"""
 <li><strong>(Finite-arity) Math</strong>: The usual.
     <ul>
         <li>Expressing literals: {{ 'h'|it }}, {{ 'k'|it }}, {{ 'm'|it }}</li>
-        <li>Two-operand arithmetic: {{ '+'|b }}, {{ '-'|b }}, {{ '¯'|b }}, {{ '±'|b }}, {{ '*'|b }}, {{ '/'|b }}, {{ '÷'|b }}, {{ '%'|b }}, {{ '‰'|b }}</li>
+        <li>Two-operand arithmetic: {{ '+'|b }}, {{ '-'|b }}, {{ '¯'|b }}, {{ '±'|b }}, {{ '*'|b }}, {{ '/'|b }}, {{ '÷'|b }}, {{ '%'|b }}, {{ '‰'|b }}
+            <ul>
+                <li>Also note the deep/vectorizing variants: {{ 'Á'|b }}, {{ 'À'|b }}, {{ 'Ó'|b }}, {{ 'Ò'|b }}.</li>
+            </ul>
+        </li>
         <li>One-operand arithmetic:
-        {{ '('|b }}, {{ ')'|b }}, {{ '‹'|b }} or {{ '<i'|b }}, {{ '=i'|b }}, {{ '›'|b }} or {{ '>i'|b }}, {{ '«'|b }}, {{ '»'|b }}, {{ 'L'|b }}, {{ 'M'|b }}, {{ 'U'|b }}, {{ '×'|b }}, {{ '½'|b }}, {{ '¼'|b }}, {{ '¾'|b }}, {{ '²'|b }}, {{ '³'|b }}, {{ 'Si'|b }}</li>
+        {{ '('|b }}, {{ ')'|b }}, {{ '‹'|b }} or {{ '<i'|b }}, {{ '=i'|b }}, {{ '›'|b }} or {{ '>i'|b }}, {{ '«'|b }}, {{ '»'|b }}, {{ 'L'|b }}, {{ 'M'|b }}, {{ 'U'|b }}, {{ '×'|b }}, {{ '½'|b }}, {{ '¼'|b }}, {{ '¾'|b }}, {{ '²'|b }}, {{ '³'|b }}, {{ 'Si'|b }}
+            <ul>
+                <li>Also note deep/vectorizing variants: {{ 'É'|b }}, {{ 'È'|b }}, {{ 'Í'|b }}, {{ 'Ì'|b }}, {{ 'Ú'|b }}.</li>
+            </ul>
+        </li>
         <li>Bit operations: {{ '&'|b }}, {{ '|'|b }}, {{ '^'|b }}, {{ '<s'|b }}, {{ '>s'|b }}, {{ '~'|b }}</li>
         <li>Comparisons and min/max:
         {{ '<'|b }}, {{ '='|b }}, {{ '>'|b }},
@@ -393,6 +401,7 @@ overview = r"""
         <li>Recombining lists: {{ '+'|b }}, {{ '-'|b }}, {{ '&'|b }}, {{ '|'|b }}, {{ '^'|b }}, {{ '*'|b }}</li>
         <li>Fragmenting or rearranging: {{ '$'|b }}, {{ 'U'|b }}, {{ '/'|b }}, {{ '%'|b }}, {{ 'G'|b }}, {{ 'W'|b }}, {{ '™'|b }} or {{ 'Tt'|b }}</li>
         <li>Predicates: {{ '<h'|b }}, {{ '=h'|b }}, {{ '>h'|b }}, {{ '$p'|b }}, {{ '<p'|b }}, {{ '=p'|b }}, {{ '>p'|b }}</li>
+        <li>"Destructuring" onto the stack: {{ '~'|b }}</li>
     </ul>
 </li>
 <li><strong>Logic</strong>:
@@ -435,7 +444,7 @@ overview = r"""
             <li>Each: {{ '*'|b }}, {{ '/'|b }}, {{ 'e'|bt }}, {{ 'x'|bt }}.
             Note that this is often also "reduce with initial value".</li>
             <li>Map: {{ '%'|b }}, {{ 'm'|bt }}, {{ 'o'|bt }}, {{ 'w'|bt }}.
-            Note that all elements on the shadow stack are collected into the list, so you can use this to flatmap.</li>
+            Note that all elements on the shadow stack are collected into the list, so you can use this to flatmap. Most simply, {{ '~'|b }}{{ 'm'|b }} flattens a sequence of sequences once.</li>
             <li>Filter: {{ '+'|b }}, {{ '-'|b }}, {{ ','|b }}, {{ 'J'|b }}, {{ 'f'|bt }}</li>
             <li>Reduce: {{ 'R'|b }}, {{ 'r'|bt }}</li>
             <li>Zip: {{ '‰'|b }}, {{ 'z'|bt }}, {{ 'ž'|bt }}</li>
