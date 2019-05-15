@@ -444,7 +444,7 @@ overview = r"""
             <li>Each: {{ '*'|b }}, {{ '/'|b }}, {{ 'e'|bt }}, {{ 'x'|bt }}.
             Note that this is often also "reduce with initial value".</li>
             <li>Map: {{ '%'|b }}, {{ 'm'|bt }}, {{ 'o'|bt }}, {{ 'w'|bt }}.
-            Note that all elements on the shadow stack are collected into the list, so you can use this to flatmap. Most simply, {{ '~'|b }}{{ 'm'|b }} flattens a sequence of sequences once.</li>
+            Note that all elements on the shadow stack are collected into the list, so you can use this to flatmap. Most simply, {{ '~'|b }}{{ 'm'|bt }} flattens a sequence of sequences once.</li>
             <li>Filter: {{ '+'|b }}, {{ '-'|b }}, {{ ','|b }}, {{ 'J'|b }}, {{ 'f'|bt }}</li>
             <li>Reduce: {{ 'R'|b }}, {{ 'r'|bt }}</li>
             <li>Zip: {{ '‰'|b }}, {{ 'z'|bt }}, {{ 'ž'|bt }}</li>
