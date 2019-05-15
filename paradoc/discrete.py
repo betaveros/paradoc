@@ -82,7 +82,7 @@ def factorial(n: Union[int, float]) -> Union[int, float]:
         else:
             return math.gamma(n + 1)
 
-    return fs.factorial(n)
+    return int(fs.factorial(n))
 
 def binomial_coefficient(n: Union[int, float], k: Union[int, float]) -> Union[int, float]:
     try:
@@ -94,9 +94,9 @@ def binomial_coefficient(n: Union[int, float], k: Union[int, float]) -> Union[in
             return factorial(n) / factorial(k) / factorial(float(n)-float(k))
 
     if isinstance(n, int) and isinstance(k, int):
-        return fs.binomial(n, k)
+        return int(fs.binomial(n, k))
     else:
-        return fs.binomial(float(n), k)
+        return int(fs.binomial(float(n), k))
 
 def fibonacci(n: Union[int, float]) -> Union[int, float]:
     try:
