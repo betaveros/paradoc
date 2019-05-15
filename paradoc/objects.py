@@ -390,6 +390,24 @@ class Environment: # {{{
         else:
             self.vars_delegate.put(token, val)
 
+    def delete(self, token: str) -> None:
+        xi = x_index(token)
+        if xi is not None:
+            raise NameError("Can't delete X-stack variable")
+        elif self.vars_delegate is None:
+            del self.vars[token]
+        else:
+            self.vars_delegate.delete(token)
+
+    def delete_starting_with(self, prefix: str) -> None:
+        if self.vars_delegate is None:
+            varlist = list(self.vars)
+            for v in varlist:
+                if v.startswith(prefix):
+                    del self.vars[v]
+        else:
+            self.vars_delegate.delete_starting_with(token)
+
     def push(self, *vals: PdObject) -> None:
         for val in vals:
             self._stack.append(val)

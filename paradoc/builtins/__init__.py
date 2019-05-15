@@ -96,7 +96,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     env.put('\x01', 1, stability="unstable")
 
     env.put('Hw', 'Hello, World!', stability="unstable")
-
+    # }}}
+    # Bullet variable and hoarding {{{
     BULLET = '•'
 
     env.put(BULLET, Hoard(),
@@ -106,6 +107,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
 
     env.put('H', Hoard(), docs="An empty Hoard", stability="alpha")
+
+    def hoardify(env: Environment, prefix: str) -> None:
+        env.delete_starting_with(prefix)
+        env.put(prefix, Hoard())
+
+    # closure binding shenanigans
+    def add_hoardify_builtin(c):
+        long_name = 'Hoardify_' + c.lower() # Hoardify_a, etc
+        short_name = c + 'h' # Ah, etc
+        builtin = BuiltIn(long_name,
+            lambda env: hoardify(env, c),
+            aliases=[short_name],
+            docs="""Hoardify the {c} variable: delete all variables starting
+            with {c} and set {c} to a new empty hoard.""".format(c=c),
+            stability="alpha")
+        env.put(long_name, builtin, fail_if_overwrite=True)
+        env.put(short_name, builtin, fail_if_overwrite=True)
+
+    for c in 'ABCD': add_hoardify_builtin(c)
     # }}}
     # Universal functions: stack stuff, list stuff {{{
 
