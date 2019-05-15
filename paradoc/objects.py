@@ -1547,7 +1547,7 @@ def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
             seq = seq.to_list() # TODO relatively inefficient
         return seq.count(e)
 
-def pd_count_pairs(seq: PdSeq) -> list:
+def pd_distinct_elements_and_frequencies(seq: PdSeq) -> Tuple[list, dict]:
     distinct_elements: List[PdObject] = []
     frequencies: Dict[PdKey, int] = dict()
     for e in pd_iterable(seq):
@@ -1557,7 +1557,20 @@ def pd_count_pairs(seq: PdSeq) -> list:
         else:
             distinct_elements.append(e)
             frequencies[key] = 1
+    return distinct_elements, frequencies
+
+def pd_count_pairs(seq: PdSeq) -> list:
+    distinct_elements, frequencies = pd_distinct_elements_and_frequencies(seq)
     return [[e, frequencies[pykey(e)]] for e in distinct_elements]
+
+def pd_most_frequent(seq: PdSeq) -> PdObject:
+    distinct_elements, frequencies = pd_distinct_elements_and_frequencies(seq)
+    # TODO: our own max with deterministic tiebreaking?
+    return max(distinct_elements, key=lambda elt: frequencies[elt])
+def pd_least_frequent(seq: PdSeq) -> PdObject:
+    distinct_elements, frequencies = pd_distinct_elements_and_frequencies(seq)
+    # TODO: our own min with deterministic tiebreaking?
+    return min(distinct_elements, key=lambda elt: frequencies[elt])
 
 def pd_map_iterable(env: Environment, func: Block, it: Iterable[PdObject]) -> List[PdObject]:
     env.push_yx()

@@ -1338,6 +1338,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             a distinct element and the number of times it appears in the
             sequence.""",
             stability="alpha")
+    cput('Most_frequent', ['#æ'], [
+        Case.seq(lambda env, seq: [pd_most_frequent(seq)]),
+    ],
+            docs="""Most frequently appearing element.""",
+            stability="alpha")
+    cput('Least_frequent', ['#œ'], [
+        Case.seq(lambda env, seq: [pd_least_frequent(seq)]),
+    ],
+            docs="""Least frequently appearing element.""",
+            stability="alpha")
     # }}}
     # Down/Do, Transpose, Zip {{{
     reverse_case = Case.seq_range_deref(lambda env, a: [a[::-1]])
