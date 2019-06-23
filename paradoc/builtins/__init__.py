@@ -298,7 +298,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # }}}
     # "Arithmetic" {{{
 
-
+    # "Addition" (concatenation, filtering, etc.) {{{
     add_case = Case.number2(lambda env, a, b: [num.pd_add(a, b)])
     cat_list_case = Case.list2_singleton(lambda env, a, b: [pd_to_list(a) + pd_to_list(b)])
     strcat_list_case = Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)])
@@ -327,7 +327,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""a with two copies of b flanking: a, b -> b + a + b. Numbers
             coerce to single-element lists.""",
             stability="unstable")
-
+    # }}}
+    # "Subtraction" (set subtraction, rejection, etc.) {{{
     minus_case = Case.number2(lambda env, a, b: [num.pd_sub(a, b)])
     reject_in_case = Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(a, b)])
     reject_case = Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)])
@@ -350,7 +351,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Reversed subtraction. Compare
             {{ 'Minus_or_reject'|b }}.""",
             stability="beta")
-
+    # }}}
+    # "Multiplication" (cartesian products, loops, etc.) {{{
     cput('Table', ['T'], [
         Case.seq2_range(lambda env, a, b: [pd_cartesian_product_seq_matrix(a, b)]),
         Case.seq2_range_block(lambda env, seq1, seq2, block:
@@ -385,7 +387,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             {X} 4* => 0 1 2 3
             [2 3 5 7] {2X#} * => 4 8 32 128""",
             stability="beta")
-
+    # }}}
+    # "Division" and "modulo" (for-each, splitting, etc.) {{{
     cput('Div_or_split_or_each', ['/'], [
         Case.number2(lambda env, a, b: [num.pd_div(a, b)]),
         Case.number_seq(lambda env, n, seq: [pd_split_seq(seq, n, include_leftover=True)]),
@@ -451,6 +454,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""On integers, integer division and modulus. On two sequences
             or a block and two sequences, {{ 'Zip'|b }}.""",
             stability="unstable")
+    # }}}
 
     cput('Power', ['ˆ', '*p'], [
         Case.number2(lambda env, a, b: [num.pd_pow(a, b)]),
