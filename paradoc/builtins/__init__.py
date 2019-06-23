@@ -113,7 +113,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         env.put(prefix, Hoard())
 
     # closure binding shenanigans
-    def add_hoardify_builtin(c):
+    def add_hoardify_builtin(c: str) -> None:
         long_name = 'Hoardify_' + c.lower() # Hoardify_a, etc
         short_name = c + 'h' # Ah, etc
         builtin = BuiltIn(long_name,
@@ -517,7 +517,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # }}}
     # Dictionary, translate, whatever {{{
     cput('Dictionary', ['Dc'], [
-        Case.seq(lambda env, seq: [Hoard.dictionary(pd_iterable(seq))]),
+        Case.seq(lambda env, seq: [Hoard.dictionary_from_general_iterable(pd_iterable(seq))]),
     ],
             docs="""Convert to new dictionary hoard.""",
             stability="unstable")

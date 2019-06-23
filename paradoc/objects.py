@@ -59,6 +59,23 @@ class Hoard:
         for k, v in init: ret.update(k, v)
         return ret
 
+    @classmethod
+    def dictionary_from_general_iterable(cls, init: Iterable["PdObject"]) -> "Hoard":
+        # Try really hard to make this iterable a dictionary. Probably too
+        # hard.
+        ret = cls(dict())
+        for v in init:
+            if isinstance(v, (str, list, range, Hoard)):
+                if len(v) >= 2:
+                    ret.update_object(pd_index(v, 0), pd_index(v, 1))
+                elif len(v) == 1:
+                    ret.update_object(pd_index(v, 0), 1)
+                else:
+                    ret.update_object(v, 1)
+            else:
+                ret.update_object(v, 1)
+        return ret
+
     def append(self, obj: "PdObject") -> None:
         if isinstance(self.structure, (list, collections.deque)):
             self.structure.append(obj)
@@ -193,6 +210,11 @@ class Hoard:
                     pass
             self.structure = {pykey(k): (k, v) for k, v in enumerate(self.structure)}
         self.structure[pykey(key)] = (key, value)
+
+    def update_object(self, key: "PdObject", value: "PdObject") -> None:
+        if isinstance(key, Block):
+            raise TypeError('Cannot update hoard with block as key')
+        self.update(key, value)
 
     def delete(self, key0: "PdValue") -> None:
         if isinstance(self.structure, (list, collections.deque)):
@@ -406,7 +428,7 @@ class Environment: # {{{
                 if v.startswith(prefix):
                     del self.vars[v]
         else:
-            self.vars_delegate.delete_starting_with(token)
+            self.vars_delegate.delete_starting_with(prefix)
 
     def push(self, *vals: PdObject) -> None:
         for val in vals:
