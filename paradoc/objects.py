@@ -1544,6 +1544,16 @@ def pd_find_last_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[int, 
         if pd_truthy(env, func, [e]): return (i, e)
     return (-1, None)
 
+def pd_first_duplicate(seq: PdSeq) -> Tuple[int, Optional[PdObject]]:
+    seen: Set[PdKey] = set()
+    for i, e in py_enumerate(seq):
+        key = pykey(e)
+        if key in seen:
+            return (i, e)
+        else:
+            seen.add(key)
+    return (-1, None)
+
 def pd_take_drop_while(env: Environment, func: Block, seq: PdImmutableSeq) -> Tuple[PdSeq, PdSeq]:
     for i, e in py_enumerate(seq):
         if not pd_truthy(env, func, [e]): return (seq[:i], seq[i:])

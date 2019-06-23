@@ -1061,6 +1061,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Greater than or equal to, after coercing two arguments to
             ints or floats, sequences by taking their length.""",
             stability="unstable")
+    cput('First_duplicate', ['=g'], [
+        Case.seq(lambda env, s: [
+            second_or_error(pd_first_duplicate(s),
+            "Duplicate not found in First_duplicate")]),
+    ],
+            docs="""Find the first element that appears a second time in a
+            sequence.""",
+            stability="unstable")
     # }}}
     # Shifting and slicing {{{
     left_shift_case  = Case.number2(lambda env, a, b: [num.pd_lshift(a, b)])

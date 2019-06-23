@@ -331,6 +331,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {6<} <'), [[3,1,4,1,5]])
         self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] {6<} >'), [[9,2,6,5,3,5]])
 
+    def test_fiirst_duplicate(self):
+        self.assertEqual(pd_simple_eval('[3 1 4 1 5 9 2 6 5 3 5] =g'), [1])
+        self.assertEqual(pd_simple_eval('[4 1 5 9 2 6 5 3 5] =g'), [5])
+
     def test_list_operations(self):
         self.assertEqual(pd_simple_eval('[2 4][6 0 1]+'), [[2,4,6,0,1]])
         self.assertEqual(pd_simple_eval('[2 4][6 0 1]Cb'), [[2,4,6,0,1,2,4]])
