@@ -487,6 +487,15 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_count",
                 lambda env: apply_pd_list_op(env, b, objects.pd_count)), False)
 
+    @put("countdistinct", "ð",
+            docs="""Apply this block to each element of a list (coerces numbers
+            to ranges); push the number of distinct elements that gave truthy
+            results.""",
+            stability="unstable")
+    def countdistinct_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_countdistinct",
+                lambda env: apply_pd_list_op(env, b, objects.pd_countdistinct)), False)
+
     @put("organize", "ø",
             docs="""Apply this block to each element of a list (coerces
             numbers to ranges), and then organize the elements into groups

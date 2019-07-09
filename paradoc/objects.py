@@ -1846,6 +1846,9 @@ def pd_mask(seq1: PdSeq, seq2: PdSeq, negate: bool = False) -> PdObject:
 def pd_count(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> int:
     return len(pd_filter_entries(env, func, seq, negate))
 
+def pd_countdistinct(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> int:
+    return len(pd_filter_entries(env, func, pd_seq_uniquify(seq), negate))
+
 def pd_get(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     _, e = pd_find_entry(env, func, seq)
     if e is None:
