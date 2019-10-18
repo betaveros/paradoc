@@ -1525,6 +1525,66 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             ones.""",
             stability="unstable")
     # }}}
+    # Matching prefixes, mismatched suffixes {{{
+    cput('Matching_prefix', ['Shared_prefix', 'Ys', 'Ym'], [
+        Case.seq2_range(lambda env, s1, s2: [pd_matching_prefix(s1, s2)]),
+    ],
+            docs="""Find the longest prefix shared between two sequences.
+            Mnemonic for this and related operations: Y is a fork where the
+            bottom is the shared prefix and the top are the diverging
+            suffixes. 's' is for same or shared.""",
+            stability="alpha")
+    cput('Mismatch_suffixes', ['Yd'], [
+        Case.seq2_range(lambda env, s1, s2: pd_mismatch_suffixes(s1, s2)),
+    ],
+            docs="""Find the suffixes after the longest prefix shared between
+            two sequences. Mnemonic for this and related operations: Y is a
+            fork where the bottom is the shared prefix and the top are the
+            diverging suffixes. 'd' is for different or diverging.""",
+            stability="alpha")
+    cput('Mismatch_index', ['Yi'], [
+        Case.seq2_range(lambda env, s1, s2: [pd_mismatch_index(s1, s2)]),
+    ],
+            docs="""Find the length of the longest prefix shared
+            between two sequences; equivalently, the index of the first element
+            where they diverge, except that it'll be the length of the list if
+            they are identical. Mnemonic for this and related operations: Y is
+            a fork where the bottom is the shared prefix and the top are the
+            diverging suffixes; 'i' is for index.""",
+            stability="alpha")
+    cput('Mismatch_pair', ['Yp'], [
+        Case.seq2_range(lambda env, s1, s2: [pd_mismatch_elements(s1, s2)]),
+    ],
+            docs="""Find the first elements after the longest prefix shared
+            between two sequences. Returns a list. If the two sequences are
+            equal, the list will be empty. If one sequence is a proper prefix
+            of the other, the list will just have one element (and you won't be
+            able to tell which sequence it came from). Mnemonic for this and
+            related operations: Y is a fork where the bottom is the shared
+            prefix and the top are the diverging suffixes; 'p' is for pair,
+            which the return value usually is.""",
+            stability="alpha")
+    cput('Mismatch_former', ['Yf', 'Ya'], [
+        Case.seq2_range(lambda env, s1, s2: [pd_mismatch_element(0, s1, s2)]),
+    ],
+            docs="""Given two sequences, find the first element in the first
+            sequence that isn't at the corresponding index in the second.
+            Errors if there isn't such an element. Mnemonic for this and
+            related operations: Y is a fork where the bottom is the shared
+            prefix and the top are the diverging suffixes; 'f' is for 'former'
+            / 'a' is the first letter of the alphabet.""",
+            stability="unstable")
+    cput('Mismatch_latter', ['Yl', 'Yb'], [
+        Case.seq2_range(lambda env, s1, s2: [pd_mismatch_element(1, s1, s2)]),
+    ],
+            docs="""Given two sequences, find the first element in the second
+            sequence that isn't at the corresponding index in the second.
+            Errors if there isn't such an element. Mnemonic for this and
+            related operations: Y is a fork where the bottom is the shared
+            prefix and the top are the diverging suffixes; 'l' is for 'latter'
+            / 'b' is the second letter of the alphabet.""",
+            stability="unstable")
+    # }}}
     # Reduce/join {{{
     cput('Reduce', ['R'], [
         Case.seq2_singleton(lambda env, seq, joiner: [pd_join(env, seq, joiner)]),

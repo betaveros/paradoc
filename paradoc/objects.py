@@ -1428,6 +1428,26 @@ def pd_ziplongest_as_list(*seq: PdSeq) -> PdObject:
     return [[e for e in es if e is not None] for es in itertools.zip_longest(
         *(pd_iterable(s) for s in seq))]
 
+def pd_matching_prefix_generator(*seq: PdSeq) -> Generator[PdObject, None, None]:
+    for es in zip(*(pd_iterable(s) for s in seq)):
+        for e1, e2 in zip(es, es[1:]):
+            if e1 != e2:
+                return
+        yield es[0]
+def pd_matching_prefix(*seq: PdSeq) -> PdSeq:
+    return pd_build_like(seq[0], list(pd_matching_prefix_generator(*seq)))
+def pd_mismatch_index(*seq: PdSeq) -> int:
+    return sum(1 for _ in pd_matching_prefix_generator(*seq))
+def pd_mismatch_suffixes(*seq: PdSeq) -> list:
+    mi = pd_mismatch_index(*seq)
+    return [pd_slice(s, mi, None) for s in seq]
+def pd_mismatch_elements(*seq: PdSeq) -> list:
+    mi = pd_mismatch_index(*seq)
+    return [pd_index(s, mi) for s in seq if mi < len(s)]
+def pd_mismatch_element(index: int, *seq: PdSeq) -> PdObject:
+    mi = pd_mismatch_index(*seq)
+    return pd_index(seq[index], mi)
+
 def tagged_cycle(iterable: Iterable[T]) -> Iterable[Tuple[bool, T]]:
     saved = []
     for element in iterable:

@@ -394,6 +394,19 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('8,[1 0 0 1 0 1 1 0]€'), [[0,3,5,6]])
         self.assertEqual(pd_simple_eval('8,[1 0 0 1 0 1 1 0]¥'), [[1,2,4,7],[0,3,5,6]])
 
+    def test_mismatch(self):
+        self.assertEqual(pd_simple_eval('[1 2 3 4 5][1 2 1 3 4]Ys'), [[1,2]])
+        self.assertEqual(pd_simple_eval('[1 2 3 4 5][1 2 1 3 4]Yd'), [[3,4,5],[1,3,4]])
+        self.assertEqual(pd_simple_eval('[1 2 3 4 5][1 2 1 3 4]Yi'), [2])
+        self.assertEqual(pd_simple_eval('[1 2 3 4 5][1 2 1 3 4]Yp'), [[3,1]])
+        self.assertEqual(pd_simple_eval('[1 2 3 4 5][1 2 1 3 4]Yf'), [3])
+        self.assertEqual(pd_simple_eval('[1 2 3 4 5][1 2 1 3 4]Yl'), [1])
+        self.assertEqual(pd_simple_eval('"abcde""abc"Ys'), ["abc"])
+        self.assertEqual(pd_simple_eval('"abcde""abc"Yd'), ["de",""])
+        self.assertEqual(pd_simple_eval('"abcde""abc"Yi'), [3])
+        self.assertEqual(pd_simple_eval('"abcde""abc"Yp'), [[Char('d')]])
+        self.assertEqual(pd_simple_eval('"abcde""abc"Yf'), [Char('d')])
+
     def test_break(self):
         self.assertEqual(pd_simple_eval('8,{:3>{Q}&:}e'), [0,0,1,1,2,2,3,3,4])
 
