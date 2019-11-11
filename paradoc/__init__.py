@@ -27,6 +27,7 @@ import sys
 import argparse
 import codecs
 import random
+import traceback
 
 def simple_interpolate(env: Environment, content: str, target: str) -> str:
     literal_fragments: List[str] = []
@@ -478,6 +479,26 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
     def min_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         return (BuiltIn(b.code_repr() + "_min",
                 lambda env: apply_pd_list_op(env, b, objects.pd_min_of_seq_list_op)), False)
+
+    @put("boundary", "ß",
+            docs="""Run this block, but catch any exception and push its Python
+            traceback, or an empty list if nothing happens. Does not catch
+            breaks, continues, or KeyboardInterrupts (?) (but does catch
+            exits).""",
+            stability="unstable")
+    def boundary_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def boundary_b(env: Environment) -> None:
+            exc_result = []
+            try:
+                b(env)
+            except PdBreakException: raise
+            except PdContinueException: raise
+            except KeyboardInterrupt: raise
+            except Exception as ex:
+                exc_result = traceback.format_exception(type(ex), ex, ex.__traceback__)
+            env.push(exc_result)
+
+        return (BuiltIn(b.code_repr() + "_boundary", boundary_b), False)
 
     @put("count", "ç",
             docs="""Apply this block to each element of a list (coerces numbers
