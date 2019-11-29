@@ -772,6 +772,18 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             new_top = env.pop()
             env.push(*transit, new_top)
         return (BuiltIn(str(i) + "_out", out_i), False)
+    @put("delete", "x",
+            docs="""Delete the nth element of the stack (zero-indexed, so the
+            element below n other elements). Mnemonic: ??? x is like crossing
+            something out, but we really don't have any similar mnemonics right
+            now.""",
+            stability="unstable")
+    def delete_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def delete_i(env: Environment) -> None:
+            transit = env.pop_n(i)
+            env.pop()
+            env.push(*transit)
+        return (BuiltIn(str(i) + "_delete", delete_i), False)
 
     @put("quarter", "q",
             docs="""Let X be this number over four. For numbers, multiply by X.
