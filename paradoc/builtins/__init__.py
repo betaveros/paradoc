@@ -253,8 +253,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             if isinstance(case, list):
                 if case:
                     condition, *result = case
-                    # TODO: more lenient matching
-                    if target == condition:
+
+                    if isinstance(condition, Block):
+                        case_succeeds = pd_truthy(env, condition, [target])
+                    else:
+                        case_succeeds = (target == condition)
+
+                    if case_succeeds:
                         env.push_or_eval(*result)
                         break
                 else:
@@ -266,8 +271,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         case_list = env.pop_until_stack_marker()
         target = env.pop()
         for condition, result in zip(case_list[::2], case_list[1::2]):
-            # TODO: more lenient matching
-            if target == condition:
+            if isinstance(condition, Block):
+                case_succeeds = pd_truthy(env, condition, [target])
+            else:
+                case_succeeds = (target == condition)
+
+            if case_succeeds:
                 env.push_or_eval(result)
                 break
     cput('†', [], [Case.any(lambda env, x: [[x]])],
