@@ -4,7 +4,6 @@ from typing import Callable, List, Optional, Tuple
 import itertools
 import paradoc.num as num
 import paradoc.base as base
-import paradoc.assign as assign
 import sys, math
 import time, datetime
 import random

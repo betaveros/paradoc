@@ -46,9 +46,9 @@ class TestParadoc(unittest.TestCase):
     def test_assignment(self):
         self.assertEqual(pd_simple_eval('123.Tst;Tst Tst+ 123—Test Test Test+ 129.**+ 129—///+', use_cache=False), [246,246,258,258])
 
-    def test_assignment_variants(self):
-        self.assertEqual(pd_simple_eval('1.B;10._addB 4._subB B', use_cache=False), [7])
-        self.assertEqual(pd_simple_eval('1.aC 2.aC 3.aC .pC .rC C', use_cache=False), [3,[1,2],0])
+    def test_assignment_trailers(self):
+        self.assertEqual(pd_simple_eval('1 .h'), [100])
+        self.assertEqual(pd_simple_eval('[4 9 2] )_ .m'), [[5,10,3]])
 
     def test_stack_ops(self):
         self.assertEqual(pd_simple_eval('1 2 3 \\ 1 2 3 \\o 1 2 3 \\i 1 2 3 : 1 2 3 :p'),

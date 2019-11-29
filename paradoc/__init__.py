@@ -22,7 +22,6 @@ import paradoc.input_triggers as input_triggers
 from paradoc.trailer import TrailerFunc, Trailer
 from paradoc.builtins import initialize_builtins
 from paradoc.builtins.acutegrave import ag_convert, ag_document
-import paradoc.assign as assign
 import sys
 import argparse
 import codecs
@@ -1269,14 +1268,14 @@ class CodeBlock(Block):
                 raise NotImplementedError('unknown global trailer token ' + repr(trailer_token))
 
         # This is not None when assignment is active:
-        active_assign_token_trailer: Optional[Tuple[str, str]] = None
+        active_assign_token: Optional[str] = None
         block_acc: List[str] = []
 
         for token0 in self.tokens[body_start:]:
             token, trailer = break_trailer(token0)
             # print('in body', repr(token), repr(trailer), file=sys.stderr)
             try:
-                if active_assign_token_trailer is not None:
+                if active_assign_token is not None:
                     # this is only not None if we're actually executing an
                     # assignment (in the outermost level, not in a block).
                     # Otherwise it just gets parsed into the block as a
@@ -1286,27 +1285,16 @@ class CodeBlock(Block):
                     # token.
                     assert not token0[0].isdigit()
 
-                    if token.startswith('{'):
-                        assert block_prefix_trailer is None
-                        _, block_prefix_trailer = active_assign_token_trailer
-                        if trailer: block_acc.append(trailer)
-                    elif token in block_starters:
-                        raise Exception("Cannot combine explicit prefix trailer with block opener with implicit trailer: " +
-                                repr(active_assign_token_trailer) + ", " + repr(token))
+                    if token.startswith('{') or token in block_starters:
+                        raise NotImplementedError("Assigning to a block is reserved syntax")
+                    elif active_assign_token == '.':
+                        env.put(token0, env.peek())
+                    elif active_assign_token == '—':
+                        env.put(token0, env.pop())
                     else:
-                        a_token, a_trailer = active_assign_token_trailer
-                        a_trailer_tokens: Optional[Iterable[str]] = None
-                        for v_name, ts in name_trailer_dissections(a_token, a_trailer):
-                            variant = assign.variant_dict.get(v_name)
-                            if variant is not None:
-                                a_trailer_tokens = ts
-                                break
-                        if variant is None or a_trailer_tokens is None:
-                            raise NameError('Could not parse (assignment) ' + repr((a_token, a_trailer)))
+                        raise Exception("Unexpected assign token: " + repr(active_assign_token))
 
-                        act_after_trailer_tokens(env, variant.block(token0), a_trailer_tokens)
-
-                    active_assign_token_trailer = None
+                    active_assign_token = None
                 elif block_level == 0:
                     if token.startswith('}'):
                         raise RuntimeError("closing curly brace out of nowhere")
@@ -1333,7 +1321,13 @@ class CodeBlock(Block):
                                 raise ValueError('could not parse number ' + repr(token))
                         act_after_trailer_tokens(env, parsed_num, lex_trailer(trailer))
                     elif token.startswith('.') or token.startswith('—'):
-                        active_assign_token_trailer = (token, trailer)
+                        if trailer:
+                            if token == '.':
+                                act_after_trailer_tokens(env, env.pop(), lex_trailer(trailer))
+                            else:
+                                raise NotImplementedError("Using an em dash with trailers is reserved syntax")
+                        else:
+                            active_assign_token = token
                     else:
                         val: Optional[PdObject] = None
                         trailer_tokens = None
@@ -1373,7 +1367,7 @@ class CodeBlock(Block):
                 msg = 'Error while interpreting token {} caused by exception: {}\n{}'.format(token + trailer, ex, env.debug_dump())
                 raise Exception(msg) from ex
             # print('generic debug dump', env.debug_dump(), file=sys.stderr)
-        if active_assign_token_trailer is not None:
+        if active_assign_token is not None:
             raise Exception('Assignment with no target')
         while block_level > 0:
             block_level -= 1
@@ -1475,6 +1469,7 @@ def main() -> None:
                 ('String', string_trailer_dict),
                 ('Int', int_trailer_dict),
                 ('Float', float_trailer_dict),
+                ('Hoard', hoard_trailer_dict),
             ])
         elif args.e is not None:
             main_with_code(args.e, sandboxed=args.sandboxed, debug=args.debug)

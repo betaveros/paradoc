@@ -308,6 +308,11 @@ pop. (Note that you will pop things in the order they're read, which is the
 opposite order of how lists are usually ordered on the stack!)
 
 You can also explicitly read input with `V`.
+
+### Hoards
+
+Paradoc has extremely flexible mutable data structures called **hoards** for no
+particular reason.
 """
 
 mnemonics = """
