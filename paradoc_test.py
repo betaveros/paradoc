@@ -67,6 +67,14 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('1 2 3 4;a'), [1,3])
         self.assertEqual(pd_simple_eval('1 2 3 4;d'), [1,2])
 
+    def test_reluctant(self):
+        self.assertEqual(pd_simple_eval('1 2 +_ ~'), [3])
+        self.assertEqual(pd_simple_eval('3 +_ 4 \\ ~'), [7])
+        self.assertEqual(pd_simple_eval('5 7_ 6 \\ ~'), [5,6,7])
+        self.assertEqual(pd_simple_eval('"a"_ ~'), ["a"])
+        self.assertEqual(pd_simple_eval("'b_ ~"), [Char('b')])
+        self.assertEqual(pd_simple_eval("1.25_ ~"), [1.25])
+
     def test_integer_stack_trailers(self):
         self.assertEqual(pd_simple_eval('5 4 3 2 1 3i'), [5,1,4,3,2])
         self.assertEqual(pd_simple_eval('5 4 3 2 1 3o'), [5,3,2,1,4])

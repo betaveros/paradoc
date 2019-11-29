@@ -535,6 +535,14 @@ def build_string_trailer_dict() -> Dict[str, Trailer[str]]: # {{{
             stability: str = "unknown") -> TrailerPutter[str]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
 
+    @put("reluctant", "", # will be called as a trailing _
+            docs="""Convert to a reluctant block that pushes this string.""",
+            stability="alpha")
+    def reluctant_trailer(outer_env: Environment, s: str) -> Tuple[Block, bool]:
+        def reluctant_s(env: Environment) -> None:
+            env.push(s)
+        return (BuiltIn(objects.pd_repr(s) + "_reluctant", reluctant_s), True)
+
     @put("interpolate", "i",
             docs="""Interpolate elements on the stack into % signs in this
             string.""",
@@ -617,6 +625,14 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
     def put(*names: str, docs: Optional[str] = None,
             stability: str = "unknown") -> TrailerPutter[int]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
+
+    @put("reluctant", "", # will be called as a trailing _
+            docs="""Convert to a reluctant block that pushes this number.""",
+            stability="alpha")
+    def reluctant_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
+        def reluctant_i(env: Environment) -> None:
+            env.push(i)
+        return (BuiltIn(str(i) + "_reluctant", reluctant_i), True)
 
     @put("minus", "m", docs="Negate.", stability="stable")
     def minus_trailer(outer_env: Environment, i: int) -> Tuple[int, bool]:
@@ -818,6 +834,14 @@ def build_float_trailer_dict() -> Dict[str, Trailer[float]]: # {{{
             stability: str = "unknown") -> TrailerPutter[int]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
 
+    @put("reluctant", "", # will be called as a trailing _
+            docs="""Convert to a reluctant block that pushes this number.""",
+            stability="alpha")
+    def reluctant_trailer(outer_env: Environment, f: float) -> Tuple[Block, bool]:
+        def reluctant_f(env: Environment) -> None:
+            env.push(f)
+        return (BuiltIn(str(f) + "_reluctant", reluctant_f), True)
+
     @put("minus", "m", docs="Negate.", stability="stable")
     def minus_trailer(outer_env: Environment, f: float) -> Tuple[float, bool]:
         return (-f, False)
@@ -837,6 +861,14 @@ def build_char_trailer_dict() -> Dict[str, Trailer[Char]]: # {{{
     def put(*names: str, docs: Optional[str] = None,
             stability: str = "unknown") -> TrailerPutter[Char]:
         return trailer_putter(ret, names, docs=docs, stability=stability)
+
+    @put("reluctant", "", # will be called as a trailing _
+            docs="""Convert to a reluctant block that pushes this char.""",
+            stability="alpha")
+    def reluctant_trailer(outer_env: Environment, c: Char) -> Tuple[Block, bool]:
+        def reluctant_c(env: Environment) -> None:
+            env.push(c)
+        return (BuiltIn(objects.pd_repr(c) + "_reluctant", reluctant_c), True)
 
     @put("x", docs="Replicate, to get a string.", stability="alpha")
     def char_x_trailer(outer_env: Environment, c: Char) -> Tuple[Block, bool]:
