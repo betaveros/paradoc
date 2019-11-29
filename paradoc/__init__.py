@@ -787,7 +787,7 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
 
     @put("quarter", "q",
             docs="""Let X be this number over four. For numbers, multiply by X.
-            For lists, take floor of the first X elements. For blocks, run with
+            For lists, take the first floor(X) elements. For blocks, run with
             probability X.""",
             stability="unstable")
     def quarter_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:

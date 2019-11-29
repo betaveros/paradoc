@@ -196,7 +196,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Pop the first and third from the top elements of the stack,
             named to be somewhat analogous to {{ '\\\\a'|b }}.
 
-            ex: 1 2 3;p => 2""",
+            ex: 1 2 3;a => 2""",
             stability="unstable")
     cput('Pop_second_pair', [';p'], [Case.any3(lambda env, x, y, z: [z])],
             docs="""Pop the second and third from the top elements of the
