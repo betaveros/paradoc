@@ -311,8 +311,11 @@ You can also explicitly read input with `V`.
 
 ### Hoards
 
-Paradoc has extremely flexible mutable data structures called **hoards** for no
-particular reason.
+Paradoc has flexible mutable data structures, which are called **hoards**
+mostly because `H` was the single unallocated letter when we got to the
+concept. Hoards start out as empty lists, but depending on how you use them,
+they will automagically become deques or dictionaries. The primary interface
+for mutation is through hoard trailers.
 """
 
 mnemonics = """
@@ -470,6 +473,22 @@ overview = r"""
 <li><strong>Input and output</strong>:
     If a global trailer is set, input from the stack is implicit like GolfScript, but you can also explicitly read input with {{ 'V'|b }}.
     For output you can use {{ 'O'|b }} and {{ 'P'|b }} or string trailers {{ 'o'|st }} and {{ 'p'|st }}.
+</li>
+<li><strong>Hoards</strong>:
+    <ul>
+        <li>To read data, {{ '='|b }} indexes or accesses hoards. Many built-ins will
+        convert hoards to lists (e.g. you can {{ 'map'|bt }} or {{ 'each'|bt }} a
+        hoard, take its {{ 'Array_min'|b }} or {{ 'Array_max'|b }}...).</li>
+        <li>{{ 'H'|b }} and {{ '•'|b }} are two built-in empty hoards. If you need more
+        somehow in convenient variables, {{ 'Ah'|b }}, {{ 'Bh'|b }}, {{ 'Ch'|b }}, and
+        {{ 'Dh'|b }} can produce them cheaply.</li>
+        <li>To create a dictionary hoard: {{ 'Dc'|b }}.</li>
+        <li>To mutate as a deque: {{ 'a'|ht }}, {{ 'b'|ht }}, {{ 'p'|ht }}, {{ 'q'|ht }}.</li>
+        <li>You can update lists and deques at an index with {{ 'u'|ht }}. Note that the hoard automatically becomes a dictionary if the index is out of bounds, so that we can make empty lists automatically become dictionaries if used as such.</li>
+        <li>To mutate as a dictionary: {{ 'u'|ht }}, {{ 'd'|ht }}. In special cases {{ 'm'|ht }} can be quite useful.</li>
+        <li>To access safely as a dictionary: {{ 'g'|ht }}, {{ 'h'|ht }}, {{ 'z'|ht }}.</li>
+        <li>To use as a set: probably {{ 'o'|ht }} to add things, {{ 'd'|ht }} to delete things, and {{ 'z'|ht }} to check things.</li>
+    </ul>
 </li>
 </ul>
 """
@@ -657,6 +676,7 @@ def document(env: Environment,
     jenv.filters['st'] = lambda name: link_trailer(name, 'String')
     jenv.filters['it'] = lambda name: link_trailer(name, 'Int')
     jenv.filters['ft'] = lambda name: link_trailer(name, 'Float')
+    jenv.filters['ht'] = lambda name: link_trailer(name, 'Hoard')
     jenv.filters['bid'] = mangle_builtin_id
     jenv.filters['tid'] = mangle_trailer_id
 

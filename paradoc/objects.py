@@ -695,6 +695,8 @@ def pd_to_list_range(obj: PdObject, coerce_start: int = 0) -> Union[list, range]
         return range(coerce_start, coerce_start + obj.ord)
     elif isinstance(obj, int):
         return range(coerce_start, coerce_start + obj)
+    elif isinstance(obj, Hoard):
+        return obj.to_list()
     else:
         raise AssertionError(repr(obj) + " cannot be converted to list")
 
