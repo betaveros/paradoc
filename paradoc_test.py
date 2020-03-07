@@ -221,6 +221,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}e'), [9,10,12])
         self.assertEqual(pd_simple_eval('[2 3 5]ε7+}'), [9,10,12])
         self.assertEqual(pd_simple_eval('[2 3 5]ε7+'), [9,10,12])
+        self.assertEqual(pd_simple_eval('"abc")_e'), [Char('b'), Char('c'), Char('d')])
 
     def test_map(self):
         self.assertEqual(pd_simple_eval('[2 3 5]{7+}%'), [[9,10,12]])
@@ -236,6 +237,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2 3 5]:m'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]:_%'), [[2,2,3,3,5,5]])
         self.assertEqual(pd_simple_eval('[2 3 5]{:}_map'), [[2,2,3,3,5,5]])
+        self.assertEqual(pd_simple_eval('"abcde")_%'), ["bcdef"])
+        self.assertEqual(pd_simple_eval('"abcde")m'), ["bcdef"])
 
     def test_map_on(self):
         self.assertEqual(pd_simple_eval('"chopping block"»_ m'), ["hopping lock"])
@@ -268,6 +271,9 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('10,3%_bind_filter'), [[1,2,4,5,7,8]])
         self.assertEqual(pd_simple_eval('10,3%bf'), [[1,2,4,5,7,8]])
         self.assertEqual(pd_simple_eval('[1 3 7 5 0 9 2]φ5<'), [[1,3,0,2]])
+        self.assertEqual(pd_simple_eval('"abcde"{2%}+'), ["ace"])
+        self.assertEqual(pd_simple_eval('"abcde"{2%}f'), ["ace"])
+        self.assertEqual(pd_simple_eval('"abcde"{2%},'), [[0,2,4]])
 
     def test_builtin_reduce(self):
         self.assertEqual(pd_simple_eval('[5 7 8]{+}R'), [20])
@@ -408,6 +414,9 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ä'), [[3,5,8,14,20]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9 11]+ë'), [[1,3,5,8,13,16]])
         self.assertEqual(pd_simple_eval('[1 2 3 5 9][1 2]+ö'), [[2,4,4,7,10]])
+
+        self.assertEqual(pd_simple_eval('"01234""86420"+z'), ["hgfed"])
+        self.assertEqual(pd_simple_eval('"01234"[8 6 4 2 0]+z'), [[56,55,54,53,52]])
 
     def test_mask(self):
         self.assertEqual(pd_simple_eval('8,[1 0 0 1 0 1 1 0]€'), [[0,3,5,6]])

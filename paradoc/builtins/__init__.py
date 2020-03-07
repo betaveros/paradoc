@@ -452,9 +452,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     zip_cases = [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
         Case.seq2_range_block(lambda env, seq1, seq2, block:
-                [pd_zip(env, block,
-                    pd_deref_to_iterable(seq1),
-                    pd_deref_to_iterable(seq2))]),
+                [pd_zip(env, block, seq1, seq2)]),
     ]
     cput('Divmod_or_zip', ['‰', '%p'], [
         Case.number2(lambda env, a, b: [num.pd_intdiv(a, b), num.pd_mod(a, b)]),
@@ -1476,7 +1474,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     cput('Ziplongest', ['Zl'], [
         Case.seq2_range(lambda env, a, b: [pd_ziplongest_as_list(a, b)]),
-        Case.seq2_range_block(lambda env, a, b, block: [pd_ziplongest(env, block, pd_deref_to_iterable(a), pd_deref_to_iterable(b))]),
+        Case.seq2_range_block(lambda env, a, b, block: [pd_ziplongest(env, block, a, b)]),
     ],
             docs="""Zip two sequences (numbers coerce to ranges), returning a
             list of length-2 or (at indices between their lengths, if the

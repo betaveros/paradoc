@@ -687,10 +687,15 @@ def pynumber_length(x: PdValue) -> Union[int, float]:
         return x
 
 def pd_to_list_range(obj: PdObject, coerce_start: int = 0) -> Union[list, range]:
-    if isinstance(obj, (list, range)):
+    ir = pd_to_immutable_seq_range(obj)
+    if isinstance(ir, str):
+        return [Char(ord(c)) for c in ir]
+    else:
+        return ir
+
+def pd_to_immutable_seq_range(obj: PdObject, coerce_start: int = 0) -> PdImmutableSeq:
+    if isinstance(obj, (str, list, range)):
         return obj
-    elif isinstance(obj, str):
-        return [Char(ord(c)) for c in obj]
     elif isinstance(obj, Char):
         return range(coerce_start, coerce_start + obj.ord)
     elif isinstance(obj, int):
@@ -1284,11 +1289,14 @@ def pd_maybe_build_str(result: List[PdObject]) -> Union[str, list]:
     else:
         return result
 
-def pd_build_like(orig: PdSeq, result: List[PdObject]) -> Union[str, list]:
-    if isinstance(orig, str):
+def pd_build_like_all(origs: Iterable[PdSeq], result: List[PdObject]) -> Union[str, list]:
+    if all(isinstance(orig, str) for orig in origs):
         return pd_maybe_build_str(result)
     else: # includes list, Hoard
         return result
+
+def pd_build_like(orig: PdSeq, result: List[PdObject]) -> Union[str, list]:
+    return pd_build_like_all([orig], result)
 
 def pd_flatten_once(val: PdValue) -> PdImmutable:
     if isinstance(val, (Char, int, float, str, range)):
@@ -1944,8 +1952,9 @@ def pd_scan(env: Environment, func: Block, seq: PdSeq) -> List[PdObject]:
         res.append(acc)
     return res
 
-def pd_zip(env: Environment, func: Block, *iterables: Iterable[PdObject]) -> List[PdObject]:
-    arity = len(iterables)
+def pd_zip(env: Environment, func: Block, *seqs: PdSeq) -> PdImmutableSeq:
+    arity = len(seqs)
+    iterables = [pd_iterable(seq) for seq in seqs]
     for i in range(arity + 1):
         env.push_x("INTERNAL ZIP FILLER -- YOU SHOULD NOT SEE THIS")
     acc: List[PdObject] = []
@@ -1959,18 +1968,20 @@ def pd_zip(env: Environment, func: Block, *iterables: Iterable[PdObject]) -> Lis
             except PdContinueException: pass
     except PdBreakException: pass
     finally:
-        for i in range(len(iterables) + 1):
+        for i in range(arity + 1):
             env.pop_x()
-    return acc
+    return pd_build_like_all(seqs, acc)
 
-def pd_autozip(env: Environment, func: Block, obj: PdObject) -> List[PdObject]:
-    lst = pd_to_list_range(obj)
-    return pd_zip(env, func, lst, lst[1:])
+def pd_autozip(env: Environment, func: Block, obj: PdObject) -> PdImmutableSeq:
+    seq = pd_to_immutable_seq_range(obj)
+    return pd_zip(env, func, seq, seq[1:])
 
 def pd_ziplongest(env: Environment,
         func: Block,
-        iterable1: Iterable[PdObject],
-        iterable2: Iterable[PdObject]) -> PdObject:
+        seq1: PdSeq,
+        seq2: PdSeq) -> PdObject:
+    iterable1 = pd_iterable(seq1)
+    iterable2 = pd_iterable(seq2)
     for i in range(3):
         env.push_x("INTERNAL ZIP FILLER -- YOU SHOULD NOT SEE THIS")
     acc: List[PdObject] = []

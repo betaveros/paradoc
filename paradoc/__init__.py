@@ -14,7 +14,7 @@ from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Uni
 import itertools
 from paradoc.lex import is_nop_or_comment, is_trailer, lex_trailer, lex_trailers, lex_code, break_trailer, is_numeric_literal_token, name_trailer_dissections
 from paradoc.num import Char
-from paradoc.objects import Block, Hoard, BuiltIn, PdObject, Environment, PdSeq, PdEmptyStackException, PdExitException, PdBreakException, PdContinueException
+from paradoc.objects import Block, Hoard, BuiltIn, PdObject, Environment, PdSeq, PdImmutableSeq, PdEmptyStackException, PdExitException, PdBreakException, PdContinueException
 import paradoc.num as num
 import paradoc.objects as objects
 import paradoc.base as base
@@ -48,11 +48,11 @@ def simple_interpolate(env: Environment, content: str, target: str) -> str:
 
 def apply_pd_list_op(
         env: Environment, b: Block,
-        op: Callable[[Environment, Block, PdSeq], PdObject],
+        op: Callable[[Environment, Block, PdImmutableSeq], PdObject],
         coerce_start: int = 0,
         ) -> None:
 
-    lst = objects.pd_to_list_range(env.pop(), coerce_start)
+    lst = objects.pd_to_immutable_seq_range(env.pop(), coerce_start)
     env.push(op(env, b, lst))
 
 T = TypeVar('T')
@@ -132,7 +132,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="stable")
     def each_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def each_b(env: Environment) -> None:
-            lst = objects.pd_to_list_range(env.pop())
+            lst = objects.pd_to_immutable_seq_range(env.pop())
             objects.pd_foreach(env, b, lst)
         return (BuiltIn(b.code_repr() + "_each", each_b), False)
 
@@ -364,7 +364,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
     def xloop_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def xloop_b(env: Environment) -> None:
-            lst = objects.pd_to_list_range(env.pop())
+            lst = objects.pd_to_immutable_seq_range(env.pop())
             objects.pd_foreach_x_only(env, b, lst)
         return (BuiltIn(b.code_repr() + "_xloop", xloop_b), False)
 
@@ -378,8 +378,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="beta")
     def ziplongest_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def ziplongest_b(env: Environment) -> None:
-            lst_b = objects.pd_to_list_range(env.pop())
-            lst_a = objects.pd_to_list_range(env.pop())
+            lst_b = objects.pd_to_immutable_seq_range(env.pop())
+            lst_a = objects.pd_to_immutable_seq_range(env.pop())
             env.push(objects.pd_ziplongest(env, b, lst_a, lst_b))
         return (BuiltIn(b.code_repr() + "_ziplongest", ziplongest_b), False)
 
@@ -392,8 +392,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="beta")
     def zip_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def zip_b(env: Environment) -> None:
-            lst_b = objects.pd_to_list_range(env.pop())
-            lst_a = objects.pd_to_list_range(env.pop())
+            lst_b = objects.pd_to_immutable_seq_range(env.pop())
+            lst_a = objects.pd_to_immutable_seq_range(env.pop())
             env.push(objects.pd_zip(env, b, lst_a, lst_b))
         return (BuiltIn(b.code_repr() + "_zip", zip_b), False)
 
@@ -403,7 +403,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="alpha")
     def all_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def all_b(env: Environment) -> None:
-            lst = objects.pd_to_list_range(env.pop())
+            lst = objects.pd_to_list_range(env.pop()) # not immutable_seq, as '\0' is truthy
             env.push(int(all(
                 objects.pd_map(env, b, lst))))
         return (BuiltIn(b.code_repr() + "_all", all_b), False)
@@ -414,7 +414,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="alpha")
     def exists_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def exists_b(env: Environment) -> None:
-            lst = objects.pd_to_list_range(env.pop())
+            lst = objects.pd_to_list_range(env.pop()) # not immutable_seq, as '\0' is truthy
             env.push(int(any(
                 objects.pd_map(env, b, lst))))
         return (BuiltIn(b.code_repr() + "_exists", exists_b), False)
@@ -436,7 +436,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="alpha")
     def enumap_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def enumap_b(env: Environment) -> None:
-            lst_a = objects.pd_to_list_range(env.pop())
+            lst_a = objects.pd_to_immutable_seq_range(env.pop())
             env.push(objects.pd_zip(env, b, range(len(lst_a)), lst_a))
         return (BuiltIn(b.code_repr() + "_enumap", enumap_b), False)
 
@@ -450,8 +450,8 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="alpha")
     def loopzip_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def loopzip_b(env: Environment) -> None:
-            lst_b = objects.pd_to_list_range(env.pop())
-            lst_a = objects.pd_to_list_range(env.pop())
+            lst_b = objects.pd_to_immutable_seq_range(env.pop())
+            lst_a = objects.pd_to_immutable_seq_range(env.pop())
             env.push(objects.pd_loopzip(env, b, lst_a, lst_b))
         return (BuiltIn(b.code_repr() + "_loopzip", loopzip_b), False)
 
@@ -487,7 +487,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             stability="unstable")
     def boundary_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def boundary_b(env: Environment) -> None:
-            exc_result = []
+            exc_result: PdImmutableSeq = []
             try:
                 b(env)
             except PdBreakException: raise
@@ -685,10 +685,10 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
             if isinstance(last_arg, Block):
                 args = [env.pop()] + args[:-1]
                 env.push(objects.pd_zip(env, last_arg,
-                    *(objects.pd_to_list_range(e) for e in args)))
+                    *(objects.pd_to_immutable_seq_range(e) for e in args)))
             else:
                 env.push(objects.pd_zip_as_list(*(
-                    objects.pd_to_list_range(e) for e in args)))
+                    objects.pd_to_immutable_seq_range(e) for e in args)))
         return (BuiltIn(str(i) + "_zip", zip_i), False)
 
     @put("bits", "b",
@@ -1029,7 +1029,8 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             stability="unstable")
     def translate_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def translate_b(env: Environment) -> None:
-            env.push([h.get(key, 0) for key in objects.pd_to_list_range(env.pop())])
+            obj = objects.pd_to_immutable_seq_range(env.pop())
+            env.push(objects.pd_build_like(obj, [h.get(key, 0) for key in objects.pd_to_list_range(obj)]))
         return (BuiltIn(objects.pd_repr(h) + "_translate", translate_b), False)
 
     @put("k", docs="Get list of keys", stability="unstable")
