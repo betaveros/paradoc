@@ -364,7 +364,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Table', ['T'], [
         Case.seq2_range(lambda env, a, b: [pd_cartesian_product_seq_matrix(a, b)]),
         Case.seq2_range_block(lambda env, seq1, seq2, block:
-                [pd_map_product(env, block, seq1, seq2, flat=False)]),
+                [pd_map_cartesian_product(env, block, seq1, seq2, flat=False)]),
     ],
             docs="""On two sequences (numbers coerce to ranges), "structured"
             Cartesian product: make a "table", or a list of lists, of pairs of
@@ -836,7 +836,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             characters if a string) in the radix of the number and converts to
             a number. (See {{ 'B'|b }})""", stability="beta")
     product_map_case = Case.seq2_range_block(lambda env, seq1, seq2, block:
-            [pd_map_product(env, block, seq1, seq2, flat=True)])
+            [pd_map_cartesian_product(env, block, seq1, seq2, flat=True)])
     cput('Product_map', [], [product_map_case],
             docs="""Map over the Cartesian product of two sequences, resulting
             in a list. (See {{ 'B'|b }}.)""", stability="alpha")
@@ -1938,7 +1938,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Square', ['²'], [
         Case.number(lambda env, n: [num.pd_power_const(n, 2)]),
         Case.seq(lambda env, s: [pd_cartesian_product_seq_matrix(s, s)]),
-        Case.block_seq_range(lambda env, block, seq: [pd_map_product(env, block, seq, seq, flat=False)]),
+        Case.block_seq_range(lambda env, block, seq: [pd_map_cartesian_product(env, block, seq, seq, flat=False)]),
     ],
             docs="""Square a number, or compute the Cartesian product of a
             sequence with itself, or map a block across that.""",

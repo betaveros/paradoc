@@ -457,11 +457,19 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
     @put("mapsum", "š",
             docs="""Apply this block to each element of a list (coerces numbers
-            to ranges); sum the results.""",
+            to ranges); deeply sum the results.""",
             stability="alpha")
     def mapsum_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         return (BuiltIn(b.code_repr() + "_mapsum",
                 lambda env: apply_pd_list_op(env, b, objects.pd_mapsum)), False)
+
+    @put("mapproduct", "þ",
+            docs="""Apply this block to each element of a list (coerces numbers
+            to ranges); take the deep product of the results.""",
+            stability="alpha")
+    def mapproduct_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_mapproduct",
+                lambda env: apply_pd_list_op(env, b, objects.pd_map_numeric_product)), False)
 
     @put("max", "æ",
             docs="""Apply this block to each element of a list and return the

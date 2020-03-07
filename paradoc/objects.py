@@ -1719,7 +1719,7 @@ def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
             acc.append(e[::-1])
     return acc
 
-def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq, flat: bool) -> Union[list, str]:
+def pd_map_cartesian_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq, flat: bool) -> Union[list, str]:
     # Approximately: (f : a -> b -> c) -> (seq1 : [a]) -> (seq2 : [b]) -> [[c]]
     env.push_yx()
     outer: list = []
@@ -1752,18 +1752,14 @@ def pd_map_product(env: Environment, func: Block, seq1: PdSeq, seq2: PdSeq, flat
         return [pd_build_like(seq2, inner) for inner in outer]
 
 def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
-    env.push_yx()
-    acc: List[PdObject] = []
-    try:
-        for i, element in py_enumerate(seq):
-            env.set_yx(i, element)
-            try:
-                acc.extend(pd_sandbox(env, func, [element]))
-            except PdContinueException: pass
-    except PdBreakException: pass
-    finally:
-        env.pop_yx()
-    return sum(acc)
+    return sum(pd_deep_sum(r) for r in pd_map_iterable(env, func, pd_iterable(seq)))
+
+# as opposed to cartesian product
+def pd_map_numeric_product(env: Environment, func: Block, seq: PdSeq) -> PdObject:
+    p: Union[int, float] = 1
+    for r in pd_map_iterable(env, func, pd_iterable(seq)):
+        p *= pd_deep_product(r)
+    return p
 
 def pd_translate_entries(source: PdSeq, target: PdSeq) -> Generator[Tuple[PdKey, PdObject], None, None]:
     t0: Optional[PdObject] = None

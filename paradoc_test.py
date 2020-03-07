@@ -448,6 +448,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[3 4 5])š'), [15])
         self.assertEqual(pd_simple_eval('[3 4 5]²š'), [50])
 
+    def test_mapproduct(self):
+        self.assertEqual(pd_simple_eval('[3 4 5])þ'), [120])
+        self.assertEqual(pd_simple_eval('[3 4 5]²þ'), [3600])
+
     def test_conversions(self):
         self.assertEqual(pd_simple_eval('253S'), ['253'])
         self.assertEqual(pd_simple_eval('253F'), [253.0])
