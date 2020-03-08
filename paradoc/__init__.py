@@ -81,7 +81,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
     @put("reluctant", "", # will be called as a trailing _
             docs="""Make this block reluctant: push it instead of executing
             it.""",
-            stability="beta")
+            stability="stable")
     def make_reluctant(env: Environment, b: Block) -> Tuple[Block, bool]:
         return (b, True)
 
@@ -116,7 +116,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             ex:
             1 8 )d => 2 9
             1 2 8 9 +d => 3 17""",
-            stability="alpha")
+            stability="beta")
     def double_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def double_b(env: Environment) -> None:
             shadow = env.bracketed_shadow()
@@ -325,7 +325,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
             Sort of a reversed {{ 'bindmap'|bt }}. Mnemonic: y looks like a
             modified v, for vectorize.""",
-            stability="alpha")
+            stability="beta")
     def mapbind_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def mapbind_b(env: Environment) -> None:
             x = env.pop()
@@ -360,7 +360,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
 
             See also {{ '*'|b }}.
             """,
-            stability="beta")
+            stability="stable")
 
     def xloop_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
         def xloop_b(env: Environment) -> None:
