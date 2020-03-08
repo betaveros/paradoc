@@ -1015,7 +1015,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.list_(lambda env, x: [pd_to_sorted(x)[len(x)//2]]),
         Case.str_(lambda env, s: [Char(sorted(s)[len(s)//2])]),
     ], docs="Median of array", stability="alpha")
-    cput('Compare', ['=c', '˜'], [
+    cput('Compare', ['Co', '˜'], [
         Case.number2(lambda env, a, b: [num.pd_num_cmp(a, b)]),
         Case.str2(lambda env, a, b: [num.any_cmp(a, b)]),
         Case.list2(lambda env, a, b: [num.any_cmp(pd_to_list(a), pd_to_list(b))]),
@@ -1154,6 +1154,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             docs="""Right cycle a list or string by some number of elements,
             which are cut off the right and reattached to the left.""",
+            stability="unstable")
+
+    cput('Index_cyclically', ['=c'], [
+        Case.number_seq(lambda env, n, seq: [pd_index(seq, num.intify(n) % len(seq))]),
+    ],
+            docs="""Index into a list cyclically, by taking the index mod the
+            length of the list.""",
             stability="unstable")
 
     cput('Left_cycle_one', ['<o'], [
