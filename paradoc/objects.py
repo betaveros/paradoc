@@ -90,6 +90,12 @@ class Hoard:
         else:
             raise TypeError("Hoard is dictionary; appending is not allowed")
 
+    def extend(self, obj: "PdObject") -> None:
+        if isinstance(self.structure, (list, collections.deque)):
+            self.structure.extend(pd_to_list_range(obj))
+        else:
+            raise TypeError("Hoard is dictionary; extending is not allowed")
+
     def pop(self) -> "PdObject":
         if isinstance(self.structure, (list, collections.deque)):
             return self.structure.pop()

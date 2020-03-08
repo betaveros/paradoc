@@ -909,6 +909,12 @@ def build_hoard_trailer_dict() -> Dict[str, Trailer[Hoard]]: # {{{
             env.push(h.pop())
         return (BuiltIn(objects.pd_repr(h) + "_pop", pop_b), False)
 
+    @put("extend", "x", docs="Extend (with a sequence, to the right).", stability="unstable")
+    def extend_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
+        def extend_b(env: Environment) -> None:
+            h.extend(env.pop())
+        return (BuiltIn(objects.pd_repr(h) + "_extend", extend_b), False)
+
     @put("appendleft", "appendback", "b", docs="Append to the left, aka back.", stability="alpha")
     def appendleft_trailer(outer_env: Environment, h: Hoard) -> Tuple[Block, bool]:
         def appendleft_b(env: Environment) -> None:
