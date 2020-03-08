@@ -2240,6 +2240,23 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     )],
             stability="beta")
     # }}}
+    # adjacencies {{{
+    cput('Orthogonal_neighbors', ['+n'], [
+        Case.value(lambda env, x: [pd_orthogonal_neighbors(x)]),
+    ],
+            docs="""Return a list of almost-copies of the object, two per deep
+            element, one with that deep element decreased by 1 and one with it
+            increased by 1.""",
+            stability="unstable")
+
+    cput('King_neighbors', ['*n'], [
+        Case.value(lambda env, x: [pd_king_neighbors(x)]),
+    ],
+            docs="""Return a list of almost-copies of the object, every variant
+            obtainable by modifying each deep element by -1, 0, or 1, except
+            for the original object itself.""",
+            stability="unstable")
+    # }}}
     # Number theory (primes etc) {{{
     cput('Is_prime', ['Pp', '¶'], [
         Case.value_n2v(discrete.is_prime_as_int),

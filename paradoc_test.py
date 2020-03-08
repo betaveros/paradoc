@@ -254,6 +254,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2][3 4]*_B'), [[3,4,6,8]])
         self.assertEqual(pd_simple_eval('[1 2]*_²'), [[[1,2],[2,4]]])
 
+    def test_neighbors(self):
+        self.assertEqual(pd_simple_eval('[1 2]+n'), [[[0,2],[2,2],[1,1],[1,3]]])
+        self.assertEqual(pd_simple_eval('[1 2]*n'), [[[0,1],[0,2],[0,3],[1,1],[1,3],[2,1],[2,2],[2,3]]])
+
     def test_bind(self):
         self.assertEqual(pd_simple_eval('10,3%bf'), [[1,2,4,5,7,8]])
         self.assertEqual(pd_simple_eval('[1 2 3] 100 +v'), [[101,102,103]])

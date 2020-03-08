@@ -1,7 +1,7 @@
 # coding: utf-8
 import typing
 from typing import (
-        Callable, Dict, Deque, Generator, Match, Iterable, Iterator, List,
+        Any, Callable, Dict, Deque, Generator, Match, Iterable, Iterator, List,
         Optional, Set, Tuple, TypeVar, Union, overload,
         )
 import sys
@@ -1566,6 +1566,79 @@ def pd_transpose_fill(matrix: PdSeq, filler: PdObject) -> List[list]:
             res[i].append(filler)
             i += 1
     return res
+
+@overload
+def pd_orthogonal_neighbors(obj: Union[list, range]) -> List[list]: ...
+@overload
+def pd_orthogonal_neighbors(obj: PdObject) -> list: ...
+
+def pd_orthogonal_neighbors(obj: PdObject) -> list:
+    """Return a list of almost-copies of the object, two per deep element, one
+    with that deep element decreased by 1 and one with it increased by 1."""
+
+    if isinstance(obj, Block):
+        raise TypeError('Cannot compute neighbors of block ' + repr(obj))
+    if isinstance(obj, (Char, int, float)):
+        return [num.pd_add_const(obj, -1), num.pd_add_const(obj, 1)]
+    elif len(obj) == 0:
+        return []
+    elif isinstance(obj, str):
+        # type juggling is actually kind of annoying, just doing it explicitly
+        return [
+            obj[:i] + chr(ord(ch) + delta) + obj[i+1:]
+            for i, ch in enumerate(obj)
+            for delta in [-1, 1]
+        ]
+    else:
+        xs = pd_to_list(obj)
+
+        ret = []
+        for neighbor in pd_orthogonal_neighbors(xs[0]):
+            ret.append([neighbor] + xs[1:])
+        for neighbor in pd_orthogonal_neighbors(xs[1:]):
+            ret.append([xs[0]] + neighbor)
+        return ret
+
+@overload
+def pd_king_neighbors_and_self(obj: Union[list, range]) -> List[Tuple[bool, list]]: ...
+@overload
+def pd_king_neighbors_and_self(obj: PdObject) -> List[Tuple[bool, Any]]: ...
+
+def pd_king_neighbors_and_self(obj: PdObject) -> List[Tuple[bool, Any]]:
+    """Return a list of almost-copies of the object, every variant obtainable
+    by modifying each deep element by -1, 0, or 1, tagged with True if a
+    nonzero modification was made.."""
+
+    if isinstance(obj, Block):
+        raise TypeError('Cannot compute neighbors of block ' + repr(obj))
+    if isinstance(obj, (Char, int, float)):
+        return [
+            (True, num.pd_add_const(obj, -1)),
+            (False, obj),
+            (True, num.pd_add_const(obj, 1)),
+        ]
+    elif len(obj) == 0:
+        return [(False, obj)]
+    elif isinstance(obj, str):
+        # type juggling is actually kind of annoying, just doing it explicitly
+        return [
+            (any(deltas), ''.join(chr(ord(ch) + delta) for ch, delta in zip(obj, deltas)))
+            for deltas in itertools.product([-1, 0, 1], repeat=len(obj))
+        ]
+    else:
+        xs = pd_to_list(obj)
+
+        return [
+            (tag or tag2, [neighbor] + neighbors)
+            for tag, neighbor in pd_king_neighbors_and_self(xs[0])
+            for tag2, neighbors in pd_king_neighbors_and_self(xs[1:])
+        ]
+
+def pd_king_neighbors(obj: PdObject) -> List[PdObject]:
+    """Return a list of almost-copies of the object, every variant obtainable
+    by modifying each deep element by -1, 0, or 1, except for the original
+    object itself."""
+    return [neighbor for tag, neighbor in pd_king_neighbors_and_self(obj) if tag]
 # }}}
 # pd_find_entry et al. (wow code duplication much) {{{
 def pd_find_index(env: Environment, needle: PdObject, haystack: PdSeq) -> int:
