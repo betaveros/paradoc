@@ -199,6 +199,7 @@ class TestParadoc(unittest.TestCase):
 
     def test_indexing(self):
         self.assertEqual(pd_simple_eval('[3 7 2 5]0=q;1=q;3=q;1m='), [3,7,5,5])
+        self.assertEqual(pd_simple_eval('[3 7 2 5]8=cq;6m=cq;13=c'), [3,2,7])
 
     def test_slices(self):
         self.assertEqual(pd_simple_eval('[3 7 2 5]1<q>'), [[3],[7,2,5]])
@@ -729,6 +730,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[4 3 2 1]Hr H›'), [1])
         self.assertEqual(pd_simple_eval('[4 3 2 1]Hr H»'), [[3,2,1]])
         self.assertEqual(pd_simple_eval('[4 3 2 1]Hr 3 Hh 4 Hh'), [1,0])
+        self.assertEqual(pd_simple_eval('[]Hr [3 4]Hx [5 6]Hx Hl'), [[3,4,5,6]])
 
     def test_hoard_as_dictionary(self):
         self.assertEqual(pd_simple_eval('[]Hr 2 3 Hu 5 7 Hu 2 H='), [3])
