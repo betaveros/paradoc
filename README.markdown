@@ -23,7 +23,7 @@ Print Fibonacci numbers from 0 to 89, separated by spaces:
 
     _space 0 1 10 +_keep_xloop .. Expanded version
 
-For some longer examples, which demonstrate how Paradoc enables golfing fairly large and complex programs, see some golfed solutions I wrote for [Advent of Code 2018](https://github.com/betaveros/advent-of-code-golf-2018) as well as my submission in the [Day 20 contest](https://kara71.github.io/Advent-of-Golf-2018/). **NOTE** that these programs were written for Paradoc v0.2.15, and probably do not work on the current version of Paradoc.
+For some longer examples, which demonstrate how Paradoc enables golfing fairly large and complex programs, see some golfed solutions I wrote for [Advent of Code 2018](https://github.com/betaveros/advent-of-code-golf-2018) as well as my submission in the [Day 20 contest](https://blog.h25.io/Advent-of-Golf-2018/). **NOTE** that these programs were written for Paradoc v0.2.15, and probably do not work on the current version of Paradoc.
 
 Usage
 =====
