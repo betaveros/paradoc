@@ -632,8 +632,8 @@ class TestParadoc(unittest.TestCase):
     def test_random(self):
         self.assertEqual(pd_simple_eval('0 Random_seed RfRfRf'),
                 [0.8444218515250481, 0.7579544029403025, 0.420571580830845])
-        self.assertEqual(pd_simple_eval('0 Random_seed RgRgRg'),
-                [0.9417154046806644, -1.39657810470115, -0.6797144480784211])
+        self.assertEqual(pd_simple_eval('0 Random_seed Rg'),
+                [0.9417154046806644])
         self.assertEqual(pd_simple_eval('0 Random_seed {5Ri}5*'), [3,3,0,2,4])
         self.assertEqual(pd_simple_eval('0 Random_seed {[2 5 3]Rc}5*'), [5,5,2,5,3])
 
