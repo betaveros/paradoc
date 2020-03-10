@@ -1,5 +1,5 @@
 # coding: utf-8
-from paradoc import lex_code, pd_simple_eval
+from paradoc import lex_code, pd_simple_eval, autogolf
 from paradoc.num import Char
 import unittest
 import math
@@ -42,6 +42,15 @@ class TestParadoc(unittest.TestCase):
 
     def test_numeric_literals(self):
         self.assertEqual(pd_simple_eval('555 .5 0.5 .3125 —5 —.5 —0.5'), [555, 0.5, 0.5, 0.3125, -5, -0.5, -0.5])
+
+    def test_autogolf(self):
+        self.assertEqual(autogolf('A B C D'), 'ABCD')
+        self.assertEqual(autogolf('.. comment'), '')
+        self.assertEqual(autogolf('1 2 3'), '1 2 3')
+        self.assertEqual(autogolf('0 1 2'), '01 2')
+        self.assertEqual(autogolf('1m 2m 3m'), '1m2m3m')
+        self.assertEqual(autogolf('3 4 Plus'), '3 4+')
+        self.assertEqual(autogolf('5 To_string'), '5S')
 
     def test_assignment(self):
         self.assertEqual(pd_simple_eval('123.Tst;Tst Tst+ 123—Test Test Test+ 129.**+ 129—///+', use_cache=False), [246,246,258,258])

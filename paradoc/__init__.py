@@ -1463,8 +1463,10 @@ def autogolf(code: str) -> str:
             or is_numeric_literal_token(token) or token.startswith('.') or token.startswith('—')
             ):
             # can't do much
-            if ret and ret[-1] and ret[-1][-1].isnumeric() and token0[0].isnumeric():
-                ret.append(' ')
+            if ret:
+                last_token = ret[-1]
+                if last_token and last_token[-1].isnumeric() and last_token != '0' and token0[0].isnumeric():
+                    ret.append(' ')
             ret.append(token0)
         else:
             val: Optional[PdObject] = None
