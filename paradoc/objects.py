@@ -31,9 +31,11 @@ class BuiltIn(Block):
             func: Callable[['Environment'], None],
             aliases: Optional[List[str]] = None,
             docs: Optional[str] = None,
-            stability: str = "unknown") -> None:
+            stability: str = "unknown",
+            golf_aliases: Optional[List[str]] = None) -> None:
         self.name = name
         self.aliases: List[str] = aliases or [name]
+        self.golf_aliases: List[str] = golf_aliases or []
         self.func = func
         self.docs = docs
         self.stability = stability
@@ -1360,11 +1362,13 @@ def pd_flatten(val: PdValue) -> PdImmutable:
         else:
             return acc
 
-def pd_flatten_to_int_generator(val: PdValue) -> Generator[int, None, None]:
-    if isinstance(val, (Char, int, float)):
+def pd_flatten_to_int_char_generator(val: PdValue) -> Generator[Union[int, Char], None, None]:
+    if isinstance(val, (Char, int)):
+        yield val
+    elif isinstance(val, float):
         yield num.intify(val)
     elif isinstance(val, str):
-        yield from (ord(c) for c in val)
+        yield from (Char(c) for c in val)
     elif isinstance(val, range):
         yield from val
     else: # list/Hoard
@@ -1372,8 +1376,11 @@ def pd_flatten_to_int_generator(val: PdValue) -> Generator[int, None, None]:
             val = val.to_list()
         for e in val:
             if isinstance(e, Block):
-                raise TypeError("Cannot flatten block to ints")
-            yield from pd_flatten_to_int_generator(e)
+                raise TypeError("Cannot flatten block to int/char")
+            yield from pd_flatten_to_int_char_generator(e)
+
+def pd_flatten_to_int_generator(val: PdValue) -> Generator[int, None, None]:
+    return (num.intify(x) for x in pd_flatten_to_int_char_generator(val))
 
 def pd_group_by_function(seq: PdSeq, proj: Callable[[PdObject], PdObject]) -> list:
     result = []

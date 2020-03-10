@@ -595,6 +595,13 @@ p.stable { color: #0a0; }
 {%- endfor %}
 </p>
 {% endif %}
+{% if var.golf_aliases %}
+<p class="aliases">Golf as:
+{% for alias in var.golf_aliases -%}
+{{ alias|b }}{%- if not loop.last -%}, {% endif -%}
+{%- endfor %}
+</p>
+{% endif %}
 {{ var.docs }}
 {% if var.value %}
 <p class="const">{{ var.type }} constant with value <code>{{ var.value }}</code></p>
@@ -705,6 +712,7 @@ def document(env: Environment,
     data = []
     for name, obj in sorted(env.vars.items()):
         aliases = [alias for alias in getattr(obj, 'aliases', []) if alias != name]
+        golf_aliases = getattr(obj, 'golf_aliases', [])
         docs = getattr(obj, 'docs', None) or env.var_docs.get(name) or ''
         stability = getattr(obj, 'stability', None) or env.var_stability.get(name) or 'unknown'
 
@@ -715,6 +723,7 @@ def document(env: Environment,
             'stability_index': stability_index,
             'docs': render_docs(docs),
             'aliases': aliases,
+            'golf_aliases': golf_aliases,
         }
 
         if isinstance(obj, int):

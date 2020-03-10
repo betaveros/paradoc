@@ -88,8 +88,8 @@ def lift_numerify(f: Callable[[Num, Num], Num]) -> Callable[[PdNum, PdNum], PdNu
             return f(numerify(a), numerify(b))
     return inner
 
-def lift_intify(f: Callable[[int, int], int]) -> Callable[[PdNum, PdNum], PdNum]:
-    def inner(a: PdNum, b: PdNum) -> PdNum:
+def lift_intify(f: Callable[[int, int], int]) -> Callable[[PdNum, PdNum], Union[int, Char]]:
+    def inner(a: PdNum, b: PdNum) -> Union[int, Char]:
         if isinstance(a, Char) and isinstance(b, Char):
             return Char(f(a.ord, b.ord))
         else:

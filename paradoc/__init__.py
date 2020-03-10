@@ -21,6 +21,7 @@ import paradoc.base as base
 import paradoc.input_triggers as input_triggers
 from paradoc.trailer import TrailerFunc, Trailer
 from paradoc.builtins import initialize_builtins
+from paradoc.builtins.case import CasedBuiltIn
 from paradoc.builtins.acutegrave import ag_convert, ag_document
 import sys
 import argparse
@@ -1447,6 +1448,41 @@ def list_builtins(name_filter: Callable[[str], bool]) -> None:
         if name_filter(name):
             print(name, repr(obj))
 
+def autogolf(code: str) -> str:
+    ret: List[str] = []
+    started = False
+    env = initialized_environment(sandboxed=True, debug=True)
+    for token0 in lex_code(code):
+        if is_nop_or_comment(token0): continue
+
+        token, trailer = break_trailer(token0)
+
+        if (
+            is_trailer(token) or token.startswith('"') or token.startswith("'")
+            or token.startswith('{') or token.startswith('}') or token in block_starters
+            or is_numeric_literal_token(token) or token.startswith('.') or token.startswith('—')
+            ):
+            # can't do much
+            if ret and ret[-1] and ret[-1][-1].isnumeric() and token0[0].isnumeric():
+                ret.append(' ')
+            ret.append(token0)
+        else:
+            val: Optional[PdObject] = None
+            trailer_tokens = None
+            for name, ts in name_trailer_dissections(token, trailer):
+                val = env.get_or_none(name)
+                if val is not None:
+                    trailer_tokens = ts
+                    break
+            if (isinstance(val, BuiltIn) or isinstance(val, CasedBuiltIn)) and trailer_tokens is not None:
+                # sys.stderr.write(str(val))
+                ret.append(min([val.name] + val.aliases + val.golf_aliases, key=len) + ''.join(trailer_tokens))
+            else:
+                # give up, maybe it's a constant or hoard, maybe it's a custom
+                # variable
+                ret.append(token0)
+    return ''.join(ret)
+
 def main() -> None:
     # code = "3 4+"
     # code = "Eval Pack Uncons Range"
@@ -1460,6 +1496,7 @@ def main() -> None:
             help='Paradoc expression to execute')
     parser.add_argument('--docs', action='store_true')
     parser.add_argument('--version', action='store_true')
+    parser.add_argument('--autogolf', action='store_true')
     parser.add_argument('--list-builtins', action='store_true')
     parser.add_argument('--list-short-builtins', action='store_true')
     parser.add_argument('--no-debug', default=True, action='store_false',
@@ -1517,18 +1554,21 @@ def main() -> None:
         elif args.prog_file is not None:
             if args.prog_file.endswith('.cp1252.prdc'):
                 with codecs.open(args.prog_file, 'r', 'cp1252') as cp1252_prog_file:
-                    main_with_code(cp1252_prog_file.read(),
-                            sandboxed=args.sandboxed, debug=args.debug)
+                    source = cp1252_prog_file.read()
             elif args.prog_file.endswith('.enc.prdc'):
                 import paradoc.codepage
                 with codecs.open(args.prog_file, 'rb') as prdc_prog_file:
-                    main_with_code(
-                            codecs.decode(prdc_prog_file.read(), 'paradoc'), # type: ignore
-                            sandboxed=args.sandboxed, debug=args.debug)
+                    source = codecs.decode(prdc_prog_file.read(), 'paradoc'), # type: ignore
             else:
                 with open(args.prog_file, 'r') as prog_file:
-                    main_with_code(prog_file.read(),
-                            sandboxed=args.sandboxed, debug=args.debug)
+                    source = prog_file.read()
+
+            if args.autogolf:
+                print(autogolf(source))
+            else:
+                main_with_code(source, sandboxed=args.sandboxed, debug=args.debug)
+        elif args.autogolf:
+            print(autogolf(sys.stdin.read()))
         else:
             paradoc_repl(sandboxed=args.sandboxed, debug=args.debug)
     except PdExitException as e:

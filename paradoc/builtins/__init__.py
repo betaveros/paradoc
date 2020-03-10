@@ -37,9 +37,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             extra_names: List[str],
             cases: List[Case],
             docs: Optional[str] = None,
-            stability: str = "unstable") -> None:
+            stability: str = "unstable",
+            golf_aliases: Optional[List[str]] = None) -> None:
         builtin = CasedBuiltIn(name, cases, aliases = [name] + extra_names,
-                docs=docs, stability=stability)
+                docs=docs, stability=stability, golf_aliases=golf_aliases)
         env.put(name, builtin, fail_if_overwrite=True)
         for xname in extra_names: env.put(xname, builtin, fail_if_overwrite=True)
 
@@ -311,10 +312,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cat_list_case = Case.list2_singleton(lambda env, a, b: [pd_to_list(a) + pd_to_list(b)])
     strcat_list_case = Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)])
     filter_case = Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq)])
-    cput('Plus', [], [add_case], docs="Add numbers.", stability="stable")
-    cput('Cat', [], [cat_list_case], docs="Concatenate two lists (numbers coerce to single-element lists).", stability="stable")
-    cput('Strcat', [], [strcat_list_case], docs="Concatenate two strings (numbers coerce to strings).", stability="stable")
-    cput('Filter', [], [filter_case], docs="Filter a list by a block (numbers coerce to ranges).", stability="stable")
+    cput('Plus', [], [add_case], docs="Add numbers.", stability="stable", golf_aliases=['+'])
+    cput('Cat', [], [cat_list_case], docs="Concatenate two lists (numbers coerce to single-element lists).", stability="stable", golf_aliases=['+'])
+    cput('Strcat', [], [strcat_list_case], docs="Concatenate two strings (numbers coerce to strings).", stability="stable", golf_aliases=['+'])
+    cput('Filter', [], [filter_case], docs="Filter a list by a block (numbers coerce to ranges).", stability="stable", golf_aliases=['+'])
     cput('Plus_or_filter', ['+'], [add_case, cat_list_case, strcat_list_case, filter_case],
             docs="""Addition on numbers. Concatenation on lists and strings
             (numbers coerce to single-element lists or to strings). Filter on
@@ -340,16 +341,21 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     minus_case = Case.number2(lambda env, a, b: [num.pd_sub(a, b)])
     reject_in_case = Case.seq2_singleton(lambda env, a, b: [pd_seq_difference(a, b)])
     reject_case = Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq, negate=True)])
-    cput('Minus', [], [minus_case], docs="Subtract numbers.", stability="stable")
+    cput('Minus', [], [minus_case], docs="Subtract numbers.", stability="stable", golf_aliases=['-'])
     cput('Filter_not_in', ['Reject_in'], [reject_in_case],
-            docs="Filter-not-in on lists and strings (numbers coerce to single-element lists).", stability="stable")
+            docs="Filter-not-in on lists and strings (numbers coerce to single-element lists).",
+            stability="stable",
+            golf_aliases=['-'])
     cput('Filter_not', ['Reject'], [reject_case],
-            docs="Filter-not a list by a block (numbers coerce to ranges).", stability="stable")
+            docs="Filter-not a list by a block (numbers coerce to ranges).",
+            stability="stable"
+            ,golf_aliases=['-'])
     cput('Minus_or_reject', ['-'], [minus_case, reject_in_case, reject_case],
             docs="""Subtraction on numbers. Filter-not-in on lists and strings
             (numbers coerce to single-element lists). Filter-not on block and
             list (numbers coerce to ranges). See also {{ 'Antiminus'|b }}.""",
-            stability="stable")
+            stability="stable",
+            golf_aliases=['-'])
 
     cput('Antiminus', ['¯'], [
         Case.number2(lambda env, a, b: [num.pd_sub(b, a)]),
@@ -595,9 +601,9 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     to_int_case    = Case.value(lambda env, a: [pd_to_int(a)])
     to_string_case = Case.value(lambda env, a: [env.pd_str(a)])
 
-    cput('To_char',   [   ], [to_char_case  ], docs="Convert to char",   stability="beta")
-    cput('To_float',  [   ], [to_float_case ], docs="Convert to float",  stability="beta")
-    cput('To_int',    [   ], [to_int_case   ], docs="Convert to int",    stability="beta")
+    cput('To_char',   [   ], [to_char_case  ], docs="Convert to char",   stability="beta", golf_aliases=['C'])
+    cput('To_float',  [   ], [to_float_case ], docs="Convert to float",  stability="beta", golf_aliases=['F'])
+    cput('To_int',    [   ], [to_int_case   ], docs="Convert to int",    stability="beta", golf_aliases=['I'])
     cput('To_string', ['S'], [to_string_case], docs="Convert to string", stability="beta")
 
     peekdo_case      = Case.block(lambda env, body: pd_do_then_empty_list(env, body, peek=True))
@@ -607,18 +613,21 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Peekdo', [], [peekdo_case],
             docs="""Like {{ 'Doloop'|b }} except the condition is peeked
             instead of popped.""",
-            stability="beta")
+            stability="beta",
+            golf_aliases=['D'])
     cput('Fixed_point', [], [fixed_point_case],
             docs="""Iterate a block, peeking at the stack between iterations,
             until a value repeats. Pushes that value. (This is more general
             than a "fixed point" as usually defined since it doesn't require a
             value to repeat after just one iteration.)""",
-            stability="alpha")
+            stability="alpha",
+            golf_aliases=['F'])
     cput('Iterate', [], [iterate_case],
             docs="""Iterate a block, peeking at the stack between iterations,
             until a value repeats. Pushes all values peeked until (excluding)
             the repeated value.""",
-            stability="unstable")
+            stability="unstable",
+            golf_aliases=['I'])
 
     cput('To_char_or_peekloop', ['C'], [to_char_case, peekdo_case],
             docs="""On a non-block value, {{ 'To_char'|b }}; on a block,
@@ -646,7 +655,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Sort', [], [
         Case.seq(lambda env, s: [pd_sort(s)]),
         Case.block_seq_range(lambda env, f, s: [pd_sort(s, (env, f))]),
-    ], docs="Sort", stability="stable")
+    ], docs="Sort", stability="stable", golf_aliases=['$'])
     cput('Sort_or_stack_select', ['$'], [
         Case.number(lambda env, n: [env.index_stack(int(n))]),
         Case.seq(lambda env, s: [pd_sort(s)]),
@@ -669,20 +678,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # Range/enumerate/flatten; Comma, J {{{
     range_case = Case.number(lambda env, n: [range(num.intify(n))])
     cput('Range', [], [range_case],
-            docs="Range (half-open from 0). Short: {{ ','|b }}", stability="beta")
+            docs="Range (half-open from 0).", stability="beta",
+            golf_aliases=[','])
     range_one_case = Case.number(lambda env, n: [range(1, num.intify(n) + 1)])
     cput('Range_one', [], [range_one_case],
-            docs="Range, inclusive from 1. Short: {{ 'J'|b }}", stability="beta")
+            docs="Range, inclusive from 1. ", stability="beta",
+            golf_aliases=['J'])
 
     enumerate_case = Case.seq(lambda env, seq: [pd_enumerate(seq)])
     cput('Enumerate', [], [enumerate_case],
-            docs="Zip with indices from 0. Short: {{ ','|b }}", stability="beta")
+            docs="Zip with indices from 0.", stability="beta",
+            golf_aliases=[','])
     enumerate_one_case = Case.seq(lambda env, seq: [pd_enumerate(seq, start=1)])
     cput('Enumerate_one', [], [enumerate_one_case],
-            docs="Zip with indices from 1. Short: {{ 'J'|b }}", stability="beta")
+            docs="Zip with indices from 1.", stability="beta",
+            golf_aliases=['J'])
     filter_indexes_case = Case.block_seq_range(lambda env, block, seq: [pd_filter_indexes(env, block, seq)])
     cput('Filter_indexes', [], [filter_indexes_case],
-            docs="List indices at which block is true. Short: {{ ','|b }}", stability="beta")
+            docs="List indices at which block is true. Short: {{ ','|b }}", stability="beta",
+            golf_aliases=[','])
 
     cput('Range_enumerate_or_filter_indices', [','], [
         range_case,
@@ -834,12 +848,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             digits in the radix of the second. On a list or a string and a
             number, interprets the sequence as digits (numbers if a list, digit
             characters if a string) in the radix of the number and converts to
-            a number. (See {{ 'B'|b }})""", stability="beta")
+            a number.""", stability="beta",
+            golf_aliases=['B'])
     product_map_case = Case.seq2_range_block(lambda env, seq1, seq2, block:
             [pd_map_cartesian_product(env, block, seq1, seq2, flat=True)])
     cput('Product_map', [], [product_map_case],
             docs="""Map over the Cartesian product of two sequences, resulting
-            in a list. (See {{ 'B'|b }}.)""", stability="alpha")
+            in a list.""", stability="alpha",
+            golf_aliases=['B'])
     cput('Base_or_product_map', ['B'], base_cases + [product_map_case],
             docs="""{{ 'Base'|b }} or {{ 'Product_map'|b }} (mnemonic: Bi-map,
             mapping over two things at once. Note that the result is a
@@ -1081,10 +1097,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     right_shift_case = Case.number2(lambda env, a, b: [num.pd_rshift(a, b)])
     cput('Left_shift', [], [left_shift_case],
             docs="""Bitwise left shift""",
-            stability="beta")
+            stability="beta",
+            golf_aliases=['<s'])
     cput('Right_shift', [], [right_shift_case],
             docs="""Bitwise right shift""",
-            stability="beta")
+            stability="beta",
+            golf_aliases=['>s'])
     nonempty_left_slices_case  = Case.seq_deref(
             lambda env, seq: [[seq[:n+1] for n in range(len(seq))]])
     nonempty_right_slices_case = Case.seq_deref(
@@ -1101,10 +1119,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     cput('Left_slices', [], [nonempty_left_slices_case],
             docs="""Left slices (nonempty, by increasing length)""",
-            stability="alpha")
+            stability="alpha",
+            golf_aliases=['<s'])
     cput('Right_slices', [], [nonempty_right_slices_case],
             docs="""Right slices (nonempty, by increasing length)""",
-            stability="alpha")
+            stability="alpha",
+            golf_aliases=['>s'])
 
     cput('Left_shift_or_slices', ['<s'], [
         nonempty_left_slices_case, left_shift_case,
@@ -1217,32 +1237,36 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     decr2_case = case_add_const(-2)
     incr2_case = case_add_const(2)
 
-    cput('Decr',     [], [decr_case ], docs="Decrease by 1.", stability="beta")
-    cput('Incr',     [], [incr_case ], docs="Increase by 1.", stability="beta")
-    cput('Decr_two', [], [decr2_case], docs="Decrease by 2.", stability="beta")
-    cput('Incr_two', [], [incr2_case], docs="Increase by 2.", stability="beta")
+    cput('Decr',     [], [decr_case ], docs="Decrease by 1.", stability="beta", golf_aliases=['('])
+    cput('Incr',     [], [incr_case ], docs="Increase by 1.", stability="beta", golf_aliases=[')'])
+    cput('Decr_two', [], [decr2_case], docs="Decrease by 2.", stability="beta", golf_aliases=['«'])
+    cput('Incr_two', [], [incr2_case], docs="Increase by 2.", stability="beta", golf_aliases=['»'])
 
     uncons_case = Case.seq(lambda env, a: [pd_butfirst(a), pd_first(a)])
     cput('Uncons', [], [uncons_case],
             docs="""Split into tail and first.
 
-            ex: [1 2 3]Uncons => [2 3]1""", stability="beta")
+            ex: [1 2 3]Uncons => [2 3]1""", stability="beta",
+            golf_aliases=['('])
     unsnoc_case = Case.seq(lambda env, a: [pd_butlast(a), pd_last(a)])
     cput('Unsnoc', [], [unsnoc_case],
             docs="""Split into init and last.
 
-            ex: [1 2 3]Uncons => [1 2]3""", stability="beta")
+            ex: [1 2 3]Uncons => [1 2]3""", stability="beta",
+            golf_aliases=[')'])
     modify_first_case = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, pd_deref(seq), 0)])
     modify_last_case  = Case.block_seq_range(lambda env, b, seq: [pd_modify_index(env, b, pd_deref(seq), -1)])
 
     cput('Modify_first', [], [modify_first_case],
             docs="""Run a block over the first element of a list, then replace
             it in the list with the result.""",
-            stability="beta")
+            stability="beta",
+            golf_aliases=['('])
     cput('Modify_last', [], [modify_last_case],
             docs="""Run a block over the last element of a list, then replace
             it in the list with the result.""",
-            stability="beta")
+            stability="beta",
+            golf_aliases=[')'])
 
     cput('Decr_or_uncons_or_modify_first', ['('],
             [decr_case, uncons_case, modify_first_case],
@@ -1261,8 +1285,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     butfirst_case = Case.seq(lambda env, a: [pd_butfirst(a)])
     first_and_last_case = Case.seq(lambda env, a: [pd_index(a, 0), pd_index(a, -1)])
 
-    cput('First',    [], [first_case], docs="First of sequence", stability="stable")
-    cput('Last',     [], [last_case],  docs="Last of sequence",  stability="stable")
+    cput('First',    [], [first_case], docs="First of sequence", stability="stable", golf_aliases=['‹'])
+    cput('Last',     [], [last_case],  docs="Last of sequence",  stability="stable", golf_aliases=['›'])
     cput('Butlast',  ['(s'], [butlast_case],  docs="All but last of sequence",  stability="beta")
     cput('Butfirst', [')s'], [butfirst_case], docs="All but first of sequence", stability="beta")
     cput('First_and_last', [], [first_and_last_case], docs="First and last of sequence",
@@ -1272,8 +1296,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ceil_case  = Case.number(lambda env, a: [num.pd_ceil(a)])
     round_case = Case.number(lambda env, a: [num.pd_round(a)])
 
-    cput('Floor',   ['<i'], [floor_case], docs="Round down to the nearest integer.", stability="beta")
-    cput('Ceiling', ['>i'], [ceil_case ], docs="Round up to the nearest integer.",   stability="beta")
+    cput('Floor',   ['<i'], [floor_case], docs="Round down to the nearest integer.", stability="beta", golf_aliases=['‹'])
+    cput('Ceiling', ['>i'], [ceil_case ], docs="Round up to the nearest integer.",   stability="beta", golf_aliases=['›'])
     cput('Round',   ['=i'], [round_case], docs="Round to the nearest integer; follows Python's rules.",
             stability="alpha")
 
@@ -1334,14 +1358,17 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     mold_case = Case.value_seq(lambda env, x, y: [pd_mold(x, y)])
     memoize_case = Case.block(lambda env, b: [MemoizedBlock(b)])
     cput('Negate', [], [negate_case],
-            docs="Negate a number.", stability="beta")
+            docs="Negate a number.", stability="beta",
+            golf_aliases=['M'])
     cput('Mold', [], [mold_case],
-            docs="Mold the first sequence like the second.", stability="alpha")
+            docs="Mold the first sequence like the second.", stability="alpha",
+            golf_aliases=['M'])
     cput('Mold_fill', ['Mf'], [Case.value_seq(lambda env, x, y: [pd_mold_fill(x, y)])],
             docs="""Repeat the first element as many times as needed to mold a
             sequence like the second.""", stability="alpha")
     cput('Memoize', ['Memo'], [memoize_case],
-            docs="Memoize a block.", stability="alpha")
+            docs="Memoize a block.", stability="alpha",
+            golf_aliases=['M'])
     cput('Negate_or_mold_or_memoize', ['M'], [negate_case, memoize_case, mold_case],
             docs="""{{ 'Negate'|b }} a number, or {{ 'Mold'|b }} a sequence
             like another, or {{ 'Memoize'|b }} a block.""",
@@ -1353,15 +1380,18 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     until_case = Case.block2(lambda env, cond, body:
             pd_while_then_empty_list(env, cond, body, negate=True))
     cput('Signum', [], [signum_case],
-            docs="Signum of a number (-1, 0, 1) by sign.", stability="beta")
+            docs="Signum of a number (-1, 0, 1) by sign.", stability="beta",
+            golf_aliases=['U'])
     cput('Uniquify', [], [uniquify_case],
             docs="""Uniquify a sequence: drop all but first occurrence of each
             element""",
-            stability="alpha")
+            stability="alpha",
+            golf_aliases=['U'])
     cput('Until', [], [until_case],
             docs="""Until loop: Execute first block, pop, stop if true, execute
             second block, repeat.""",
-            stability="alpha")
+            stability="alpha",
+            golf_aliases=['U'])
     cput('Signum_or_uniquify_or_until', ['U'], [signum_case, uniquify_case, until_case],
             docs="Signum or uniquify or until. Mnemonic: U for Unit",
             stability="alpha")
@@ -1399,11 +1429,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     doloop_case  = Case.block(lambda env, body: pd_do_then_empty_list(env, body))
     cput('Reverse', ['Down'], [reverse_case, doloop_case],
             docs="""Reverse a sequence (coerces numbers to range).""",
-            stability="beta")
+            stability="beta",
+            golf_aliases=['D'])
     cput('Doloop', [], [doloop_case],
             docs="""Do loop: execute the block, then pop an element, and repeat
             until the popped element is falsy.""",
-            stability="beta")
+            stability="beta",
+            golf_aliases=['D'])
     cput('Reverse_or_doloop', ['Down_or_doloop', 'D'], [reverse_case, doloop_case],
             docs="""On a number of a sequence, {{ 'Reverse'|b }}; on a block,
             {{ 'Doloop'|b }}.""",
@@ -1511,20 +1543,20 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
 
     pow10_case = Case.number(lambda env, n: [10 ** num.numerify(n)])
-    cput('Power_of_ten', [], [pow10_case], stability="alpha")
+    cput('Power_of_ten', [], [pow10_case], stability="alpha", golf_aliases=['€'])
 
     mask_case = Case.seq2_range(lambda env, seq1, seq2: [pd_mask(seq1, seq2)])
     cput('Mask', [], [mask_case],
             docs="""Mask: Zip two sequences and filter for elements of the first
             where the corresponding elements of the second are truthy.""",
-            stability="alpha")
+            stability="alpha", golf_aliases=['€'])
     bimask_case = Case.seq2_range(lambda env, seq1, seq2: [
         pd_mask(seq1, seq2, negate=True), pd_mask(seq1, seq2)])
     cput('Bimask', [], [bimask_case],
             docs="""Bimask: Zip two sequences and push two filtered versions of
             the first sequence, one of   elements where the corresponding
             elements of the second are falsy, and one of the remaining.""",
-            stability="alpha")
+            stability="alpha", golf_aliases=['¥'])
 
     cput('€', [], [pow10_case, mask_case],
             docs="""{{ 'Power_of_ten'|b }} or {{ 'Mask'|b }}. Mnemonics: E for
@@ -1624,12 +1656,14 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Group into runs of equal elements.
 
             ex: [3 1 2 2 1 1 1]G => [[3][1][2 2][1 1 1]]""",
-            stability="beta")
+            stability="beta",
+            golf_aliases=['G'])
     cput('Group_by', [], [
         Case.block_seq_range(lambda env, block, seq: [pd_group_by(env, block, seq)]),
     ],
             docs="Group into runs of equal elements according to the block",
-            stability="beta")
+            stability="beta",
+            golf_aliases=['G'])
     cput('Gcd', [], [
         Case.number2(lambda env, a, b: [num.pd_gcd(a, b)]),
     ],
@@ -1643,9 +1677,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             mapping.""",
             stability="beta")
     cput('Lcm', [], [
+        Case.seq(lambda env, seq: [functools.reduce(num.pd_lcm, pd_flatten_to_int_char_generator(seq)) if len(seq) else (Char(1) if seq == "" else 1)]),
         Case.number2(lambda env, a, b: [num.pd_lcm(a, b)]),
     ],
-            stability="unstable")
+            stability="unstable",
+            docs="""LCM of two numbers, or of a list, deeply.""")
 
     cput('Organize', [], [
         Case.seq(lambda env, seq: [pd_organize(seq)]),
@@ -1657,7 +1693,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             original list.
 
             ex: [3 1 2 2 1 1 1]Organize => [[3][1 1 1 1][2 2]]""",
-            stability="alpha")
+            stability="alpha",
+            golf_aliases=['Ø'])
     cput('Organize_or_totient', ['Ø'], [
         Case.number(lambda env, a: [discrete.totient(a)]),
         Case.seq(lambda env, seq: [pd_organize(seq)]),
@@ -1762,13 +1799,13 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.block_seq_range(lambda env, block, seq:
             [int(pd_map_fold_into(env, block, seq, make_unique_fold_f()))]),
     ]
-    cput('All', ['Al'], all_cases, stability="beta")
-    cput('Any', ['An'], any_cases, stability="beta")
+    cput('All', ['Al'], all_cases, stability="beta", golf_aliases=['Â'])
+    cput('Any', ['An'], any_cases, stability="beta", golf_aliases=['Ê'])
     cput('All_and_exists', ['Ae'], all_and_exists_cases, stability="alpha")
     cput('Not_all', ['Na'], not_all_cases, stability="beta")
-    cput('Not_any', ['Not_exists', 'Ne'], not_any_cases, stability="beta")
-    cput('Identical', ['=p'], identical_cases, stability="beta")
-    cput('Unique', [], unique_cases, stability="beta")
+    cput('Not_any', ['Not_exists', 'Ne'], not_any_cases, stability="beta", golf_aliases=['Ô'])
+    cput('Identical', ['=p'], identical_cases, stability="beta", golf_aliases=['Î'])
+    cput('Unique', [], unique_cases, stability="beta", golf_aliases=['Û'])
     cput('Above_zero_or_all', ['Â'], [
         Case.number(lambda env, a: [int(num.numerify(a) > 0)])
     ] + all_cases,
@@ -1964,13 +2001,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     loop_case = Case.block(lambda env, block: [pd_forever_then_empty_list(env, block)])
     cput('Len', [], [len_case],
             docs="""Length of a sequence.""",
-            stability="stable")
+            stability="stable",
+            golf_aliases=['L'])
     cput('Abs', [], [abs_case],
             docs="""Absolute value of a number.""",
-            stability="stable")
+            stability="stable",
+            golf_aliases=['L'])
     cput('Loop', [], [loop_case],
             docs="""Loop forever (until {{ 'Break'|b }} or other error.)""",
-            stability="alpha")
+            stability="alpha",
+            golf_aliases=['L'])
     cput('Abs_or_len_or_loop', ['L'], [abs_case, len_case, loop_case],
             docs="""{{ 'Abs'|b }} on numbers; {{ 'Len'|b }} on sequences; {{
             'Loop'|b }} on blocks.""",
@@ -2162,8 +2202,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
     while_case = Case.block2(lambda env, cond, body:
             pd_while_then_empty_list(env, cond, body))
-    cput('Words', [], [words_case], stability="alpha")
-    cput('Window', [], [window_case], stability="alpha")
+    cput('Words', [], [words_case], stability="alpha", golf_aliases=['W'])
+    cput('Window', [], [window_case], stability="alpha", golf_aliases=['W'])
 
     space_split_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
     cput('Space_split', ['Space_break', ' b'], [space_split_case],
@@ -2195,7 +2235,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('While', [], [while_case],
             docs="""While loop: Execute first block, pop, break if false, execute
             second block, repeat.""",
-            stability="alpha")
+            stability="alpha", golf_aliases=['W'])
     cput('Window_or_words_or_while', ['W'], [words_case, window_case, while_case],
             docs="""Words (split by spaces) or Window (sliding window of size
             given by number) or While loop.""",
@@ -2212,8 +2252,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             [pd_map_iterable(env, block,
                 map(list, itertools.permutations(pd_iterable(seq))))]),
     ]
-    cput('Permutations', [], permutation_cases, stability="beta")
-    cput('Factorial', [], [factorial_case], stability="beta")
+    cput('Permutations', [], permutation_cases, stability="beta", golf_aliases=['¡'])
+    cput('Factorial', [], [factorial_case], stability="beta", golf_aliases=['¡'])
     cput('Permutations_or_factorial', ['¡', '!p'],
             [factorial_case] + permutation_cases,
             stability="beta")
@@ -2222,7 +2262,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             num.numerify(n), num.numerify(k))])
     )
     cput('Binomial_coefficient', ['Bc'], [binomial_coefficient_case],
-            stability="beta")
+            stability="beta", golf_aliases=['Ç'])
     cput('Ç', [], [binomial_coefficient_case],
             docs="Unstable alias for {{ 'Binomial_coefficient'|b }}.",
             stability="unstable")
@@ -2287,7 +2327,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Totient', ['Et'], [
         Case.value_n2v(discrete.totient),
     ],
-            docs="Euler's totient function", stability="alpha")
+            docs="Euler's Totient function. If you don't need vectorizing, {{ 'Ø'|b }} works too.", stability="alpha")
     cput('Jacobi_symbol', ['Js'], [
         Case.number2(lambda env, m, n: [discrete.jacobi_symbol(num.numerify(m), num.numerify(n))]),
     ],

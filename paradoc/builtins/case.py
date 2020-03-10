@@ -312,13 +312,15 @@ class CasedBuiltIn(Block):
             cases: List[Case],
             aliases: Optional[List[str]] = None,
             docs: Optional[str] = None,
-            stability: str = "unknown") -> None:
+            stability: str = "unknown",
+            golf_aliases: Optional[List[str]] = None) -> None:
 
         for c1, c2 in zip(cases, cases[1:]):
             assert c1.arity <= c2.arity
 
         self.name = name
         self.aliases: List[str] = aliases or [name]
+        self.golf_aliases: List[str] = golf_aliases or []
         self.cases = cases
         self.docs = docs
         self.stability = stability
