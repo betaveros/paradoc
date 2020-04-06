@@ -38,11 +38,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             cases: List[Case],
             docs: Optional[str] = None,
             stability: str = "unstable",
-            golf_aliases: Optional[List[str]] = None) -> None:
+            golf_aliases: Optional[List[str]] = None) -> CasedBuiltIn:
         builtin = CasedBuiltIn(name, cases, aliases = [name] + extra_names,
                 docs=docs, stability=stability, golf_aliases=golf_aliases)
         env.put(name, builtin, fail_if_overwrite=True)
         for xname in extra_names: env.put(xname, builtin, fail_if_overwrite=True)
+        return builtin
 
     # Default variables {{{
     env.put('N', '\n', docs="Output record separator", stability="stable")
@@ -295,7 +296,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="stable")
     # }}}
     # Not {{{
-    cput('Not', ['!'], [Case.any(lambda env, x: [int(not x)])],
+    basic_not_case = Case.value(lambda env, x: [int(not x)])
+    basic_not = cput('Not', [], [basic_not_case],
             docs="""Logical NOT: 0 and empty lists/strings yield 1, everything else yields 0.
 
             ex: 0! => 1
@@ -303,6 +305,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             2! => 0
             []! => 1
             [0]! => 0""",
+            stability="stable", golf_aliases=['!'])
+
+    cput('!', [], [basic_not_case, Case.block(lambda env, block: [CompositionBlock(block, basic_not)])],
+            docs="""Logical {{ 'Not'|b }}: 0 and empty lists/strings yield 1, everything else yields 0.
+            Or postcompose a logical NOT onto a block (not recursively though).""",
             stability="stable")
     # }}}
     # "Arithmetic" {{{
@@ -312,14 +319,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cat_list_case = Case.list2_singleton(lambda env, a, b: [pd_to_list(a) + pd_to_list(b)])
     strcat_list_case = Case.seq2_singleton(lambda env, a, b: [env.pd_str(a) + env.pd_str(b)])
     filter_case = Case.block_seq_range(lambda env, block, seq: [pd_filter(env, block, seq)])
+    compose_case = Case.block2(lambda env, block1, block2: [CompositionBlock(block1, block2)])
     cput('Plus', [], [add_case], docs="Add numbers.", stability="stable", golf_aliases=['+'])
     cput('Cat', [], [cat_list_case], docs="Concatenate two lists (numbers coerce to single-element lists).", stability="stable", golf_aliases=['+'])
     cput('Strcat', [], [strcat_list_case], docs="Concatenate two strings (numbers coerce to strings).", stability="stable", golf_aliases=['+'])
     cput('Filter', [], [filter_case], docs="Filter a list by a block (numbers coerce to ranges).", stability="stable", golf_aliases=['+'])
-    cput('Plus_or_filter', ['+'], [add_case, cat_list_case, strcat_list_case, filter_case],
+    cput('Compose', [], [compose_case], docs="Compose two blocks together.", stability="alpha", golf_aliases=['+'])
+    cput('Plus_or_filter_or_compose', ['+', 'Plus_or_filter'], [add_case, cat_list_case, strcat_list_case, filter_case, compose_case],
             docs="""Addition on numbers. Concatenation on lists and strings
             (numbers coerce to single-element lists or to strings). Filter on
-            block and list (numbers coerce to ranges).""",
+            block and list (numbers coerce to ranges). Compose on blocks.""",
             stability="stable")
 
     cput('Cat_between', ['Cb'], [

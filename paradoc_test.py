@@ -93,6 +93,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[0 1 1m 0C 1C "" 0.0 "0" \'0]!m'),
                 [[1,0,0,1,0,1,1,0,0]])
 
+    def test_hofs(self):
+        self.assertEqual(pd_simple_eval('[1 2 3 4]{3+}{5%}+%'), [[4,0,1,2]])
+        self.assertEqual(pd_simple_eval('[1 2 3 4]{2>}!%'), [[1,1,0,0]])
+
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])
         self.assertEqual(pd_simple_eval('4 7j +'), [4+7j])

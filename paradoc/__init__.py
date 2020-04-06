@@ -1404,6 +1404,8 @@ class CodeBlock(Block):
                 executor = None
             else:
                 block_acc.append('}')
+    def __repr__(self) -> str:
+        return 'CodeBlock({})'.format(repr("".join(self.tokens)))
 
 def basic_evaluator(env: Environment, code: str) -> None:
     CodeBlock(list(lex_code(code)))(env)

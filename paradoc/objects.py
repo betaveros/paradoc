@@ -2309,10 +2309,10 @@ def pd_if_then_empty_list(env: Environment, condition: PdObject, body: PdObject,
 # }}}
 
 class MemoizedBlock(Block):
-    def __init__(self, block: Block) -> None:
+    def __init__(self, block: Block, arity: Optional[int] = None, memo: Optional[Dict[PdKey, List[PdObject]]] = None) -> None:
         self.block = block
-        self.arity: Optional[int] = None
-        self.memo: Dict[PdKey, List[PdObject]] = dict()
+        self.arity = arity
+        self.memo: Dict[PdKey, List[PdObject]] = memo or dict()
     def __call__(self, env: 'Environment') -> None:
         # TODO Lots of X-stack things should be reconsidered.
         env.push_x(self)
@@ -2339,6 +2339,19 @@ class MemoizedBlock(Block):
             env.pop_x()
     def code_repr(self) -> str:
         return self.block.code_repr() + '_memo'
+    def __repr__(self) -> str:
+        return 'MemoizedBlock({}, arity={}, memo={})'.format(repr(self.block), repr(self.arity), repr(self.memo))
+
+class CompositionBlock(Block):
+    def __init__(self, *blocks: Block) -> None:
+        self.blocks = blocks
+    def __call__(self, env: 'Environment') -> None:
+        for block in self.blocks:
+            block(env)
+    def code_repr(self) -> str:
+        return ''.join(block.code_repr() + ("+" if i else "") for i, block in enumerate(self.blocks))
+    def __repr__(self) -> str:
+        return 'CompositionBlock({})'.format(', '.join(repr(block) for block in self.blocks))
 
 # key/array operations {{{
 def new_array_of_dims(dims: List[int], filler: PdValue) -> list:
