@@ -653,6 +653,12 @@ def build_int_trailer_dict() -> Dict[str, Trailer[int]]: # {{{
     def thousand_trailer(outer_env: Environment, i: int) -> Tuple[int, bool]:
         return (i * 1000, False)
 
+    @put("imag", "j",
+            docs="""Imaginary number.""",
+            stability="unstable")
+    def imag_trailer(outer_env: Environment, i: int) -> Tuple[complex, bool]:
+        return (i * 1j, False)
+
     @put("under", "u", docs="Push under the top element.", stability="alpha")
     def under_trailer(outer_env: Environment, i: int) -> Tuple[Block, bool]:
         def under_i(env: Environment) -> None:

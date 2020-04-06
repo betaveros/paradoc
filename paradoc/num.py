@@ -44,23 +44,23 @@ class Char:
     def __hash__(self) -> int:
         return hash(self.ord)
 
-Num = Union[int, float]
-PdNum = Union[Char, int, float]
+Num = Union[int, float, complex]
+PdNum = Union[Char, int, float, complex]
 
-def numerify(x: PdNum) -> Union[int, float]:
+def numerify(x: PdNum) -> Num:
     if isinstance(x, Char):
         return x.ord
     else:
         return x
 
+def realify(x: PdNum) -> Union[int, float]:
+    return numerify(x).real
+
 def floatify(x: PdNum) -> float:
-    return float(numerify(x))
+    return float(realify(x))
 
 def intify(x: PdNum) -> int:
-    if isinstance(x, Char):
-        return x.ord
-    else:
-        return int(x)
+    return int(realify(x))
 
 def intify_opt(x: Optional[PdNum]) -> Optional[int]:
     if x is None:
@@ -105,8 +105,12 @@ def pd_num_cmp(a0: PdNum, b0: PdNum) -> int:
     if isinstance(a, int) and isinstance(b, int):
         return int(a > b) - int(a < b)
     else:
-        af, bf = float(a), float(b)
-        return int(af > bf) - int(af < bf)
+        af, bf = float(a.real), float(b.real)
+        rc = int(af > bf) - int(af < bf)
+        if rc: return rc
+
+        ai, bi = float(a.imag), float(b.imag)
+        return int(ai > bi) - int(ai < bi)
 
 pd_add = lift_numerify(operator.add)
 pd_sub = lift_numerify(operator.sub)
@@ -133,11 +137,19 @@ def int_lcm(a: int, b: int) -> int:
 pd_gcd = lift_intify(int_gcd)
 pd_lcm = lift_intify(int_lcm)
 
-pd_ceil   = lift_numerify1(lambda x: int(math.ceil(x)))
-pd_floor  = lift_numerify1(lambda x: int(math.floor(x)))
-pd_round  = lift_numerify1(round)
-pd_abs    = lift_numerify1(abs) # type: ignore
-pd_signum = lift_numerify1(lambda x: (x > 0) - (x < 0))
+pd_ceil   = lift_numerify1(lambda x: int(math.ceil(x.real)))
+pd_floor  = lift_numerify1(lambda x: int(math.floor(x.real)))
+pd_round  = lift_numerify1(lambda x: round(x.real))
+pd_abs    = lift_numerify1(abs)
+
+def pd_signum(x: PdNum) -> PdNum:
+    if isinstance(x, Char):
+        return Char(int(x > 0))
+    elif isinstance(x, complex):
+        a = abs(x)
+        return x / a if a else complex(0.0)
+    else:
+        return (x > 0) - (x < 0)
 
 def pd_add_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):
@@ -149,7 +161,7 @@ def pd_mul_div_const(a: PdNum, mul: int, div: int, to_int: bool = False) -> PdNu
     if isinstance(a, Char):
         return Char(a.ord * mul // div)
     elif to_int:
-        return int(a * mul // div)
+        return int((a * mul).real // div)
     elif div == 1:
         return a * mul
     else:
@@ -159,13 +171,13 @@ def pd_mod_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):
         return Char(a.ord % const)
     else:
-        return a % const
+        return a.real % const
 
 def pd_xor_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):
         return Char(a.ord ^ const)
     else:
-        return int(a) ^ const
+        return intify(a) ^ const
 
 def pd_power_const(a: PdNum, const: int) -> PdNum:
     if isinstance(a, Char):

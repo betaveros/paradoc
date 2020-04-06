@@ -479,7 +479,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="beta")
 
     cput('Int_sqrt', ['Si'], [
-        Case.number(lambda env, a: [int(num.numerify(a) ** 0.5)]),
+        Case.number(lambda env, a: [num.intify(num.numerify(a) ** 0.5)]),
     ],
             docs="""Integer square root.""",
             stability="alpha")
@@ -606,6 +606,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('To_int',    [   ], [to_int_case   ], docs="Convert to int",    stability="beta", golf_aliases=['I'])
     cput('To_string', ['S'], [to_string_case], docs="Convert to string", stability="beta")
 
+    cput('Imaginary_part', ['Jp'], [Case.value_n2v(lambda e: e.imag)], stability="unstable", docs="Imaginary part. Deeply vectorizes because why not.")
+    cput('Real_imaginary', ['Rj'], [Case.number(lambda _env, e: [e.real, e.imag])], stability="unstable", docs="Real and imaginary part, as two elements on the stack.")
+    cput('Component_vector', ['Cv'], [Case.value_n2v(lambda e: [e.real, e.imag])], stability="unstable", docs="Real and imaginary part, as a length-2 list. Deeply vectorizes because why not.")
+
     peekdo_case      = Case.block(lambda env, body: pd_do_then_empty_list(env, body, peek=True))
     iterate_case     = Case.block(lambda env, body: [pd_iterate(env, body)[0]])
     fixed_point_case = Case.block(lambda env, body: [pd_iterate(env, body)[1]])
@@ -657,7 +661,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.block_seq_range(lambda env, f, s: [pd_sort(s, (env, f))]),
     ], docs="Sort", stability="stable", golf_aliases=['$'])
     cput('Sort_or_stack_select', ['$'], [
-        Case.number(lambda env, n: [env.index_stack(int(n))]),
+        Case.number(lambda env, n: [env.index_stack(num.intify(n))]),
         Case.seq(lambda env, s: [pd_sort(s)]),
         Case.block_seq_range(lambda env, f, s: [pd_sort(s, (env, f))]),
     ], docs="Sort or select from stack", stability="beta")
@@ -1705,8 +1709,8 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     # }}}
     # Circumflexed vowels {{{
-    even_case = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 0)])
-    odd_case  = Case.number(lambda env, n: [int(num.numerify(n) % 2 == 1)])
+    even_case = Case.number(lambda env, n: [int(num.realify(n) % 2 == 0)])
+    odd_case  = Case.number(lambda env, n: [int(num.realify(n) % 2 == 1)])
     cput('Even', ['Ev'], [even_case], stability="alpha")
     cput('Odd',  ['Od'], [odd_case],  stability="alpha")
     def all_fold_f(es: Optional[List[PdObject]]) -> Optional[bool]:
@@ -1807,7 +1811,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Identical', ['=p'], identical_cases, stability="beta", golf_aliases=['Î'])
     cput('Unique', [], unique_cases, stability="beta", golf_aliases=['Û'])
     cput('Above_zero_or_all', ['Â'], [
-        Case.number(lambda env, a: [int(num.numerify(a) > 0)])
+        Case.number(lambda env, a: [int(num.realify(a) > 0)])
     ] + all_cases,
             docs="Above zero or All", stability="beta")
     cput('Even_or_any', ['Ê'], [even_case] + any_cases,
@@ -1819,7 +1823,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Odd_or_not_any', ['Ô'], [odd_case] + not_any_cases,
             docs="Odd or Not_any", stability="beta")
     cput('Under_zero_or_is_unique', ['Û'], [
-        Case.number(lambda env, a: [int(num.numerify(a) < 0)]),
+        Case.number(lambda env, a: [int(num.realify(a) < 0)]),
     ] + unique_cases,
             docs="Under zero or Unique (test)", stability="beta")
     # }}}
@@ -2017,25 +2021,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
     # }}}
     # Other numeric predicates {{{
-    cput('Positive',         ['+p'], [Case.value_n2v(lambda e: int(e >  0))], stability="beta")
-    cput('Negative',         ['-p'], [Case.value_n2v(lambda e: int(e <  0))], stability="beta")
-    cput('Positive_or_zero', ['+o'], [Case.value_n2v(lambda e: int(e >= 0))], stability="alpha")
-    cput('Negative_or_zero', ['-o'], [Case.value_n2v(lambda e: int(e <= 0))], stability="alpha")
+    cput('Positive',         ['+p'], [Case.value_n2v(lambda e: int(e.real >  0))], stability="beta")
+    cput('Negative',         ['-p'], [Case.value_n2v(lambda e: int(e.real <  0))], stability="beta")
+    cput('Positive_or_zero', ['+o'], [Case.value_n2v(lambda e: int(e.real >= 0))], stability="alpha")
+    cput('Negative_or_zero', ['-o'], [Case.value_n2v(lambda e: int(e.real <= 0))], stability="alpha")
     # }}}
     # Dumping Python's math {{{
-    cput('Sin',     ['Sn'], [Case.value_n2v(math.sin  )], stability="beta")
-    cput('Cos',     ['Cs'], [Case.value_n2v(math.cos  )], stability="beta")
-    cput('Tan',     ['Tn'], [Case.value_n2v(math.tan  )], stability="beta")
-    cput('Asin',    ['As'], [Case.value_n2v(math.asin )], stability="beta")
-    cput('Acos',    ['Ac'], [Case.value_n2v(math.acos )], stability="beta")
-    cput('Atan',    ['At'], [Case.value_n2v(math.atan )], stability="beta")
-    cput('Sec',     ['Sc'], [Case.value_n2v(lambda t: 1/math.cos(t))], stability="alpha")
-    cput('Csc',     ['Cc'], [Case.value_n2v(lambda t: 1/math.sin(t))], stability="alpha")
-    cput('Cot',     ['Ct'], [Case.value_n2v(lambda t: 1/math.tan(t))], stability="alpha")
-    cput('Exp',     ['Ef'], [Case.value_n2v(math.exp  )], stability="beta", docs="Exponential Function")
-    cput('Log_e',   ['Ln'], [Case.value_n2v(math.log  )], stability="beta")
-    cput('Log_ten', ['Lt'], [Case.value_n2v(math.log10)], stability="alpha")
-    cput('Log_two', ['Lg'], [Case.value_n2v(math.log2 )], stability="alpha")
+    cput('Sin',     ['Sn'], [Case.value_rc2v(math.sin , cmath.sin )], stability="beta")
+    cput('Cos',     ['Cs'], [Case.value_rc2v(math.cos , cmath.cos )], stability="beta")
+    cput('Tan',     ['Tn'], [Case.value_rc2v(math.tan , cmath.tan )], stability="beta")
+    cput('Asin',    ['As'], [Case.value_rc2v(math.asin, cmath.asin)], stability="beta")
+    cput('Acos',    ['Ac'], [Case.value_rc2v(math.acos, cmath.acos)], stability="beta")
+    cput('Atan',    ['At'], [Case.value_rc2v(math.atan, cmath.atan)], stability="beta")
+    cput('Sec',     ['Sc'], [Case.value_rc2v(lambda t: 1/math.cos(t), lambda t: 1/cmath.cos(t))], stability="alpha")
+    cput('Csc',     ['Cc'], [Case.value_rc2v(lambda t: 1/math.sin(t), lambda t: 1/cmath.sin(t))], stability="alpha")
+    cput('Cot',     ['Ct'], [Case.value_rc2v(lambda t: 1/math.tan(t), lambda t: 1/cmath.tan(t))], stability="alpha")
+    cput('Exp',     ['Ef'], [Case.value_rc2v(math.exp  , cmath.exp  )], stability="beta", docs="Exponential Function")
+    cput('Log_e',   ['Ln'], [Case.value_rc2v(math.log  , cmath.log  )], stability="beta")
+    cput('Log_ten', ['Lt'], [Case.value_rc2v(math.log10, cmath.log10)], stability="alpha")
+    cput('Log_two', ['Lg'], [Case.value_rc2v(math.log2 , lambda t: cmath.log(t) / cmath.log(2))], stability="alpha")
     # }}}
     # Character conversion and predicates (letter-case etc) {{{
     cput('Lowercase', ['Lc'], [Case.value(lambda env, x: [pd_deepmap_s2s(lambda e: e.lower(), x)])], docs="Converts all characters to lowercase. Deeply vectorizes.", stability="beta")
@@ -2243,7 +2247,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # }}}
     # Combinatorics {{{
     factorial_case = Case.number(
-            lambda env, n: [discrete.factorial(num.numerify(n))]
+            lambda env, n: [discrete.factorial(num.realify(n))]
     )
     permutation_cases = [
         Case.seq(lambda env, seq:
@@ -2259,7 +2263,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="beta")
     binomial_coefficient_case = (
         Case.number2(lambda env, n, k: [discrete.binomial_coefficient(
-            num.numerify(n), num.numerify(k))])
+            num.realify(n), num.realify(k))])
     )
     cput('Binomial_coefficient', ['Bc'], [binomial_coefficient_case],
             stability="beta", golf_aliases=['Ç'])
@@ -2276,7 +2280,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     ],
             stability="beta")
     cput('Fibonacci', ['Fb'], [Case.number(
-            lambda env, n: [discrete.fibonacci(num.numerify(n))]
+            lambda env, n: [discrete.fibonacci(num.realify(n))]
     )],
             stability="beta")
     # }}}
@@ -2299,37 +2303,37 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     # }}}
     # Number theory (primes etc) {{{
     cput('Is_prime', ['Pp', '¶'], [
-        Case.value_n2v(discrete.is_prime_as_int),
+        Case.value_r2v(discrete.is_prime_as_int),
     ],
             docs="""Test if this is prime.""",
             stability="alpha")
     cput('Prev_prime', ['(p'], [
-        Case.value_n2v(discrete.prev_prime),
+        Case.value_r2v(discrete.prev_prime),
     ],
             docs="""Find the largest prime smaller than this.""",
             stability="alpha")
     cput('Next_prime', [')p'], [
-        Case.value_n2v(discrete.next_prime),
+        Case.value_r2v(discrete.next_prime),
     ],
             docs="""Find the smallest prime larger than this.""",
             stability="alpha")
     cput('Factorize', ['Fc'], [
-        Case.value_n2v(discrete.prime_factorization_wrapped),
+        Case.value_r2v(discrete.prime_factorization_wrapped),
     ],
             docs="""Factorize as a list of pairs of primes and exponents""",
             stability="alpha")
     cput('Factorize_flat', ['Ff'], [
-        Case.value_n2v(discrete.prime_factorization_flat),
+        Case.value_r2v(discrete.prime_factorization_flat),
     ],
             docs="""Factorize as a flat list of possibly repeating prime
             factors""",
             stability="alpha")
     cput('Totient', ['Et'], [
-        Case.value_n2v(discrete.totient),
+        Case.value_r2v(discrete.totient),
     ],
             docs="Euler's Totient function. If you don't need vectorizing, {{ 'Ø'|b }} works too.", stability="alpha")
     cput('Jacobi_symbol', ['Js'], [
-        Case.number2(lambda env, m, n: [discrete.jacobi_symbol(num.numerify(m), num.numerify(n))]),
+        Case.number2(lambda env, m, n: [discrete.jacobi_symbol(num.realify(m), num.realify(n))]),
     ],
             docs="""Jacobi symbol of two numbers""",
             stability="unstable")
@@ -2340,25 +2344,25 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     fts = datetime.datetime.fromtimestamp
 
     cput('Now_minute',        ['Nb'], [Case.void     (lambda _: [ now().minute             ])], docs="Get the current minute", stability="alpha")
-    cput('Epoch_minute',      ['Eb'], [Case.value_n2v(lambda e:  fts(e).minute              )], docs="Get the minute from a timestamp", stability="alpha")
+    cput('Epoch_minute',      ['Eb'], [Case.value_r2v(lambda e:  fts(e).minute              )], docs="Get the minute from a timestamp", stability="alpha")
     cput('Now_day',           ['Nd'], [Case.void     (lambda _: [ now().day                ])], docs="Get the current day", stability="alpha")
-    cput('Epoch_day',         ['Ed'], [Case.value_n2v(lambda e:  fts(e).day                 )], docs="Get the day from a timestamp", stability="alpha")
+    cput('Epoch_day',         ['Ed'], [Case.value_r2v(lambda e:  fts(e).day                 )], docs="Get the day from a timestamp", stability="alpha")
     cput('Now_hour',          ['Nh'], [Case.void     (lambda _: [ now().hour               ])], docs="Get the current hour", stability="alpha")
-    cput('Epoch_hour',        ['Eh'], [Case.value_n2v(lambda e:  fts(e).hour                )], docs="Get the hour from a timestamp", stability="alpha")
+    cput('Epoch_hour',        ['Eh'], [Case.value_r2v(lambda e:  fts(e).hour                )], docs="Get the hour from a timestamp", stability="alpha")
     cput('Now_twelve_hour',   ['Ni'], [Case.void     (lambda _: [(now().hour - 1) % 12 + 1 ])], docs="Get the current hour, as a number from 1 to 12", stability="alpha")
-    cput('Epoch_twelve_hour', ['Ei'], [Case.value_n2v(lambda e: (fts(e).hour - 1) % 12 + 1  )], docs="Get the hour, as a number from 1 to 12 from a timestamp", stability="alpha")
+    cput('Epoch_twelve_hour', ['Ei'], [Case.value_r2v(lambda e: (fts(e).hour - 1) % 12 + 1  )], docs="Get the hour, as a number from 1 to 12 from a timestamp", stability="alpha")
     cput('Now_day_of_year',   ['Nj'], [Case.void     (lambda _: [ now().timetuple().tm_yday])], docs="Get the current day of year", stability="alpha") # type: ignore
-    cput('Epoch_day_of_year', ['Ej'], [Case.value_n2v(lambda e:  fts(e).timetuple().tm_yday )], docs="Get the day of year from a timestamp", stability="alpha") # type: ignore
+    cput('Epoch_day_of_year', ['Ej'], [Case.value_r2v(lambda e:  fts(e).timetuple().tm_yday )], docs="Get the day of year from a timestamp", stability="alpha") # type: ignore
     cput('Now_month',         ['Nm'], [Case.void     (lambda _: [ now().month              ])], docs="Get the current month", stability="alpha")
-    cput('Epoch_month',       ['Em'], [Case.value_n2v(lambda e:  fts(e).month               )], docs="Get the month from a timestamp", stability="alpha")
+    cput('Epoch_month',       ['Em'], [Case.value_r2v(lambda e:  fts(e).month               )], docs="Get the month from a timestamp", stability="alpha")
     cput('Now_second',        ['Ns'], [Case.void     (lambda _: [ now().second             ])], docs="Get the current second", stability="alpha")
-    cput('Epoch_second',      ['Es'], [Case.value_n2v(lambda e:  fts(e).second              )], docs="Get the second from a timestamp", stability="alpha")
+    cput('Epoch_second',      ['Es'], [Case.value_r2v(lambda e:  fts(e).second              )], docs="Get the second from a timestamp", stability="alpha")
     cput('Now_iso_weekday',   ['Nu'], [Case.void     (lambda _: [ now().isoweekday()       ])], docs="Get the current ISO weekday (Monday is 1, Sunday is 7)", stability="alpha")
-    cput('Epoch_iso_weekday', ['Eu'], [Case.value_n2v(lambda e:  fts(e).isoweekday()        )], docs="Get the ISO weekday (Monday is 1, Sunday is 7) from a timestamp", stability="alpha")
+    cput('Epoch_iso_weekday', ['Eu'], [Case.value_r2v(lambda e:  fts(e).isoweekday()        )], docs="Get the ISO weekday (Monday is 1, Sunday is 7) from a timestamp", stability="alpha")
     cput('Now_weekday',       ['Nw'], [Case.void     (lambda _: [ now().weekday()          ])], docs="Get the current weekday (Monday is 0, Sunday is 6)", stability="alpha")
-    cput('Epoch_weekday',     ['Ew'], [Case.value_n2v(lambda e:  fts(e).weekday()           )], docs="Get the weekday (Monday is 0, Sunday is 6) from a timestamp", stability="alpha")
+    cput('Epoch_weekday',     ['Ew'], [Case.value_r2v(lambda e:  fts(e).weekday()           )], docs="Get the weekday (Monday is 0, Sunday is 6) from a timestamp", stability="alpha")
     cput('Now_year',          ['Ny'], [Case.void     (lambda _: [ now().year               ])], docs="Get the current year", stability="alpha")
-    cput('Epoch_year',        ['Ey'], [Case.value_n2v(lambda e:  fts(e).year                )], docs="Get the year from a timestamp", stability="alpha")
+    cput('Epoch_year',        ['Ey'], [Case.value_r2v(lambda e:  fts(e).year                )], docs="Get the year from a timestamp", stability="alpha")
     # }}}
     # Randomness {{{
     cput('Random_float', ['Rf'], [Case.void(lambda env: [random.random()])],
@@ -2477,7 +2481,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     def sleep(env: Environment) -> None:
         e = env.pop()
         assert isinstance(e, (Char, int, float))
-        time.sleep(num.numerify(e))
+        time.sleep(num.realify(e))
 
     if sandboxed:
         @put('Python', 'Py',

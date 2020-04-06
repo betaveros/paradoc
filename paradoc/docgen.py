@@ -260,10 +260,15 @@ semantics = """
 Paradoc is stack-based. It starts with an empty stack and just runs each thing
 in the code in sequence. Things run on the stack.
 
-The data types are ints, floats, Chars, strings, (heterogeneous) lists, and
-blocks (executable things). When Paradoc sees an identifier, it modifies it
-with trailers, if any, and then executes it if it's a block and the final
-trailer is not **reluctant**.
+The data types are ints, floats, Chars, complex numbers, strings,
+(heterogeneous) lists, and blocks (executable things). When Paradoc sees an
+identifier, it modifies it with trailers, if any, and then executes it if it's
+a block and the final trailer is not **reluctant**.
+
+Floats are often coerced to ints by truncation. Complex numbers are often
+coerced to floats by taking the real part (and then possibly to ints by
+truncation). Support for complex numbers across all built-ins is still in alpha
+though.
 
 ### Marks
 

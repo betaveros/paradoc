@@ -5,8 +5,8 @@ from typing import (
         Optional, Set, Tuple, TypeVar, Union, overload,
         )
 import sys
-import math
-from paradoc.num import Char, PdNum
+import math, cmath
+from paradoc.num import Char, Num, PdNum
 import paradoc.num as num
 import collections
 import random
@@ -686,7 +686,7 @@ def pd_truthy(env: Environment, func: Block, lst: List[PdObject]) -> bool:
         raise TypeError("Sandboxed truthiness lacked return value")
 # }}}
 # coercion {{{
-def pynumber_length(x: PdValue) -> Union[int, float]:
+def pynumber_length(x: PdValue) -> Num:
     if isinstance(x, (str, list, range, Hoard)):
         return len(x)
     elif isinstance(x, Char):
@@ -741,12 +741,14 @@ def pd_sandbox(env: Environment, func: Block, lst: List[PdObject]) -> List[PdObj
 def to_comparable_list(a: PdValue) -> list:
     if isinstance(a, list): return a
     elif isinstance(a, (Char, int, float)): return [a]
+    elif isinstance(a, complex): return [a.real, a.imag] # FIXME ???
     elif isinstance(a, Hoard): return a.to_list()
     else: return list(pd_iterable(a))
 
 def to_comparable_tuple(a: PdKey) -> tuple:
     if isinstance(a, tuple): return a
     elif isinstance(a, (Char, int, float)): return (a,)
+    elif isinstance(a, complex): return (a.real, a.imag) # FIXME ???
     elif isinstance(a, Hoard): return tuple(a.to_iterable())
     else: return tuple(pd_iterable(a))
 
@@ -785,6 +787,10 @@ def pd_cmp(a: PdObject, b: PdObject) -> int:
         return num.any_cmp(num.intify(a), num.intify(b))
     elif isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
         return num.any_cmp(num.floatify(a), num.floatify(b))
+    elif isinstance(a, (Char, int, float, complex)) and isinstance(b, (Char, int, float, complex)):
+        fa = num.numerify(a)
+        fb = num.numerify(b)
+        return num.any_cmp((fa.real, fa.imag), (fb.real, fb.imag))
     elif isinstance(a, (list, range, Hoard)) and isinstance(b, (list, range, Hoard)):
         return num.any_cmp(pd_to_list(a), pd_to_list(b))
     elif isinstance(a, str) and isinstance(b, str):
@@ -797,7 +803,7 @@ def pd_cmp(a: PdObject, b: PdObject) -> int:
         return num.any_cmp(to_comparable_list(a), to_comparable_list(b))
 
 def pykey_cmp(a: PdKey, b: PdKey) -> int:
-    if isinstance(a, (Char, int, float)) and isinstance(b, (Char, int, float)):
+    if isinstance(a, (Char, int, float, complex)) and isinstance(b, (Char, int, float, complex)):
         return pd_cmp(a, b)
     elif isinstance(a, (tuple, range, Hoard)) and isinstance(b, (tuple, range, Hoard)):
         return num.any_cmp(pd_to_tuple(a), pd_to_tuple(b))
@@ -899,7 +905,7 @@ def pd_sort(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
 # deep actions {{{
 # copy a thing recursively, fully structured as mutable lists
 def pd_deep_copy_to_list(obj: PdValue) -> PdValue:
-    if isinstance(obj, (Char, int, float)):
+    if isinstance(obj, (Char, int, float, complex)):
         return obj
     else:
         acc: List[PdValue] = []
@@ -910,8 +916,8 @@ def pd_deep_copy_to_list(obj: PdValue) -> PdValue:
                 acc.append(pd_deep_copy_to_list(e))
         return acc
 # deeply map a Python num -> PdValue function (no Char preservation)
-def pd_deepmap_n2v(func: Callable[[Union[int, float]], PdValue], obj: PdValue) -> PdValue:
-    if isinstance(obj, (Char, int, float)):
+def pd_deepmap_n2v(func: Callable[[Union[int, float, complex]], PdValue], obj: PdValue) -> PdValue:
+    if isinstance(obj, (Char, int, float, complex)):
         return func(num.numerify(obj))
     else:
         acc = []
@@ -921,6 +927,21 @@ def pd_deepmap_n2v(func: Callable[[Union[int, float]], PdValue], obj: PdValue) -
             else:
                 acc.append(pd_deepmap_n2v(func, e))
         return acc
+# same but reals
+def pd_deepmap_r2v(func: Callable[[Union[int, float]], PdValue], obj: PdValue) -> PdValue:
+    return pd_deepmap_n2v(lambda x: func(num.realify(x)), obj)
+# same but with two functions, one for reals and one for complex numbers
+def pd_deepmap_rc2v(
+        rfunc: Callable[[Union[int, float]], PdValue],
+        cfunc: Callable[[complex], PdValue],
+        obj: PdValue) -> PdValue:
+    def inner(x: Union[int, float, complex]) -> PdValue:
+        if isinstance(x, complex):
+            return cfunc(x)
+        else:
+            return rfunc(x)
+    return pd_deepmap_n2v(inner, obj)
+
 # deeply map a Python str -> str function on strs, Chars, numbers
 def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue, whole_str_ok: bool = True) -> PdValue:
     if isinstance(obj, str):
@@ -930,7 +951,7 @@ def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue, whole_str_ok: bool 
             return ''.join(func(c) for c in obj)
     elif isinstance(obj, Char):
         return Char(func(obj.chr))
-    elif isinstance(obj, (int, float)):
+    elif isinstance(obj, (int, float, complex)):
         return Char(func(chr(num.intify(obj))))
     else:
         acc = []
@@ -944,7 +965,7 @@ def pd_deepmap_s2s(func: Callable[[str], str], obj: PdValue, whole_str_ok: bool 
 # The difference from above is no Char/string preservation, and multi-character
 # strings are never kept and mapped together
 def pd_deepmap_s2v(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
-    if isinstance(obj, (Char, int, float)):
+    if isinstance(obj, (Char, int, float, complex)):
         return func(chr(num.intify(obj)))
     else:
         acc = []
@@ -978,19 +999,19 @@ def pd_deepvectorize_nn2v(func: Callable[[PdNum, PdNum], PdValue],
             return pd_maybe_build_str(acc)
         else:
             return acc
-def pd_deep_stats(obj: PdObject) -> Tuple[int, Union[int, float], Union[int, float]]:
+def pd_deep_stats(obj: PdObject) -> Tuple[int, Union[int, float, complex], Union[int, float, complex]]:
     """Return the count, sum, and sum of squares, deeply accumulated over the
     object."""
     if isinstance(obj, Block):
         raise TypeError('Cannot deeply accumulate stats over block ' +
                 repr(obj))
-    if isinstance(obj, (Char, int, float)):
+    if isinstance(obj, (Char, int, float, complex)):
         v = num.numerify(obj)
         return (1, v, v**2)
     else:
-        c: int               = 0
-        s: Union[int, float] = 0
-        q: Union[int, float] = 0
+        c: int                        = 0
+        s: Union[int, float, complex] = 0
+        q: Union[int, float, complex] = 0
         for e in pd_iterable(obj):
             c1, s1, q1 = pd_deep_stats(e)
             c += c1
@@ -1000,25 +1021,32 @@ def pd_deep_stats(obj: PdObject) -> Tuple[int, Union[int, float], Union[int, flo
 
 def pd_deep_length(obj: PdObject) -> int:
     return pd_deep_stats(obj)[0]
-def pd_deep_sum(obj: PdObject) -> Union[int, float]:
+def pd_deep_sum(obj: PdObject) -> Union[int, float, complex]:
     return pd_deep_stats(obj)[1]
-def pd_deep_hypotenuse(obj: PdObject) -> float:
-    return math.sqrt(pd_deep_stats(obj)[2])
-def pd_deep_average(obj: PdObject) -> float:
+
+def safe_sqrt(val: Union[int, float, complex]) -> Union[float, complex]:
+    if isinstance(val, complex):
+        return cmath.sqrt(val)
+    else:
+        return math.sqrt(val)
+
+def pd_deep_hypotenuse(obj: PdObject) -> Union[float, complex]:
+    return safe_sqrt(pd_deep_stats(obj)[2])
+def pd_deep_average(obj: PdObject) -> Union[float, complex]:
     c, s, _ = pd_deep_stats(obj)
     return s / c
-def pd_deep_standard_deviation(obj: PdObject) -> float:
+def pd_deep_standard_deviation(obj: PdObject) -> Union[float, complex]:
     c, s, q = pd_deep_stats(obj)
-    return math.sqrt((q - s**2 / c) / (c - 1))
+    return safe_sqrt((q - s**2 / c) / (c - 1))
 
-def pd_deep_product(obj: PdObject) -> Union[int, float]:
+def pd_deep_product(obj: PdObject) -> Union[int, float, complex]:
     if isinstance(obj, Block):
         raise TypeError('Cannot deeply compute product over block ' +
                 repr(obj))
-    if isinstance(obj, (Char, int, float)):
+    if isinstance(obj, (Char, int, float, complex)):
         return num.numerify(obj)
     else:
-        p: Union[int, float] = 1
+        p: Union[int, float, complex] = 1
         for e in pd_iterable(obj):
             p *= pd_deep_product(e) # type: ignore
         return p
@@ -1028,7 +1056,7 @@ def pd_deepmap_block(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     # The boolean is True if we need to break
     def process(obj: PdValue) -> Tuple[bool, List[PdObject]]:
         nonlocal i
-        if isinstance(obj, (Char, int, float)):
+        if isinstance(obj, (Char, int, float, complex)):
             env.set_yx(i, obj)
             i += 1
             try:
@@ -1064,13 +1092,13 @@ def pd_iterable(seq: PdSeq) -> Iterable[PdObject]:
     return seq
 
 def pd_len_singleton(v: PdValue) -> int:
-    if isinstance(v, (Char, int, float)):
+    if isinstance(v, (Char, int, float, complex)):
         return 1
     else:
         return len(v)
 
 def pd_cycle_to_len(n: int, obj: PdValue) -> Iterable[PdObject]:
-    if isinstance(obj, (Char, int, float)):
+    if isinstance(obj, (Char, int, float, complex)):
         return itertools.repeat(obj, n)
     elif isinstance(obj, str):
         n0 = len(obj)
@@ -1307,7 +1335,7 @@ def pd_build_like(orig: PdSeq, result: List[PdObject]) -> Union[str, list]:
     return pd_build_like_all([orig], result)
 
 def pd_flatten_once(val: PdValue) -> PdImmutable:
-    if isinstance(val, (Char, int, float, str, range)):
+    if isinstance(val, (Char, int, float, complex, str, range)):
         return val
     else: # list/Hoard
         if isinstance(val, Hoard):
@@ -1339,10 +1367,12 @@ def pd_flatten(val: int) -> int: ...
 @overload
 def pd_flatten(val: float) -> float: ...
 @overload
+def pd_flatten(val: complex) -> complex: ...
+@overload
 def pd_flatten(val: str) -> str: ...
 
 def pd_flatten(val: PdValue) -> PdImmutable:
-    if isinstance(val, (Char, int, float, str, range)):
+    if isinstance(val, (Char, int, float, complex, str, range)):
         return val
     else: # list/Hoard
         if isinstance(val, Hoard):
@@ -1365,7 +1395,7 @@ def pd_flatten(val: PdValue) -> PdImmutable:
 def pd_flatten_to_int_char_generator(val: PdValue) -> Generator[Union[int, Char], None, None]:
     if isinstance(val, (Char, int)):
         yield val
-    elif isinstance(val, float):
+    elif isinstance(val, (float, complex)):
         yield num.intify(val)
     elif isinstance(val, str):
         yield from (Char(c) for c in val)
@@ -1585,7 +1615,7 @@ def pd_orthogonal_neighbors(obj: PdObject) -> list:
 
     if isinstance(obj, Block):
         raise TypeError('Cannot compute neighbors of block ' + repr(obj))
-    if isinstance(obj, (Char, int, float)):
+    if isinstance(obj, (Char, int, float, complex)):
         return [num.pd_add_const(obj, -1), num.pd_add_const(obj, 1)]
     elif len(obj) == 0:
         return []
@@ -1618,7 +1648,7 @@ def pd_king_neighbors_and_self(obj: PdObject) -> List[Tuple[bool, Any]]:
 
     if isinstance(obj, Block):
         raise TypeError('Cannot compute neighbors of block ' + repr(obj))
-    if isinstance(obj, (Char, int, float)):
+    if isinstance(obj, (Char, int, float, complex)):
         return [
             (True, num.pd_add_const(obj, -1)),
             (False, obj),
@@ -1797,7 +1827,7 @@ def pd_map_reverse_singleton(seq: PdSeq) -> List[PdObject]:
             raise TypeError("Can't map reverse over block")
         elif isinstance(e, Char):
             acc.append(e.chr)
-        elif isinstance(e, (int, float)):
+        elif isinstance(e, (int, float, complex)):
             acc.append([e])
         elif isinstance(e, Hoard):
             acc.append(e.to_list()[::-1])
@@ -1842,7 +1872,7 @@ def pd_mapsum(env: Environment, func: Block, seq: PdSeq) -> PdObject:
 
 # as opposed to cartesian product
 def pd_map_numeric_product(env: Environment, func: Block, seq: PdSeq) -> PdObject:
-    p: Union[int, float] = 1
+    p: Union[int, float, complex] = 1
     for r in pd_map_iterable(env, func, pd_iterable(seq)):
         p *= pd_deep_product(r)
     return p
@@ -2147,6 +2177,8 @@ def pd_repr(obj: PdObject) -> str:
         return repr(obj)
     elif isinstance(obj, float):
         return repr(obj).replace('-', '—')
+    elif isinstance(obj, complex):
+        return pd_repr(obj.real) + ' ' + pd_repr(obj.imag) + 'j+'
     elif isinstance(obj, Hoard):
         return repr(obj) # TODO
 # }}}
@@ -2182,8 +2214,8 @@ def pd_to_float(val: PdValue) -> float:
     elif isinstance(val, Char):
         return float(val.ord)
     else:
-        assert isinstance(val, (int, float)) # https://github.com/python/mypy/issues/3196
-        return float(val)
+        assert isinstance(val, (int, float, complex)) # https://github.com/python/mypy/issues/3196
+        return float(val.real)
 
 def pd_to_int(val: PdValue) -> int:
     if isinstance(val, (list, range)):

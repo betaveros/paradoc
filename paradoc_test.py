@@ -95,6 +95,7 @@ class TestParadoc(unittest.TestCase):
 
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])
+        self.assertEqual(pd_simple_eval('4 7j +'), [4+7j])
         self.assertEqual(pd_simple_eval('7 3/ 7 3÷ 7.0 2.0/ 0.25 0.25+'), [7/3, 7//3, 3.5, 0.5])
         self.assertEqual(pd_simple_eval('7 3G 8 36G'), [1,4])
         self.assertEqual(pd_simple_eval('3 4 *p'), [81])
@@ -125,8 +126,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('7 7=q <q >q <eq >e'), [1,0,0,1,1])
         self.assertEqual(pd_simple_eval('6 7=q <q >q <eq >e'), [0,1,0,1,0])
         self.assertEqual(pd_simple_eval('8 7=q <q >q <eq >e'), [0,0,1,0,1])
+        self.assertEqual(pd_simple_eval('1 2j+ 2 1j+ =q <q >q <eq >e'), [0,1,0,1,0])
+        self.assertEqual(pd_simple_eval('3 2j+ 3 1j+ =q <q >q <eq >e'), [0,0,1,0,1])
         self.assertEqual(pd_simple_eval('"abcd" "efgh" <q =q >'), [1,0,0])
         self.assertEqual(pd_simple_eval('[0 1 2][0 1] >e [0 0 2][0 1] >e'), [1,0])
+
 
     def test_comparison_approx(self):
         self.assertEqual(pd_simple_eval('9 9<a'), [1])
@@ -353,7 +357,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[2]$p'), [1])
 
     def test_len(self):
-        self.assertEqual(pd_simple_eval('[8m 8 0]Lm'), [[8,8,0]])
+        self.assertEqual(pd_simple_eval('[8m 8 0 8j 3 4j+]Lm'), [[8,8,0,8.0,5.0]])
         self.assertEqual(pd_simple_eval('[[7 2 5 9 3 5 8][7 2 5 9 3][]]Lm'), [[7,5,0]])
 
     def test_find_index(self):
@@ -456,7 +460,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('8,{:3>{K}&:}e'), [0,0,1,1,2,2,3,3,4,5,6,7])
 
     def test_abs_diff(self):
-        self.assertEqual(pd_simple_eval('[[3 4][4 3][—1 6][—1 —9][7 —9]]{~±}e'), [1,1,7,8,16])
+        self.assertEqual(pd_simple_eval('[[3 4][4 3][—1 6][—1 —9][7 —9][3 4j]]{~±}e'), [1,1,7,8,16,5.0])
 
     def test_mapsum(self):
         self.assertEqual(pd_simple_eval('[3 4 5])š'), [15])
@@ -471,6 +475,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('253F'), [253.0])
         self.assertEqual(pd_simple_eval('"253"I'), [253])
         self.assertEqual(pd_simple_eval('"253"F'), [253.0])
+        self.assertEqual(pd_simple_eval('3 4j+F'), [3.0])
+        self.assertEqual(pd_simple_eval('3 4j+Jp'), [4.0])
+        self.assertEqual(pd_simple_eval('3 4j+Rj'), [3.0,4.0])
+        self.assertEqual(pd_simple_eval('3 4j+Cv'), [[3.0,4.0]])
         self.assertEqual(pd_simple_eval('\'xI'), [120])
         self.assertEqual(pd_simple_eval('98C'), [Char(98)])
 
@@ -485,7 +493,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('5M 6MM —7M —8MM'), [-5,6,7,-8])
 
     def test_signum(self):
-        self.assertEqual(pd_simple_eval('[1 2 1000 —989 727m 6986MM 0]Um'), [[1,1,1,-1,-1,1,0]])
+        self.assertEqual(pd_simple_eval('[1 2 1000 —989 727m 6986MM 0 2j 3 4j+]Um'), [[1,1,1,-1,-1,1,0,1.0j,(3.0+4.0j)/5]])
 
     def test_mold(self):
         self.assertEqual(pd_simple_eval('[5 6 7 8][[1 2][3 4]]M'), [[[5,6],[7,8]]])

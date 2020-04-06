@@ -6,8 +6,11 @@ import math
 # lazy imports in case you want to grab paradoc and not install sympy; I
 # don't know if this is a good idea.
 
-def is_prime_as_int(n0: Union[int, float]) -> int:
-    n = int(n0)
+def cint(x: Union[int, float, complex]) -> int:
+    return int(x.real)
+
+def is_prime_as_int(n0: Union[int, float, complex]) -> int:
+    n = cint(n0)
     if n != n0: return 0
     try:
         from sympy.ntheory.primetest import isprime
@@ -24,19 +27,19 @@ def nth_prime(n: int) -> int:
     # prime(1) = 2 etc.
     return prime(n)
 
-def prev_prime(n: Union[int, float]) -> int:
+def prev_prime(n: Union[int, float, complex]) -> int:
     try:
         from sympy.ntheory.generate import prevprime
     except ModuleNotFoundError:
         raise Exception("Install sympy to use number-theoretic functions!")
-    return prevprime(n) # exclusive of n
+    return prevprime(n.real) # exclusive of n
 
-def next_prime(n: Union[int, float]) -> int:
+def next_prime(n: Union[int, float, complex]) -> int:
     try:
         from sympy.ntheory.generate import nextprime
     except ModuleNotFoundError:
         raise Exception("Install sympy to use number-theoretic functions!")
-    return nextprime(n) # exclusive of n
+    return nextprime(n.real) # exclusive of n
 
 def prime_factorization(n: int) -> List[Tuple[int, int]]:
     try:
@@ -46,32 +49,34 @@ def prime_factorization(n: int) -> List[Tuple[int, int]]:
     factor_dict = factorint(n)
     return sorted(factor_dict.items())
 
-def prime_factorization_wrapped(n: Union[int, float]) -> List[List[int]]:
-    return list(list(e) for e in prime_factorization(int(n)))
+def prime_factorization_wrapped(n: Union[int, float, complex]) -> List[List[int]]:
+    return list(list(e) for e in prime_factorization(cint(n)))
 
-def prime_factorization_flat(n: Union[int, float]) -> List[int]:
-    return [x for (x, e) in prime_factorization(int(n)) for _ in range(e)]
+def prime_factorization_flat(n: Union[int, float, complex]) -> List[int]:
+    return [x for (x, e) in prime_factorization(cint(n)) for _ in range(e)]
 
-def totient(n: Union[int, float]) -> int:
+def totient(n: Union[int, float, complex]) -> int:
     try:
         import sympy.ntheory.factor_ as f_
     except ModuleNotFoundError:
         raise Exception("Install sympy to use number-theoretic functions!")
-    return f_.totient(int(n))
+    return f_.totient(cint(n))
 
 def jacobi_symbol(m: Union[int, float], n: Union[int, float]) -> int:
     try:
         import sympy.ntheory.residue_ntheory as rn
     except ModuleNotFoundError:
         raise Exception("Install sympy to use number-theoretic functions!")
-    return rn.jacobi_symbol(int(m), int(n))
+    return rn.jacobi_symbol(cint(m), cint(n))
 
 @overload
 def factorial(n: int) -> int: ...
 @overload
 def factorial(n: float) -> float: ...
+@overload
+def factorial(n: complex) -> float: ...
 
-def factorial(n: Union[int, float]) -> Union[int, float]:
+def factorial(n: Union[int, float, complex]) -> Union[int, float, complex]:
     try:
         import sympy.functions.combinatorial.factorials as fs
     except ModuleNotFoundError:
@@ -79,24 +84,35 @@ def factorial(n: Union[int, float]) -> Union[int, float]:
             p = 1
             for i in range(1, n + 1): p *= i
             return p
-        else:
+        elif isinstance(n, float):
             return math.gamma(n + 1)
+        else:
+            raise Exception("Can't take factorial of complex number (install sympy)")
 
-    return int(fs.factorial(n))
+    if isinstance(n, int):
+        return int(fs.factorial(n))
+    elif isinstance(n, float):
+        return float(fs.factorial(n))
+    else:
+        return complex(fs.factorial(n)) # type: ignore # seems to work...
 
-def binomial_coefficient(n: Union[int, float], k: Union[int, float]) -> Union[int, float]:
+def binomial_coefficient(n: Union[int, float, complex], k: Union[int, float, complex]) -> Union[int, float, complex]:
     try:
         import sympy.functions.combinatorial.factorials as fs
     except ModuleNotFoundError:
         if isinstance(n, int) and isinstance(k, int):
             return factorial(n) // factorial(k) // factorial(n-k)
-        else:
+        elif isinstance(n, (int, float)) and isinstance(k, (int, float)):
             return factorial(n) / factorial(k) / factorial(float(n)-float(k))
+        else:
+            raise Exception("Can't take binomial coefficient of complex number (install sympy)")
 
     if isinstance(n, int) and isinstance(k, int):
         return int(fs.binomial(n, k))
+    elif isinstance(n, (int, float)) and isinstance(k, (int, float)):
+        return float(fs.binomial(float(n), k))
     else:
-        return int(fs.binomial(float(n), k))
+        return complex(fs.binomial(complex(n), k)) # type: ignore # seems to work...
 
 def fibonacci(n: Union[int, float]) -> Union[int, float]:
     try:

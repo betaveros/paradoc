@@ -1,5 +1,6 @@
 from paradoc.objects import (
-        PdObject, Environment, PdSeq, PdValue, PdNum, Char, Block, pd_deepmap_n2v,
+        PdObject, Environment, PdSeq, PdValue, PdNum, Char, Block,
+        pd_deepmap_n2v, pd_deepmap_r2v, pd_deepmap_rc2v,
         Hoard, PdImmutableSeq, PdEmptyStackException,
         )
 from typing import Any, Callable, List, Optional, Tuple, Type, Union
@@ -25,22 +26,21 @@ class ArgType:
         return ArgType([(tuple(typs), lambda obj: obj)])
 
 just_int       = ArgType.just_type(int)
-just_float     = ArgType.just_type(float)
 just_char      = ArgType.just_type(Char)
-just_number    = ArgType.just_type(Char, int, float)
+just_number    = ArgType.just_type(Char, int, float, complex)
 just_str       = ArgType.just_type(str)
 just_list      = ArgType.just_type(list, range, Hoard)
 just_seq       = ArgType.just_type(str, list, range, Hoard)
 just_block     = ArgType.just_type(Block)
 just_hoard     = ArgType.just_type(Hoard)
-just_immutable = ArgType.just_type(Char, int, float, str, list, range)
-just_value     = ArgType.just_type(Char, int, float, str, list, range, Hoard)
-just_any       = ArgType.just_type(Char, int, float, str, list, range, Hoard, Block)
+just_immutable = ArgType.just_type(Char, int, float, complex, str, list, range)
+just_value     = ArgType.just_type(Char, int, float, complex, str, list, range, Hoard)
+just_any       = ArgType.just_type(Char, int, float, complex, str, list, range, Hoard, Block)
 
 # Accepts a list, coercing Chars or numbers to single-element lists
 list_singleton = ArgType([
-        ((Char, int, float),   lambda x: [x]),
-        ((list, range, Hoard), lambda x: x),
+        ((Char, int, float, complex), lambda x: [x]),
+        ((list, range, Hoard),        lambda x: x),
         ])
 
 # Accepts a seq, dereferencing hoards
@@ -53,7 +53,7 @@ seq_deref = ArgType([
 # lists
 seq_singleton = ArgType([
         ((Char,),                   lambda x: x.chr),
-        ((int, float),              lambda x: [x]),
+        ((int, float, complex),     lambda x: [x]),
         ((str, list, range, Hoard), lambda x: x),
         ])
 # Accepts a sequence, coercing Chars or numbers to ranges
@@ -61,12 +61,14 @@ seq_range = ArgType([
         ((Char,),                   lambda x: range(x.ord)),
         ((int,),                    lambda x: range(x)),
         ((float,),                  lambda x: range(int(x))),
+        ((complex,),                lambda x: range(int(x.real))),
         ((str, list, range, Hoard), lambda x: x),
         ])
 seq_range_deref = ArgType([
         ((Char,),            lambda x: range(x.ord)),
         ((int,),             lambda x: range(x)),
         ((float,),           lambda x: range(int(x))),
+        ((complex,),         lambda x: range(int(x.real))),
         ((str, list, range), lambda x: x),
         ((Hoard,),           lambda x: x.to_list()),
         ])
@@ -76,6 +78,7 @@ list_int_range = ArgType([
         ((Char,),       lambda x: range(x.ord)),
         ((int,),        lambda x: range(x)),
         ((float,),      lambda x: range(int(x))),
+        ((complex,),    lambda x: range(int(x.real))),
         ((str,),        lambda x: [ord(c) for c in x]),
         ((list, range), lambda x: x),
         ])
@@ -85,6 +88,7 @@ int_coerce = ArgType([
         ((Char,),       lambda x: x.ord),
         ((int,),        lambda x: x),
         ((float,),      lambda x: int(x)),
+        ((complex,),    lambda x: int(x.real)),
         ((str,),        lambda x: int(x)),
         ])
 
@@ -94,15 +98,16 @@ int_len = ArgType([
         ((Char,),          lambda x: x.ord),
         ((int,),           lambda x: x),
         ((float,),         lambda x: int(x)),
+        ((complex,),       lambda x: int(abs(x))),
         ((str,list,range), lambda x: len(x)),
         ])
 
 # Accepts an int or a float, coercing Chars to integers and taking the lengths
 # of sequences
 number_len = ArgType([
-        ((Char,),          lambda x: x.ord),
-        ((int,float),      lambda x: x),
-        ((str,list,range), lambda x: len(x)),
+        ((Char,),             lambda x: x.ord),
+        ((int,float,complex), lambda x: x),
+        ((str,list,range),    lambda x: len(x)),
         ])
 
 # A case in a function definition, which specifies a list of types of
@@ -174,14 +179,22 @@ class Case:
     def seq_range_deref(func: Callable[[Environment, PdImmutableSeq], List[PdObject]]) -> 'Case':
         return Case(1, [seq_range_deref], func)
     @staticmethod
-    def number(func: Callable[[Environment, Union[int, float]], List[PdObject]]) -> 'Case':
+    def number(func: Callable[[Environment, Union[int, float, complex]], List[PdObject]]) -> 'Case':
         return Case(1, [just_number], func)
     @staticmethod
     def value(func: Callable[[Environment, PdValue], List[PdObject]]) -> 'Case':
         return Case(1, [just_value], func)
     @staticmethod
-    def value_n2v(func: Callable[[Union[int, float]], PdValue]) -> 'Case':
+    def value_n2v(func: Callable[[Union[int, float, complex]], PdValue]) -> 'Case':
         return Case(1, [just_value], lambda env, a: [pd_deepmap_n2v(func, a)])
+    @staticmethod
+    def value_r2v(func: Callable[[Union[int, float]], PdValue]) -> 'Case':
+        return Case(1, [just_value], lambda env, a: [pd_deepmap_r2v(func, a)])
+    @staticmethod
+    def value_rc2v(
+            rfunc: Callable[[Union[int, float]], PdValue],
+            cfunc: Callable[[complex], PdValue]) -> 'Case':
+        return Case(1, [just_value], lambda env, a: [pd_deepmap_rc2v(rfunc, cfunc, a)])
     @staticmethod
     def block(func: Callable[[Environment, Block], List[PdObject]]) -> 'Case':
         return Case(1, [just_block], func)
