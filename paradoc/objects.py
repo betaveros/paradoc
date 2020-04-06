@@ -891,12 +891,26 @@ def pd_max_of_seq(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> P
 def pd_max_of_seq_list_op(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     return pd_max_of_seq(seq, (env, func))
 
+# Heavy-handed, probably slow, meant to make complex numbers sort
+# lexicographically. So we only use it if necessary.
+def py_sortable_key(obj: PdObject) -> PdKey:
+    if isinstance(obj, (Char, int, float)): return (obj, 0)
+    elif isinstance(obj, complex): return (obj.real, obj.imag)
+    elif isinstance(obj, str): return tuple(Char(c) for c in obj)
+    elif isinstance(obj, range): return tuple(obj)
+    elif isinstance(obj, list): return tuple(py_sortable_key(x) for x in obj)
+    else:
+        raise TypeError(repr(obj) + " cannot be converted to sortable key")
+
 def pd_sort(a: PdSeq, ef: Optional[Tuple[Environment, Block]] = None) -> PdSeq:
     if ef is None:
         if isinstance(a, str):
             return ''.join(sorted(a))
         else:
-            return list(sorted(pd_to_list(a)))
+            try:
+                return list(sorted(pd_to_list(a)))
+            except TypeError as te:
+                return list(sorted(pd_to_list(a), key=py_sortable_key))
     else:
         env, f = ef
         keyed = [(pd_sandbox(env, f, [elt]), elt) for elt in pd_iterable(a)]
@@ -1050,6 +1064,32 @@ def pd_deep_product(obj: PdObject) -> Union[int, float, complex]:
         for e in pd_iterable(obj):
             p *= pd_deep_product(e) # type: ignore
         return p
+
+def pd_deep_reduce_complex(obj: PdObject) -> PdValue:
+    if isinstance(obj, Block):
+        raise TypeError('Cannot deeply reduce complex over block ' +
+                repr(obj))
+    if isinstance(obj, (Char, int, float, complex)):
+        raise TypeError('Cannot deeply reduce complex over scalar ' + repr(obj))
+    else:
+        # Should be all sequences or all scalars
+        seq_accum: List[PdObject] = []
+        s = complex(0)
+        seen_scalar = False
+        for i, e in py_enumerate(obj):
+            if isinstance(e, (Char, int, float, complex)):
+                if seq_accum:
+                    raise TypeError('Cannot mix scalars and sequences in reduce complex: ' + repr(obj))
+                s += num.numerify(e) * 1j ** i
+                seen_scalar = True
+            else:
+                if seen_scalar:
+                    raise TypeError('Cannot mix scalars and sequences in reduce complex: ' + repr(obj))
+                seq_accum.append(pd_deep_reduce_complex(e))
+        if seq_accum:
+            return seq_accum
+        return s
+
 def pd_deepmap_block(env: Environment, func: Block, seq: PdSeq) -> PdObject:
     env.push_yx()
     i = 0

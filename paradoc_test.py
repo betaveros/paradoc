@@ -479,12 +479,29 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('253F'), [253.0])
         self.assertEqual(pd_simple_eval('"253"I'), [253])
         self.assertEqual(pd_simple_eval('"253"F'), [253.0])
-        self.assertEqual(pd_simple_eval('3 4j+F'), [3.0])
-        self.assertEqual(pd_simple_eval('3 4j+Jp'), [4.0])
-        self.assertEqual(pd_simple_eval('3 4j+Rj'), [3.0,4.0])
-        self.assertEqual(pd_simple_eval('3 4j+Cv'), [[3.0,4.0]])
         self.assertEqual(pd_simple_eval('\'xI'), [120])
         self.assertEqual(pd_simple_eval('98C'), [Char(98)])
+
+    def test_complex_arithmetic(self):
+        self.assertEqual(pd_simple_eval('3 4+j'), [3.0+4.0j])
+        self.assertEqual(pd_simple_eval('3 4-j'), [3.0-4.0j])
+        self.assertEqual(pd_simple_eval('[3 4]Rj'), [3.0+4.0j])
+
+        self.assertEqual(pd_simple_eval('3 4j+F'), [3.0])
+        self.assertEqual(pd_simple_eval('3 4j+;j'), [4.0])
+        self.assertEqual(pd_simple_eval('3 4j+*j'), [3.0j-4.0])
+        self.assertEqual(pd_simple_eval('3 4j+/j'), [-3.0j+4.0])
+        self.assertEqual(pd_simple_eval('3 4j+Mj'), [3.0-4.0j])
+        self.assertEqual(pd_simple_eval('3 4j+|j'), [-3.0+4.0j])
+        self.assertEqual(pd_simple_eval('3 4j+\\j'), [4.0+3.0j])
+        self.assertEqual(pd_simple_eval('3 4j+~j'), [3.0,4.0])
+        self.assertEqual(pd_simple_eval('3 4j+Aj'), [[3.0,4.0]])
+        self.assertEqual(pd_simple_eval('5^jm'), [[1,1j,-1,-1j,1]])
+        self.assertEqual(pd_simple_eval('[3 4j+ 5 6j]!jm'), [[0,1,0]])
+        self.assertEqual(pd_simple_eval('[3 4j+ 5 6j]&jm'), [[0,0,1]])
+
+    def test_complex_sort(self):
+        self.assertEqual(pd_simple_eval('[3 4j+ 5 6j 7 8j+ 7 4j+ 3 2j+]$'), [[6j,3+2j,3+4j,5,7+4j,7+8j]])
 
     def test_conversions_group(self):
         self.assertEqual(pd_simple_eval('"253"Ig'), [[253]])
