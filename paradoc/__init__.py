@@ -1261,6 +1261,11 @@ class CodeBlock(Block):
             elif trailer_token == 'c' or trailer_token == '_chars':
                 env.input_trigger = input_triggers.char
 
+            elif trailer_token == 'a' or trailer_token == '_linearray':
+                env.input_trigger = input_triggers.all_lines
+            elif trailer_token == 'y' or trailer_token == '_valuearray':
+                env.input_trigger = input_triggers.all_values
+
             elif trailer_token == 'e' or trailer_token == '_each':
                 if env.input_trigger is None:
                     env.input_trigger = input_triggers.line

@@ -1,5 +1,5 @@
 # vim:set ts=4 sw=4 et:
-from typing import IO, List, Optional, Union
+from typing import IO, List, Optional, Tuple, Union
 import sys
 
 # I'm closing the file after finishing reading from it so that I can read all
@@ -21,7 +21,8 @@ def char(file: IO[str] = sys.stdin) -> Optional[str]:
         return res
     except ValueError: return None
 
-def word(file: IO[str] = sys.stdin) -> Optional[str]:
+# bool is if eof was encountered *before* this read
+def word_eof(file: IO[str] = sys.stdin) -> Tuple[Optional[str], bool]:
     try:
         c = file.read(1)
         # Skip space
@@ -32,36 +33,65 @@ def word(file: IO[str] = sys.stdin) -> Optional[str]:
         while not c.isspace():
             res.append(c)
             c = file.read(1)
+            # so this assumes the file ends with some whitespace I guess...
+            # seems questionable FIXME maybe
             if not c:
                 file.close()
-                return None
+                return (None, False)
 
-        return ''.join(res)
-    except ValueError: return None
+        return (''.join(res), False)
+    except ValueError: return (None, True)
 
-def value(file: IO[str] = sys.stdin) -> Optional[Union[str, int, float]]:
-    w = word(file)
-    if w is None: return w
+def word(file: IO[str] = sys.stdin) -> Optional[str]:
+    return word_eof(file)[0]
+
+def value_eof(file: IO[str] = sys.stdin) -> Tuple[Optional[Union[str, int, float]], bool]:
+    w, eof = word_eof(file)
+    if w is None: return w, eof
     try:
-        return int(w)
+        return int(w), eof
     except ValueError:
         try:
-            return float(w)
+            return float(w), eof
         except ValueError:
-            return w
+            return w, eof
 
-def line(file: IO[str] = sys.stdin) -> Optional[str]:
+def value(file: IO[str] = sys.stdin) -> Optional[Union[str, int, float]]:
+    return value_eof(file)[0]
+
+# bool is if eof was encountered *before* this read
+def line_eof(file: IO[str] = sys.stdin) -> Tuple[Optional[str], bool]:
     try:
         ret = file.readline()
         if ret:
             # TODO: does this work on Windows?
             assert ret[-1] == '\n'
-            return ret[:-1]
+            return (ret[:-1], False)
         else:
             # empty string means EOF
             file.close()
-            return None
-    except ValueError: return None
+            return (None, False)
+    except ValueError: return (None, True)
+
+def line(file: IO[str] = sys.stdin) -> Optional[str]:
+    return line_eof(file)[0]
+
+def all_lines(file: IO[str] = sys.stdin) -> Optional[List[str]]:
+    ret: List[str] = []
+    while True:
+        nextline, eof = line_eof(file)
+        if eof: return None
+        if nextline is None: return ret
+        ret.append(nextline)
+
+def all_values(file: IO[str] = sys.stdin) -> Optional[List[Union[str, int, float]]]:
+    ret: List[Union[str, int, float]] = []
+    while True:
+        nextvalue, eof = value_eof(file)
+        if eof: return None
+        if nextvalue is None: return ret
+        ret.append(nextvalue)
+    return ret
 
 def record(file: IO[str] = sys.stdin) -> Optional[Union[str, int, float]]:
     w = line(file)
