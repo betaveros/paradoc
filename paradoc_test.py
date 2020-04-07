@@ -596,6 +596,8 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[\'A \'a 67]"PARADOC"#av'), [[2,0,1]])
         self.assertEqual(pd_simple_eval('10 3%b#'), [6])
         self.assertEqual(pd_simple_eval('21Êç'), [11])
+        self.assertEqual(pd_simple_eval('21Êñ'), [10])
+        self.assertEqual(pd_simple_eval('21Êƒ'), [10])
         self.assertEqual(pd_simple_eval('[5 3 4 4 5 5 5]#p'), [[[5,4],[3,1],[4,2]]])
         self.assertEqual(pd_simple_eval('[[1][1 1][1]]#p'), [[[[1],2],[[1,1],1]]])
         self.assertEqual(pd_simple_eval('[1 2 3 2 1 2 3]#æ'), [2])
