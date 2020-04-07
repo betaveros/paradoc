@@ -99,6 +99,9 @@ class TestParadoc(unittest.TestCase):
 
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])
+        self.assertEqual(pd_simple_eval('5 3- 3 5-'), [2,-2])
+        self.assertEqual(pd_simple_eval('5 3-c 3 5-c'), [2,0])
+        self.assertEqual(pd_simple_eval('[4m 2m 0 2 4]5%v'), [[1,3,0,2,4]])
         self.assertEqual(pd_simple_eval('4 7j +'), [4+7j])
         self.assertEqual(pd_simple_eval('7 3/ 7 3÷ 7.0 2.0/ 0.25 0.25+'), [7/3, 7//3, 3.5, 0.5])
         self.assertEqual(pd_simple_eval('7 3G 8 36G'), [1,4])
@@ -110,6 +113,10 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('16Í'), [1/16])
         self.assertEqual(pd_simple_eval('[2 5 3]Ì'), [[-2,-5,-3]])
         self.assertEqual(pd_simple_eval('[[1 2][3 4]][[5 6][7 8]]Ó'), [[[5,12],[21,32]]])
+
+    def test_balanced_mod(self):
+        self.assertEqual(pd_simple_eval('[8m 5m 0 5 8 9]6%âv'), [[-2,1,0,-1,2,3]])
+        self.assertEqual(pd_simple_eval('[8m 5m 0 5 8 9]6%ûv'), [[-2,1,0,-1,2,-3]])
 
     def test_increment_decrement_etc(self):
         self.assertEqual(pd_simple_eval('4«4(4)4»'), [2,3,5,6])

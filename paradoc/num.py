@@ -88,6 +88,16 @@ def lift_numerify(f: Callable[[Num, Num], Num]) -> Callable[[PdNum, PdNum], PdNu
             return f(numerify(a), numerify(b))
     return inner
 
+def lift_realify(f: Callable[[Union[int, float], Union[int, float]], Union[int, float]]) -> Callable[[PdNum, PdNum], PdNum]:
+    def inner(a: PdNum, b: PdNum) -> PdNum:
+        if isinstance(a, Char) and isinstance(b, Char):
+            res = f(a.ord, b.ord)
+            assert isinstance(res, int)
+            return Char(res)
+        else:
+            return f(realify(a), realify(b))
+    return inner
+
 def lift_intify(f: Callable[[int, int], int]) -> Callable[[PdNum, PdNum], Union[int, Char]]:
     def inner(a: PdNum, b: PdNum) -> Union[int, Char]:
         if isinstance(a, Char) and isinstance(b, Char):
@@ -116,10 +126,25 @@ pd_add = lift_numerify(operator.add)
 pd_sub = lift_numerify(operator.sub)
 pd_mul = lift_numerify(operator.mul)
 pd_div = lift_numerify(operator.truediv) # float division!
-pd_mod = lift_numerify(operator.mod)
+pd_mod = lift_realify(operator.mod)
 pd_pow = lift_numerify(operator.pow)
 
-pd_intdiv = lift_numerify(operator.floordiv)
+pd_intdiv = lift_realify(operator.floordiv)
+
+def positive_biased_balanced_mod(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    mod = a % b
+    if abs(mod) > abs(b) / 2: mod -= abs(b)
+    if abs(mod) <= -abs(b) / 2: mod += abs(b)
+    return mod
+
+def negative_biased_balanced_mod(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    mod = a % b
+    if abs(mod) >= abs(b) / 2: mod -= abs(b)
+    if abs(mod) < -abs(b) / 2: mod += abs(b)
+    return mod
+
+pd_positive_biased_balanced_mod = lift_realify(positive_biased_balanced_mod)
+pd_negative_biased_balanced_mod = lift_realify(negative_biased_balanced_mod)
 
 pd_and = lift_intify(operator.and_)
 pd_or  = lift_intify(operator.or_)

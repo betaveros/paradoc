@@ -464,6 +464,21 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             """,
             stability="stable")
 
+    cput('Positive_biased_balanced_mod', ['%â'], [
+        Case.number2(lambda env, a, b: [num.pd_positive_biased_balanced_mod(a, b)]),
+    ],
+            docs="""Balanced mod: on a and b, returns the number that's equal
+            to a mod b and as close to 0 as possible, preferring |b|/2 over
+            -|b|/2.""",
+            stability="unstable")
+    cput('Negative_biased_balanced_mod', ['%û'], [
+        Case.number2(lambda env, a, b: [num.pd_negative_biased_balanced_mod(a, b)]),
+    ],
+            docs="""Balanced mod: on a and b, returns the number that's equal
+            to a mod b and as close to 0 as possible, preferring -|b|/2 over
+            |b|/2.""",
+            stability="unstable")
+
     zip_cases = [
         Case.seq2_range(lambda env, a, b: [pd_zip_as_list(a, b)]),
         Case.seq2_range_block(lambda env, seq1, seq2, block:
@@ -512,6 +527,12 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Absolute difference. Mnemonic: + is for "positive" and - is
             for "difference".""",
             stability="stable")
+    cput('Clamped_subtract', ['-c'], [
+        Case.number2(lambda env, a, b: [pd_max(num.pd_sub(a, b), 0)]),
+    ],
+            docs="""Subtraction clamped to zero, or saturating subtraction: the
+            maximum of the subtraction or 0.""",
+            stability="unstable")
 
     cput('Plus_ints', ['+i'], [
         Case.int2_coerce(lambda env, a, b: [a + b]),
