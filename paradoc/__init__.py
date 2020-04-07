@@ -1196,6 +1196,13 @@ block_starters = {
     'λ'   : '_loop',
 }
 
+short_block_starters = {
+    'β'   : 2,
+    '\x02': 2,
+    'γ'   : 3,
+    '\x03': 3,
+}
+
 class CodeBlock(Block):
     def __init__(self, tokens: Iterable[str],
             optimize_comments: bool = True,
@@ -1291,6 +1298,9 @@ class CodeBlock(Block):
 
         # This is not None when assignment is active:
         active_assign_token: Optional[str] = None
+        # This is nonzero when a short block is active; ticks down when we
+        # parse anything at level 1.
+        short_block_countdown: int = 0
         block_acc: List[str] = []
 
         for token0 in self.tokens[body_start:]:
@@ -1307,7 +1317,7 @@ class CodeBlock(Block):
                     # token.
                     assert not token0[0].isdigit()
 
-                    if token.startswith('{') or token in block_starters:
+                    if token.startswith('{') or token in block_starters or token in short_block_starters:
                         raise NotImplementedError("Assigning to a block is reserved syntax")
                     elif active_assign_token == '.':
                         env.put(token0, env.peek())
@@ -1324,7 +1334,13 @@ class CodeBlock(Block):
                         assert block_prefix_trailer is None
                         block_prefix_trailer = block_starters[token]
                         block_level += 1
-                        if trailer: block_acc.append(trailer)
+                        if trailer: block_acc.append(trailer) # goes at start
+                        # of block so i guess it'll set executors and stuff??
+                    elif token in short_block_starters:
+                        assert block_prefix_trailer is None
+                        block_prefix_trailer = trailer
+                        block_level += 1
+                        short_block_countdown = short_block_starters[token]
                     elif token.startswith('..') or token.startswith('——'):
                         pass # comment
                     elif token.startswith('"'):
@@ -1364,7 +1380,11 @@ class CodeBlock(Block):
 
                         act_after_trailer_tokens(env, val, trailer_tokens)
                 else:
+                    should_accumulate = False
+
                     if token.startswith('}'):
+                        if block_level == 1 and short_block_countdown:
+                            raise Exception("Cannot terminate short block with curly brace")
                         block_level -= 1
                         if block_level == 0:
                             # We reached the outermost scope.
@@ -1377,11 +1397,27 @@ class CodeBlock(Block):
                             block_acc = []
                             executor = None
                         else:
-                            block_acc.append(token0)
+                            should_accumulate = True
                     else:
                         if token in block_starters:
                             block_level += 1
+                        should_accumulate = True
+
+                    if should_accumulate:
                         block_acc.append(token0)
+                        if block_level == 1 and short_block_countdown:
+                            short_block_countdown -= 1
+                            if short_block_countdown == 0:
+                                block_level = 0
+                                # We concluded a short block in the outermost scope.
+                                assert block_prefix_trailer is not None
+                                act_after_trailer_tokens(env,
+                                        CodeBlock(block_acc),
+                                        lex_trailers(block_prefix_trailer), # trailer is NOT included!
+                                        reluctant=True, post_executor=executor)
+                                block_prefix_trailer = None
+                                block_acc = []
+                                executor = None
             except PdExitException: raise
             except PdBreakException: raise
             except PdContinueException: raise
