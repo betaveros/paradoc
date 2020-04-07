@@ -2017,6 +2017,9 @@ def pd_filter_entries(env: Environment, func: Block, seq: PdSeq,
 def pd_filter(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> PdSeq:
     return pd_build_like(seq,
             [e for (i, e) in pd_filter_entries(env, func, seq, negate)])
+def pd_reject(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
+    return pd_filter(env, func, seq, negate = True)
+
 def pd_filter_indexes(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> List[int]:
     return [i for (i, e) in pd_filter_entries(env, func, seq, negate)]
 

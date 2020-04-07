@@ -146,6 +146,15 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_filter",
                 lambda env: apply_pd_list_op(env, b, objects.pd_filter)), False)
 
+    @put("reject", "j",
+            docs="""Apply this block to each element of a list (coerces numbers
+            to ranges) and filter elements for which the block gives a falsy
+            result.""",
+            stability="unstable")
+    def reject_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        return (BuiltIn(b.code_repr() + "_reject",
+                lambda env: apply_pd_list_op(env, b, objects.pd_reject)), False)
+
     @put("get", "g",
             docs="""Find the first element of the list where this block gives a
             truthy result (coerces numbers to ranges).""",
