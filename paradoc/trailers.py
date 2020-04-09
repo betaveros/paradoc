@@ -431,6 +431,18 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             env.push(objects.pd_zip(env, b, range(len(lst_a)), lst_a))
         return (BuiltIn(b.code_repr() + "_enumap", enumap_b), False)
 
+    @put("unemap", "ü",
+            docs="""Apply this block to each element and index of a list
+            (coerces numbers to ranges); collect the results into a new
+            list.""",
+            stability="unstable")
+    def unemap_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def unemap_b(env: Environment) -> None:
+            lst_a = objects.pd_to_immutable_seq_range(env.pop())
+            env.push(objects.pd_zip(env, b, lst_a, range(len(lst_a))))
+        return (BuiltIn(b.code_repr() + "_unemap", unemap_b), False)
+
+
     @put("loopzip", "ö",
             docs="""Execute this block once for each corresponding pair of
             elements from two lists (coerces numbers to ranges). Both elements
