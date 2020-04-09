@@ -2186,18 +2186,20 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             if necessary and pad it with equally many spaces on either side
             until at least the length.""",
             stability="unstable")
-    # These names clobber good filters. Maybe there are other ways to fit
-    # these utilities in.
-    # cput('Left_add_spaces',  ['«f'],
-    #     char_biased_pad_cases(lambda s, n: ' ' * n + s),
-    #         docs="""Given a value and a length, convert the value to a string
-    #         if necessary and prepend that many spaces.""",
-    #         stability="unstable")
-    # cput('Right_add_spaces', ['»f'],
-    #     char_biased_pad_cases(lambda s, n: s + ' ' * n),
-    #         docs="""Given a value and a length, convert the value to a string
-    #         if necessary and append that many spaces.""",
-    #         stability="unstable")
+    cput('Left_add_spaces',  ['‹p'],
+        char_biased_pad_cases(lambda s, n: ' ' * n + s),
+            docs="""Given a value and a length, convert the value to a string
+            if necessary and prepend that many spaces. Mnemonic: well, left-pad
+            (but "fill" doesn't make sense unless you're filling up to
+            something, whereas padding still makes sense.)""",
+            stability="unstable")
+    cput('Right_add_spaces', ['›p'],
+        char_biased_pad_cases(lambda s, n: s + ' ' * n),
+            docs="""Given a value and a length, convert the value to a string
+            if necessary and append that many spaces. Mnemonic: well, right-pad
+            (but "fill" doesn't make sense unless you're filling up to
+            something, whereas padding still makes sense.)""",
+            stability="unstable")
 
     cput('Left_fill', ['[f'], [
         Case.list_range_number_any(lambda env, s, n, fill:
@@ -2214,6 +2216,22 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Given a list (numbers coerce to ranges), a length, and a
             filler object, right-pad the list with the filler object until at
             least the length.""",
+            stability="unstable")
+    cput('Left_add', ['«p'], [
+        Case.list_range_number_any(lambda env, s, n, fill:
+            [pd_build_like(s, [fill] * (num.intify(n)) + list(pd_iterable(s)))]),
+    ],
+            docs="""Given a list (numbers coerce to ranges), a number, and a
+            filler object, left-pad the list with number copies of the filler
+            object.""",
+            stability="unstable")
+    cput('Right_add', ['»p'], [
+        Case.list_range_number_any(lambda env, s, n, fill:
+            [pd_build_like(s, list(pd_iterable(s)) + [fill] * (num.intify(n)))]),
+    ],
+            docs="""Given a list (numbers coerce to ranges), a number, and a
+            filler object, right-pad the list with number copies of the filler
+            object.""",
             stability="unstable")
 
     cput('Space_repeat', [' x'], [
