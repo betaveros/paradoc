@@ -2133,6 +2133,8 @@ def pd_autozip(env: Environment, func: Block, obj: PdObject) -> PdImmutableSeq:
     seq = pd_to_immutable_seq_range(obj)
     return pd_zip(env, func, seq, seq[1:])
 
+# doesn't make sense to generalize to more than 2 sequences because the func
+# doesn't plausibly have multiple arity
 def pd_ziplongest(env: Environment,
         func: Block,
         seq1: PdSeq,
@@ -2157,7 +2159,7 @@ def pd_ziplongest(env: Environment,
     finally:
         for i in range(3):
             env.pop_x()
-    return acc
+    return pd_build_like_all((seq1, seq2), acc)
 
 def pd_loopzip(env: Environment,
         func: Block,
