@@ -1099,6 +1099,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Maxima of array, optionally by a block (numbers will
             coerce to ranges if you supply a block).""",
             stability="alpha")
+    cput('Min_deep_vectorizing', ['<mw', 'Õw'], [
+        Case.value2(lambda env, a, b: [pd_deepvectorize_nn2v(pd_min, a, b)]),
+    ],
+            docs="""Minimum of two values; deeply vectorizes.""",
+            stability="unstable")
+    cput('Max_deep_vectorizing', ['>mw', 'Ãw'], [
+        Case.value2(lambda env, a, b: [pd_deepvectorize_nn2v(pd_max, a, b)]),
+    ],
+            docs="""Maximum of two values; deeply vectorizes.""",
+            stability="unstable")
 
     cput('Lt_length', ['<l'], [
         Case.number2_len(lambda env, a, b: [int(num.pd_num_cmp(a, b) < 0)]),

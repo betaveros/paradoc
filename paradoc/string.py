@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Union
 
 def str_class(s: str) -> str:
     """Expand a string of character ranges.

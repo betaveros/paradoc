@@ -991,6 +991,7 @@ def pd_deepmap_s2v(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
         return acc
 
 # deeply vectorize a (Num, Num) -> Value function
+# (includes zipping when everything matches)
 def pd_deepvectorize_nn2v(func: Callable[[PdNum, PdNum], PdValue],
         obj1: PdObject, obj2: PdObject) -> PdValue:
     if isinstance(obj1, Block):
