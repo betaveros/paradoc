@@ -761,6 +761,12 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('3"hello"t'), ["hello"])
         self.assertEqual(pd_simple_eval('0"hello"t'), [""])
 
+    def test_tricky_string_preservation(self):
+        self.assertEqual(pd_simple_eval('"123")m'), ["234"])
+        self.assertEqual(pd_simple_eval('"123"{2*}m'), [[98,100,102]])
+        self.assertEqual(pd_simple_eval('"123"{2C*}m'), ["bdf"])
+        self.assertEqual(pd_simple_eval('"123"×m'), ["bdf"])
+
     def test_loops(self):
         self.assertEqual(pd_simple_eval('5:_(k_W'), [5,4,3,2,1,0])
         self.assertEqual(pd_simple_eval('5-pk_(k_U'), [5,4,3,2,1,0,-1])

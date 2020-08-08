@@ -1356,13 +1356,8 @@ def pd_replicate(atom: PdObject, n: int) -> PdSeq:
         return [atom] * n
 
 def pd_maybe_build_str(result: List[PdObject]) -> Union[str, list]:
-    if all(isinstance(c, (Char, int)) for c in result):
-        return (
-            ''.join(
-                chr(c.ord if isinstance(c, Char) else c) # type: ignore
-                for c in result
-            )
-        )
+    if all(isinstance(c, Char) for c in result):
+        return ''.join(c.chr for c in result)
     else:
         return result
 
