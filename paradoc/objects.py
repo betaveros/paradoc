@@ -1171,8 +1171,9 @@ def pd_deep_generator(obj: PdObject) -> Generator[PdValue, None, None]:
 def py_enumerate(seq: PdSeq, start: int = 0) -> Iterable[Tuple[int, PdObject]]:
     return enumerate(pd_iterable(seq), start=start)
 
-def py_reversed_enumerate(seq: PdSeq, start: int = 0) -> Iterable[Tuple[int, PdObject]]:
-    return enumerate(pd_reversed_iterable(seq), start=start)
+def py_reversed_enumerate(seq: PdSeq) -> Iterable[Tuple[int, PdObject]]:
+    n = len(seq)
+    return ((n - 1 - i, e) for i, e in enumerate(pd_reversed_iterable(seq)))
 
 def pd_enumerate(seq: PdSeq, start: int = 0) -> List[list]:
     return [list(t) for t in py_enumerate(seq, start=start)]

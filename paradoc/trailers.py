@@ -399,7 +399,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
                 objects.pd_map(env, b, lst))))
         return (BuiltIn(b.code_repr() + "_all", all_b), False)
 
-    @put("exists", "ê",
+    @put("exists", "any", "ê",
             docs="""Apply this block to each element of a list (coerces numbers
             to ranges); push whether at least one result is truthy.""",
             stability="alpha")
@@ -410,7 +410,17 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
                 objects.pd_map(env, b, lst))))
         return (BuiltIn(b.code_repr() + "_exists", exists_b), False)
 
-    @put("autozip", "ä",
+    @put("none", "ô",
+            docs="""Apply this block to each element of a list (coerces numbers
+            to ranges); push whether all results are falsy.""",
+            stability="alpha")
+    def none_trailer(outer_env: Environment, b: Block) -> Tuple[Block, bool]:
+        def none_b(env: Environment) -> None:
+            lst = objects.pd_to_list_range(env.pop()) # not immutable_seq, as '\0' is truthy
+            env.push(int(not any(objects.pd_map(env, b, lst))))
+        return (BuiltIn(b.code_repr() + "_none", none_b), False)
+
+    @put("autozip", "az", "ä",
             docs="""Execute this block once for each adjacent pair of elements
             from a list (coerces numbers to ranges). Both elements are pushed
             onto the stack.""",
@@ -458,7 +468,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
             env.push(objects.pd_loopzip(env, b, lst_a, lst_b))
         return (BuiltIn(b.code_repr() + "_loopzip", loopzip_b), False)
 
-    @put("mapsum", "š",
+    @put("mapsum", "sum", "š",
             docs="""Apply this block to each element of a list (coerces numbers
             to ranges); deeply sum the results.""",
             stability="alpha")
@@ -466,7 +476,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_mapsum",
                 lambda env: apply_pd_list_op(env, b, objects.pd_mapsum)), False)
 
-    @put("mapproduct", "þ",
+    @put("mapproduct", "product", "prod", "þ",
             docs="""Apply this block to each element of a list (coerces numbers
             to ranges); take the deep product of the results.""",
             stability="alpha")
@@ -535,7 +545,7 @@ def build_block_trailer_dict() -> Dict[str, Trailer[Block]]: # {{{
         return (BuiltIn(b.code_repr() + "_countnot",
                 lambda env: apply_pd_list_op(env, b, objects.pd_countnot)), False)
 
-    @put("organize", "ø",
+    @put("organize", "org", "ø",
             docs="""Apply this block to each element of a list (coerces
             numbers to ranges), and then organize the elements into groups
             based on which ones yield the same block outputs.""",
