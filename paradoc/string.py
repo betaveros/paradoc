@@ -25,4 +25,43 @@ def str_class(s: str) -> str:
 def case_double(s: str) -> str:
     return s.upper() + s.lower()
 
+# https://tools.ietf.org/html/rfc1924
+rfc1924_base85_alphabet = str_class('0-9A-Za-z') + '!#$%&()*+-;<=>?@^_`{|}~'
+assert len(rfc1924_base85_alphabet) == 85
+rfc1924_base85_dict = {c: i for i, c in enumerate(rfc1924_base85_alphabet)}
+# omitted: " ' , . / : [ ] \ (and space)
+
+def base85_parse(s: str) -> List[Union[int, float]]:
+    ret: List[Union[int, float]] = []
+    acc: Union[int, float] = 0
+    fp_places: Optional[int] = None
+
+    def flush() -> None:
+        if fp_places is None:
+            ret.append(acc)
+        else:
+            ret.append(acc / (85 ** fp_places))
+
+    for c in s:
+        if c == ' ':
+            flush()
+            acc = 0
+            fp_places = 0
+        elif c == ':': flush()
+        elif c == ',': acc = -acc
+        elif c == '/': acc = 1 / acc
+        elif c == '.': fp_places = 0
+        elif c == '‹': acc -= 1
+        elif c == '›': acc += 1
+        elif c == '«': acc -= 2
+        elif c == '»': acc += 2
+        elif c in rfc1924_base85_dict:
+            acc = acc * 85 + rfc1924_base85_dict[c]
+            if fp_places is not None:
+                fp_places += 1
+        else:
+            raise ValueError('unsupported base85 character: ' + repr(c))
+    flush()
+    return ret
+
 # vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:
