@@ -62,7 +62,7 @@ class TestParadoc(unittest.TestCase):
     def test_stack_ops(self):
         self.assertEqual(pd_simple_eval('1 2 3 \\ 1 2 3 \\o 1 2 3 \\i 1 2 3 : 1 2 3 :p'),
                 [1,3,2,2,3,1,3,1,2,1,2,3,3,1,2,3,2,3])
-        self.assertEqual(pd_simple_eval('1 2 3 \\a 1 2 3 \\u 1 2 3 :a'),
+        self.assertEqual(pd_simple_eval('1 2 3 \\a 1 2 3 \\u 1 2 3 :o'),
                 [3,2,1,2,1,3,1,2,3,2])
 
     def test_pop(self):
@@ -498,6 +498,9 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"253"F'), [253.0])
         self.assertEqual(pd_simple_eval('\'xI'), [120])
         self.assertEqual(pd_simple_eval('98C'), [Char(98)])
+
+    def test_type_predicates(self):
+        self.assertEqual(pd_simple_eval('[1 1.0 \'1 1j "1" [1] {1} H][:i_:f_:c_:j_:n_:s_:a_:b_:h_],y'), [[[0],[1],[2],[3],[0,1,2,3],[4],[5],[6],[7]]])
 
     def test_complex_arithmetic(self):
         self.assertEqual(pd_simple_eval('3 4+j'), [3.0+4.0j])

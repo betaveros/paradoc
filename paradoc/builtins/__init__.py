@@ -150,11 +150,11 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
             ex: 1 2 3 :p => 1 2 3 2 3""",
             stability="beta")
-    cput('Dup_around', [':a'], [Case.any2(lambda env, a, b: [a, b, a])],
+    cput('Dup_out', [':o'], [Case.any2(lambda env, a, b: [a, b, a])],
             docs="""Duplicate the second element of the stack onto the top: a b
             -> a b a
 
-            ex: 1 2 3 :a => 1 2 3 2""",
+            ex: 1 2 3 :o => 1 2 3 2""",
             stability="alpha")
     cput('Swap', ['\\'], [Case.any2(lambda env, a, b: [b, a])],
             docs="""Swap the top two elements of the stack.
@@ -697,6 +697,35 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Float_groups', ['Fg'], [Case.str_(lambda env, x: [[float(m) for m in re.findall(r"-?\d+(?:\.\d+)?(?:e\d+)?|\.\d+(?:e\d+)?", x)]])],
             docs="Finds float-looking parts of a string and converts them to floats.",
             stability="alpha")
+    # }}}
+    # Type predicates {{{
+    cput('Is_int', [':i'], [
+        Case.any(lambda env, x: [int(isinstance(x, int))]),
+    ], docs="Test if integer", stability="alpha")
+    cput('Is_char', [':c'], [
+        Case.any(lambda env, x: [int(isinstance(x, Char))]),
+    ], docs="Test if Char", stability="alpha")
+    cput('Is_float', [':f'], [
+        Case.any(lambda env, x: [int(isinstance(x, float))]),
+    ], docs="Test if float", stability="alpha")
+    cput('Is_complex', [':j'], [
+        Case.any(lambda env, x: [int(isinstance(x, complex))]),
+    ], docs="Test if complex", stability="alpha")
+    cput('Is_number', [':n'], [
+        Case.any(lambda env, x: [int(isinstance(x, (Char, int, float, complex)))]),
+    ], docs="Test if number (char, int, float, complex)", stability="alpha")
+    cput('Is_string', [':s'], [
+        Case.any(lambda env, x: [int(isinstance(x, str))]),
+    ], docs="Test if string", stability="alpha")
+    cput('Is_array', [':a'], [
+        Case.any(lambda env, x: [int(isinstance(x, (list, range)))]),
+    ], docs="Test if array (or range)", stability="alpha")
+    cput('Is_block', [':b'], [
+        Case.any(lambda env, x: [int(isinstance(x, Block))]),
+    ], docs="Test if block", stability="alpha")
+    cput('Is_hoard', [':h'], [
+        Case.any(lambda env, x: [int(isinstance(x, Hoard))]),
+    ], docs="Test if hoard", stability="alpha")
     # }}}
     # Sort, $; test for sortedness; order_statistic {{{
     cput('Sort', [], [
