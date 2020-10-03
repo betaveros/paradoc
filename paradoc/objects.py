@@ -992,8 +992,8 @@ def pd_deepmap_s2v(func: Callable[[str], PdNum], obj: PdValue) -> PdValue:
 
 # deeply vectorize a (Num, Num) -> Value function
 # (includes zipping when everything matches)
-def pd_deepvectorize_nn2v(func: Callable[[PdNum, PdNum], PdValue],
-        obj1: PdObject, obj2: PdObject) -> PdValue:
+def pd_deepvectorize_nn2v(func: Callable[[PdNum, PdNum], PdObject],
+        obj1: PdObject, obj2: PdObject) -> PdObject:
     if isinstance(obj1, Block):
         raise TypeError('Cannot deeply vectorize over block ' + repr(obj1))
     if isinstance(obj2, Block):
@@ -1358,7 +1358,7 @@ def pd_replicate(atom: PdObject, n: int) -> PdSeq:
 
 def pd_maybe_build_str(result: List[PdObject]) -> Union[str, list]:
     if all(isinstance(c, Char) for c in result):
-        return ''.join(c.chr for c in result)
+        return ''.join(c.chr for c in result) # type: ignore
     else:
         return result
 
