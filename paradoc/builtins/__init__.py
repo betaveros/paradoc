@@ -248,7 +248,22 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="stable")
     def pack_reverse(env: Environment) -> None:
         env.push(env.pop_until_stack_marker()[::-1])
-    @put(']_case', ']c', stability="beta")
+
+    def check_against(condition: PdObject, target: PdObject) -> bool:
+        if isinstance(condition, Block):
+            return pd_truthy(env, condition, [target])
+        else:
+            return target == condition
+
+    @put(']_case', ']c',
+            docs="""Case statement: Takes a series of lists, the "cases",
+            above the last stack mark, as well as one object, the "target",
+            below the mark, which is popped.  Then, find the first "case" such
+            that the case "matches" the target, where "matches" means that if
+            the case's first element is a block then the target must satisfy
+            it, and otherwise they must be equal. Push or execute all
+            remaining list elements in that first matching case.""",
+            stability="beta")
     def stack_marker_case(env: Environment) -> None:
         case_list = env.pop_until_stack_marker()
         target = env.pop()
@@ -257,31 +272,48 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
                 if case:
                     condition, *result = case
 
-                    if isinstance(condition, Block):
-                        case_succeeds = pd_truthy(env, condition, [target])
-                    else:
-                        case_succeeds = (target == condition)
-
-                    if case_succeeds:
+                    if check_against(condition, target):
                         env.push_or_eval(*result)
                         break
                 else:
                     raise AssertionError('Empty case')
             else:
                 raise AssertionError('Non-list case')
-    @put(']_stream', ']s', stability="alpha")
+    @put(']_stream', ']s',
+            docs="""Stream case statement: Like the case statement, but just
+            takes a series of alternative case predicates and case bodies
+            instead of expecting them to be paired up.""",
+            stability="alpha")
     def stack_marker_stream(env: Environment) -> None:
         case_list = env.pop_until_stack_marker()
         target = env.pop()
         for condition, result in zip(case_list[::2], case_list[1::2]):
-            if isinstance(condition, Block):
-                case_succeeds = pd_truthy(env, condition, [target])
-            else:
-                case_succeeds = (target == condition)
-
-            if case_succeeds:
+            if check_against(condition, target):
                 env.push_or_eval(result)
                 break
+
+    @put(']_check',
+            docs="""Stack check: Takes a series of case predicates above the
+            last stack mark. Peek at the same number of objects on the same
+            stack below them. Assert that every object matches the
+            corresponding predicate; otherwise, halt the program.""",
+            stability="alpha")
+    def stack_marker_check(env: Environment) -> None:
+        check_list = env.pop_until_stack_marker()
+        n = len(check_list)
+        failures = []
+        for i, condition in enumerate(reversed(check_list)):
+            target = env.index_stack_or_none(i)
+            if target is None:
+                failures.append('- {} ({} from top) of {}: not enough objects on stack for {}'.format(n - i, i, n, condition))
+            elif not check_against(condition, target):
+                failures.append('- {} ({} from top) of {}: condition {} not satisfied by target {}'.format(n - i, i, n, condition, target))
+
+        if failures:
+            msg = '\n'.join(['Stack check failed!'] + list(reversed(failures)))
+            print(msg, file=sys.stderr)
+            raise PdExitException(msg, 1)
+
     cput('†', [], [Case.any(lambda env, x: [[x]])],
             docs="""Pack the top element of the stack into a list by itself.
 
