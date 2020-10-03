@@ -251,7 +251,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
 
     def check_against(condition: PdObject, target: PdObject) -> bool:
         if isinstance(condition, Block):
-            return pd_truthy(env, condition, [target])
+            return pd_sandbox_truthy(env, condition, [target])
         else:
             return target == condition
 

@@ -679,7 +679,7 @@ def pd_bool(obj: PdObject) -> bool:
     else:
         return bool(obj)
 
-def pd_truthy(env: Environment, func: Block, lst: List[PdObject]) -> bool:
+def pd_sandbox_truthy(env: Environment, func: Block, lst: List[PdObject]) -> bool:
     try:
         return bool(pd_sandbox(env, func, lst)[-1])
     except IndexError:
@@ -1741,12 +1741,12 @@ def pd_find_substring_index(env: Environment, needle: PdSeq, haystack: PdSeq) ->
 
 def pd_find_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[int, Optional[PdObject]]:
     for i, e in py_enumerate(seq):
-        if pd_truthy(env, func, [e]): return (i, e)
+        if pd_sandbox_truthy(env, func, [e]): return (i, e)
     return (-1, None)
 
 def pd_find_last_entry(env: Environment, func: Block, seq: PdSeq) -> Tuple[int, Optional[PdObject]]:
     for i, e in py_reversed_enumerate(seq):
-        if pd_truthy(env, func, [e]): return (i, e)
+        if pd_sandbox_truthy(env, func, [e]): return (i, e)
     return (-1, None)
 
 def pd_first_duplicate(seq: PdSeq) -> Tuple[int, Optional[PdObject]]:
@@ -1761,7 +1761,7 @@ def pd_first_duplicate(seq: PdSeq) -> Tuple[int, Optional[PdObject]]:
 
 def pd_take_drop_while(env: Environment, func: Block, seq: PdImmutableSeq) -> Tuple[PdSeq, PdSeq]:
     for i, e in py_enumerate(seq):
-        if not pd_truthy(env, func, [e]): return (seq[:i], seq[i:])
+        if not pd_sandbox_truthy(env, func, [e]): return (seq[:i], seq[i:])
     return (seq, [])
 
 def pd_count_in(env: Environment, e: PdValue, seq: PdSeq) -> int:
@@ -2005,7 +2005,7 @@ def pd_filter_entries(env: Environment, func: Block, seq: PdSeq,
     try:
         for i, element in enumerate(pd_iterable(seq)):
             env.set_yx(i, element)
-            if pd_truthy(env, func, [element]) ^ negate:
+            if pd_sandbox_truthy(env, func, [element]) ^ negate:
                 acc.append((i, element))
     finally:
         env.pop_yx()
