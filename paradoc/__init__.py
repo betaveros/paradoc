@@ -134,6 +134,11 @@ class CodeBlock(Block):
         # print('entering __call__', self.tokens)
 
         body_start = 0
+        # How many levels of block nesting we're in, counting both curly-brace
+        # blocks and short blocks. Note that we don't care about tracking the
+        # block structure below the first level, except insofar as we need it
+        # to know when we emerge back into level 0. (It's not clear if this was
+        # a good idea.)
         block_level = 0
         block_prefix_trailer: Optional[str] = None
 
@@ -215,9 +220,16 @@ class CodeBlock(Block):
 
         # This is not None when assignment is active:
         active_assign_token: Optional[str] = None
-        # This is nonzero when a short block is active; ticks down when we
-        # parse anything at level 1.
-        short_block_countdown: int = 0
+        # This is nonempty when a short block is active; ticks down when we
+        # parse anything not outside a curly-brace block. From our point of
+        # view, we don't need to worry about any short blocks inside
+        # curly-brace blocks. Its length should always <= block_level.
+        # Theoretically, I think we could get by with a single int that goes up
+        # and down if we parse nested short blocks not in any long blocks, but
+        # that seems harder to debug.
+        short_block_countdown: List[int] = []
+        # A flat list of tokens accumulated into the block. As described above,
+        # we don't keep track of inner block structure.
         block_acc: List[str] = []
 
         for token0 in self.tokens[body_start:]:
@@ -257,7 +269,7 @@ class CodeBlock(Block):
                         assert block_prefix_trailer is None
                         block_prefix_trailer = trailer
                         block_level += 1
-                        short_block_countdown = short_block_starters[token]
+                        short_block_countdown.append(short_block_starters[token])
                     elif token.startswith('..') or token.startswith('——'):
                         pass # comment
                     elif token.startswith('"'):
@@ -297,10 +309,15 @@ class CodeBlock(Block):
 
                         act_after_trailer_tokens(env, val, trailer_tokens)
                 else:
+                    # active_assign_token is None and block_level > 0
+
+                    # Should this token go into block_acc?
                     should_accumulate = False
 
+                    should_countdown = False
+
                     if token.startswith('}'):
-                        if block_level == 1 and short_block_countdown:
+                        if block_level == len(short_block_countdown):
                             raise Exception("Cannot terminate short block with curly brace")
                         block_level -= 1
                         if block_level == 0:
@@ -315,17 +332,35 @@ class CodeBlock(Block):
                             executor = None
                         else:
                             should_accumulate = True
+                            should_countdown = True
                     else:
+                        should_accumulate = True
+                        should_countdown = True
                         if token in block_starters:
                             block_level += 1
-                        should_accumulate = True
+                        elif block_level == len(short_block_countdown) and token in short_block_starters:
+                            # Only track the structure of short blocks not in
+                            # any long blocks.
+                            block_level += 1
+                            short_block_countdown.append(short_block_starters[token])
+                            should_countdown = False
 
                     if should_accumulate:
+                        # We're still in a block.
                         block_acc.append(token0)
-                        if block_level == 1 and short_block_countdown:
-                            short_block_countdown -= 1
-                            if short_block_countdown == 0:
-                                block_level = 0
+                        if block_level == len(short_block_countdown) and should_countdown:
+                            # We're not in any long blocks, i.e. we're in one
+                            # or more nested short blocks.
+                            while short_block_countdown and short_block_countdown[-1] == 1:
+                                # We finished a short block.
+                                block_level -= 1
+                                short_block_countdown.pop()
+
+                            assert block_level == len(short_block_countdown)
+
+                            if short_block_countdown:
+                                short_block_countdown[-1] -= 1
+                            else:
                                 # We concluded a short block in the outermost scope.
                                 assert block_prefix_trailer is not None
                                 act_after_trailer_tokens(env,

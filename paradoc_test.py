@@ -102,6 +102,11 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[1 2 3 4]βf)Ev'), [[1,3]])
         self.assertEqual(pd_simple_eval('[1 2 3 4]β((%'), [[-1,0,1,2]])
 
+    def test_nested_short_blocks(self):
+        self.assertEqual(pd_simple_eval('[[0 3][6 9]]βmDβm))'), [[[5,2],[11,8]]])
+        self.assertEqual(pd_simple_eval('[[0 3][6 9]]βmβm))D'), [[[5,2],[11,8]]])
+        self.assertEqual(pd_simple_eval('[[0 1][2 3]]γmγm)))γm)))γm)))'), [[[9,10],[11,12]]])
+
     def test_arithmetic(self):
         self.assertEqual(pd_simple_eval('2 3+7*  2017 95))%(('), [35,75])
         self.assertEqual(pd_simple_eval('5 3- 3 5-'), [2,-2])
