@@ -1766,6 +1766,10 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
         Case.seq_range(lambda env, seq: [' '.join(env.pd_str(e) for e in pd_iterable(seq))]),
     ],
             stability="beta")
+    cput('Comma_join', [',r'], [
+        Case.seq_range(lambda env, seq: [','.join(env.pd_str(e) for e in pd_iterable(seq))]),
+    ],
+            stability="unstable")
     # }}}
     # G for Gcd or group, and friends {{{
     cput('Group', [], [
@@ -2369,7 +2373,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             docs="""Access value corresponding to a key in an array.""",
             stability="alpha")
     # }}}
-    # W for Window and W for Words {{{
+    # W for Window and W for Words, plus splitting {{{
     words_case = Case.seq(lambda env, seq: [pd_split_seq_by_spaces(seq)])
     window_case = Case.number_seq(lambda env, n, seq: [pd_sliding_window_seq(seq, n)])
     while_case = Case.block2(lambda env, cond, body:
@@ -2377,17 +2381,26 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     cput('Words', [], [words_case], stability="alpha", golf_aliases=['W'])
     cput('Window', [], [window_case], stability="alpha", golf_aliases=['W'])
 
-    space_split_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
-    cput('Space_split', ['Space_break', ' b'], [space_split_case],
+    space_split_case = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ' ')])
+    cput('Space_split', ['Space_break', ' b', ' s'], [space_split_case],
             docs="""Split by a single space. Note that this returns empty
             strings between adjacent spaces, as well as at the start or end if
             the string starts or ends with spaces, and it does not split by
-            other whitespace. Use {{ 'Words'|b }} if you don't want that.""",
+            other whitespace. Use {{ 'Words'|b }} if you don't want that.
+
+            I think I had a reason at one point, but I don't remember why I
+            passed up "s for split" for "b for break" as the mnemonic, and
+            re-examining this idea now there are quite a few reasons for s.""",
             stability="alpha")
 
-    lines_case  = Case.seq(lambda env, seq: [pd_split_seq_by(seq, '\n')])
-    cput('Line_split', ['Lines', 'Line_break', '\nb', '\\nb'], [lines_case],
+    lines_case = Case.seq(lambda env, seq: [pd_split_seq_by(seq, '\n')])
+    cput('Line_split', ['Lines', 'Line_break', '\nb', '\\nb', '\ns', '\\ns'], [lines_case],
             docs="""Split by a single newline.""",
+            stability="alpha")
+
+    comma_split_case = Case.seq(lambda env, seq: [pd_split_seq_by(seq, ',')])
+    cput('Comma_split', [',s'], [comma_split_case],
+            docs="""Split by a single comma.""",
             stability="alpha")
 
     def map_on_case(delim: str) -> Case:

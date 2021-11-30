@@ -915,6 +915,32 @@ def build_char_trailer_dict() -> Dict[str, Trailer[Char]]: # {{{
                 env.push(objects.pd_deepmap_n2v(lambda e: s * num.intify(e), v))
         return (BuiltIn(objects.pd_repr(c) + "_x", char_x_b), False)
 
+    @put("join", "r",
+            docs="""Convert to list if needed and then to strings if needed, then
+            join by this character.""",
+            stability="alpha")
+    def char_r_trailer(outer_env: Environment, c: Char) -> Tuple[Block, bool]:
+        def char_r_b(env: Environment) -> None:
+            v = env.pop()
+            if isinstance(v, Block):
+                raise TypeError('Cannot join block by character')
+            else:
+                env.push(c.chr.join(env.pd_str(e) for e in objects.pd_iterable(v)))
+        return (BuiltIn(objects.pd_repr(c) + "_r", char_r_b), False)
+
+    @put("split", "s",
+            docs="""Split by this character.""",
+            stability="alpha")
+    def char_s_trailer(outer_env: Environment, c: Char) -> Tuple[Block, bool]:
+        def char_s_b(env: Environment) -> None:
+            v = env.pop()
+            if isinstance(v, Block):
+                raise TypeError('Cannot split block by character')
+            else:
+                env.push(objects.pd_split_seq_by(v, c.chr))
+        return (BuiltIn(objects.pd_repr(c) + "_s", char_s_b), False)
+
+
     return ret
 char_trailer_dict = build_char_trailer_dict()
 # }}}

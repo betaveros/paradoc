@@ -325,6 +325,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('[5 7 8]2R'), [[5,2,7,2,8]])
         self.assertEqual(pd_simple_eval('[5 7 8][0 0]R'), [[5,0,0,7,0,0,8]])
         self.assertEqual(pd_simple_eval('[5 7 8]"+"R'), ["5+7+8"])
+        self.assertEqual(pd_simple_eval('[5 7 8]\'+r'), ["5+7+8"])
         self.assertEqual(pd_simple_eval('[9 2 7]\'.R'), ["9.2.7"])
         self.assertEqual(pd_simple_eval('["123" 456 "789"]"//"R'), ["123//456//789"])
 
@@ -693,6 +694,7 @@ class TestParadoc(unittest.TestCase):
         self.assertEqual(pd_simple_eval('"pair of doc"W'), [["pair","of","doc"]])
         self.assertEqual(pd_simple_eval('" x  tra   \nspaces\n  "W'), [["x","tra","spaces"]])
         self.assertEqual(pd_simple_eval('" x  tra   \nspaces\n  " b'), [["","x","","tra","","","\nspaces\n","",""]])
+        self.assertEqual(pd_simple_eval('"assdfs"\'ss'), [["a","","df",""]])
 
     def test_random(self):
         self.assertEqual(pd_simple_eval('0 Random_seed RfRfRf'),
