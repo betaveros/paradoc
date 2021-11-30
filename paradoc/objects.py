@@ -2016,6 +2016,20 @@ def pd_filter(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -
             [e for (i, e) in pd_filter_entries(env, func, seq, negate)])
 def pd_reject(env: Environment, func: Block, seq: PdSeq) -> PdSeq:
     return pd_filter(env, func, seq, negate = True)
+def pd_filter_and_reject(env: Environment, func: Block, seq: PdSeq) -> Tuple[PdSeq, PdSeq]:
+    env.push_yx()
+    t_acc: List[PdObject] = []
+    f_acc: List[PdObject] = []
+    try:
+        for i, element in enumerate(pd_iterable(seq)):
+            env.set_yx(i, element)
+            if pd_sandbox_truthy(env, func, [element]) ^ negate:
+                t_acc.append((i, element))
+            else:
+                f_acc.append((i, element))
+    finally:
+        env.pop_yx()
+    return pd_build_like(seq, t_acc), pd_build_like(seq, f_acc)
 
 def pd_filter_indexes(env: Environment, func: Block, seq: PdSeq, negate: bool = False) -> List[int]:
     return [i for (i, e) in pd_filter_entries(env, func, seq, negate)]

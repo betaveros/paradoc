@@ -508,6 +508,19 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             """,
             stability="stable")
 
+    cput('Div_with_zero_as_one', ['/o'], [
+        Case.number2(lambda env, a, b: [num.pd_div(a, b) if b else a]),
+    ],
+            docs="""Float division except that if the second argument is 0 it
+            just returns the first argument.""",
+            stability="unstable")
+    cput('Intdiv_with_zero_as_one', ['÷o'], [
+        Case.number2(lambda env, a, b: [num.pd_intdiv(a, b) if b else a]),
+    ],
+            docs="""Integer division except that if the second argument is 0 it
+            just returns the first argument.""",
+            stability="unstable")
+
     cput('Positive_biased_balanced_mod', ['%â'], [
         Case.number2(lambda env, a, b: [num.pd_positive_biased_balanced_mod(a, b)]),
     ],
@@ -565,12 +578,21 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             block. Mnemonic: finds where the element is AT.""",
             stability="beta")
 
-    cput('Abs_diff', ['Ad', '±'], [
-        Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))]),
-    ],
-            docs="""Absolute difference. Mnemonic: + is for "positive" and - is
-            for "difference".""",
+    abs_diff_case = Case.number2(lambda env, a, b: [num.pd_abs(num.pd_sub(a, b))])
+    cput('Abs_diff', ['Ad'], [abs_diff_case],
+            docs="""Absolute difference of two numbers.""",
+            stability="stable", golf_aliases=['±'])
+
+    filter_and_reject_case = Case.block_seq_range(lambda env, block, seq:
+            list(pd_filter_and_reject(env, block, seq)))
+    cput('±', [], [abs_diff_case, filter_and_reject_case],
+            docs="""On two numbers, absolute difference (mnemonic: + is
+            for "positive" and - is for "difference".) On a list and a block,
+            filter-and-reject: push the list of elements on which the predicate
+            is true and the list of elements on which the predicate is
+            false.""",
             stability="stable")
+
     cput('Clamped_subtract', ['-c'], [
         Case.number2(lambda env, a, b: [pd_max(num.pd_sub(a, b), 0)]),
     ],
