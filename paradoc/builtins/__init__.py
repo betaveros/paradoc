@@ -2045,6 +2045,42 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
     def dump(env: Environment) -> None:
         if env.get('Debug'):
             print('Dump:', env.debug_dump(), file=sys.stderr)
+
+    if sandboxed:
+        pass # TODO
+    else:
+        @put('Read_file', 'Vf',
+                docs="""Read contents of a file with the given name.""",
+                stability="alpha")
+        def read_file(env: Environment) -> None:
+            filename = env.pop()
+            if isinstance(filename, str):
+                with open(filename) as infile:
+                    env.push(infile.read())
+            else:
+                raise Exception("Cannot read non-string filename!")
+        @put('Output_file', 'Of',
+                docs="""Write contents to a file with the given name (overwriting the file).""",
+                stability="alpha")
+        def output_file(env: Environment) -> None:
+            a = env.pop()
+            filename = env.pop()
+            if isinstance(filename, str):
+                with open(filename, 'w') as outfile:
+                    outfile.write(env.pd_str(a))
+            else:
+                raise Exception("Cannot write non-string filename!")
+        @put('Append_file', 'Af',
+                docs="""Append contents to a file with the given name.""",
+                stability="alpha")
+        def append_file(env: Environment) -> None:
+            a = env.pop()
+            filename = env.pop()
+            if isinstance(filename, str):
+                with open(filename, 'a') as outfile:
+                    outfile.write(env.pd_str(a))
+            else:
+                raise Exception("Cannot append non-string filename!")
     # }}}
     # Break, Continue, Exit {{{
     @put('Exit', 'E',
