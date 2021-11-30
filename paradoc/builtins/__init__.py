@@ -291,6 +291,16 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             if check_against(condition, target):
                 env.push_or_eval(result)
                 break
+    @put(']_index', ']i',
+            docs="""Index case statement: Takes a series of "cases",
+            above the last stack mark, as well as one object, the "target",
+            below the mark, which is popped. Cyclically index the target into
+            the list of cases. Push or execute that case.""",
+            stability="beta")
+    def index_marker_case(env: Environment) -> None:
+        case_list = env.pop_until_stack_marker()
+        target = env.pop()
+        env.push_or_eval(case_list[num.intify(target) % len(case_list)])
 
     @put(']_check',
             docs="""Stack check: Takes a series of case predicates above the
