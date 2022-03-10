@@ -1284,7 +1284,7 @@ def initialize_builtins(env: Environment, sandboxed: bool, debug: bool) -> None:
             stability="alpha")
 
     cput('Right_shift_or_slices', ['>s'], [
-        nonempty_right_slices_case, left_shift_case,
+        nonempty_right_slices_case, right_shift_case,
     ],
             docs="""{{ 'Right_shift'|b }} on numbers, {{ 'Right_slices'|b }} on
             a sequence""",
