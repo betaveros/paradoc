@@ -26,6 +26,8 @@ numeric_literal_token_pattern = re.compile(r"""
     —?\.[0-9]+(?:e[0-9]+)? # number starting with a decimal point
     $
     """, re.VERBOSE)
+# Assign tokens are their own thing and aren't lexed with the next token! I
+# never remember this fact. Not sure if this is the Correct thing to do...
 pd_token_pattern = re.compile(r"""
     (?:\.\.|——)[^\n\r]* # comment
     |

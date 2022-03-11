@@ -248,9 +248,11 @@ class CodeBlock(Block):
 
                     if token.startswith('{') or token in block_starters or token in short_block_starters:
                         raise NotImplementedError("Assigning to a block is reserved syntax")
-                    elif active_assign_token == '.':
+                    elif token.startswith("'") or token.startswith('"'):
+                        raise NotImplementedError("Assigning to a string or char is reserved syntax")
+                    elif active_assign_token in ('.', '⇒'):
                         env.put(token0, env.peek())
-                    elif active_assign_token == '—':
+                    elif active_assign_token in ('—', '→'):
                         env.put(token0, env.pop())
                     else:
                         raise Exception("Unexpected assign token: " + repr(active_assign_token))
@@ -287,12 +289,12 @@ class CodeBlock(Block):
                             except ValueError:
                                 raise ValueError('could not parse number ' + repr(token))
                         act_after_trailer_tokens(env, parsed_num, lex_trailer(trailer))
-                    elif token.startswith('.') or token.startswith('—'):
+                    elif token in ('.', '—', '→', '⇒'):
                         if trailer:
                             if token == '.':
                                 act_after_trailer_tokens(env, env.pop(), lex_trailer(trailer))
                             else:
-                                raise NotImplementedError("Using an em dash with trailers is reserved syntax")
+                                raise NotImplementedError("Using an em dash or arrow with trailers is reserved syntax")
                         else:
                             active_assign_token = token
                     else:

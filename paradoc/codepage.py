@@ -4,7 +4,7 @@ import itertools
 from typing import Optional, Tuple
 
 cp1252_string = codecs.decode(bytearray(range(256)), 'cp1252', 'replace')
-pd_modifications = [(0, '∅'), (1, 'α'), (2, 'β'), (5, 'ε'), (6, 'φ'), (12, 'λ'), (14, 'Ŋ'), (16, 'Ƥ'), (24, 'χ'), (26, 'ζ'), (160, '␣')]
+pd_modifications = [(0, '∅'), (1, 'α'), (2, 'β'), (3, 'γ'), (5, 'ε'), (6, 'φ'), (12, 'λ'), (14, 'Ŋ'), (16, 'Ƥ'), (24, 'χ'), (26, 'ζ'), (141, '→'), (157, '⇒'), (160, '␣')]
 
 decoding_list = list(cp1252_string)
 encoding_table = dict(zip(range(256), (ord(c) for c in cp1252_string)))
@@ -33,5 +33,8 @@ def paradoc_lookup(name: str) -> Optional[codecs.CodecInfo]:
     )
 
 codecs.register(paradoc_lookup) # type: ignore
+
+if __name__ == '__main__':
+    print(decoding_list)
 
 # vim:set tabstop=4 shiftwidth=4 expandtab fdm=marker:
